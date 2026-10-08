@@ -67,7 +67,7 @@ main{padding:12px;max-width:1500px;margin:0 auto}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 @media(max-width:1000px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
 .grid2>*,.grid3>*,.grid4>*{min-width:0}
-@media(max-width:700px){.path{flex-wrap:wrap}.path ol{overflow-x:auto;flex-basis:100%}.path li{min-width:96px}.path .btn{width:100%}main{padding:12px 16px}.g-search,.g-tools label{display:none}.logo span{display:none}.g-tools{margin-left:auto}.tbl{min-width:640px}.bar-chart .row{grid-template-columns:110px 1fr 56px!important}.fields{grid-template-columns:1fr}.notif-panel{right:8px;width:calc(100vw - 16px)}.app-name{font-size:14px}.page-h h1{font-size:16px}}
+@media(max-width:700px){.path{flex-wrap:wrap}.path ol{overflow-x:auto;flex-basis:100%}.path li{min-width:96px}.path .btn{width:100%}main{padding:12px 16px}.g-tools label{display:none}.g-header{gap:6px;padding:0 8px}.g-search{min-width:0}.role-select{max-width:84px;padding:5px 4px}.notif-panel{right:8px}main .obj-map{grid-template-columns:1fr}.logo span{display:none}.g-tools{margin-left:auto}.tbl{min-width:640px}.bar-chart .row{grid-template-columns:110px 1fr 56px!important}.fields{grid-template-columns:1fr}.notif-panel{right:8px;width:calc(100vw - 16px)}.app-name{font-size:14px}.page-h h1{font-size:16px}}
 
 .obj-icon{width:28px;height:28px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
 .obj-icon.sm{width:22px;height:22px;font-size:12px}
@@ -107,6 +107,7 @@ main{padding:12px;max-width:1500px;margin:0 auto}
 .path li:last-child{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,10px 50%);border-radius:0 16px 16px 0;margin-right:0}
 .path li.done{background:var(--path-done);color:#fff}
 .path li.cur{background:var(--path-cur);color:#fff;font-weight:700}
+.path li.rej{background:var(--red);color:#fff;font-weight:700}
 .path li.sel{outline:none;box-shadow:inset 0 0 0 2px #000}
 .path li:hover:not(.cur){filter:brightness(.95)}
 
@@ -224,7 +225,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
 .modal-f{padding:10px 16px;border-top:1px solid var(--border);background:#f3f3f3;display:flex;justify-content:flex-end;gap:6px}
 .flow-step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border)}
 .flow-step .n{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
-.notif-panel{position:absolute;right:56px;top:46px;width:360px;background:#fff;border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:80}
+.notif-panel{position:fixed;right:12px;top:80px;width:min(360px,calc(100vw - 24px));max-height:70vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:80}
 .notif-panel .it{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:12.5px}
 .notif-panel .it.unread{background:#f3f9ff}
 .notif-panel .it .tm{font-size:11px;color:var(--text-mute)}
@@ -321,7 +322,7 @@ const DB = {
   accounts:[
     {id:'A001',name:'あおば自動車部品株式会社',industry:'自動車',region:'愛知県',type:'既存顧客',phone:'0566-00-0001',owner:'山田 太郎'},
     {id:'A002',name:'みなと精機工業株式会社',industry:'汎用エンジン',region:'静岡県',type:'既存顧客',phone:'054-000-0002',owner:'山田 太郎'},
-    {id:'A003',name:'Global Motor Parts (Thailand) Co., Ltd.',industry:'自動車（EV）',region:'タイ',type:'新規',phone:'+66-0-000-0003',owner:'小林 直樹'},
+    {id:'A003',name:'Aoba Motor Parts (Thailand) Co., Ltd.',industry:'自動車（EV）',region:'タイ',type:'新規',phone:'+66-0-000-0003',owner:'小林 直樹'},
     {id:'A004',name:'さくら油圧株式会社',industry:'油空圧',region:'大阪府',type:'既存顧客',phone:'06-0000-0004',owner:'小林 直樹'},
     {id:'A005',name:'ひかり家電製造株式会社',industry:'家電',region:'滋賀県',type:'既存顧客',phone:'077-000-0005',owner:'山田 太郎'},
     {id:'A006',name:'くすのき二輪工業株式会社',industry:'オートバイ',region:'静岡県',type:'既存顧客',phone:'053-000-0006',owner:'小林 直樹'},
@@ -354,28 +355,28 @@ const DB = {
     {id:'O001',name:'シリンダーブロック用ホーニング盤 更新',acc:'A001',stage:3,amount:36800000,close:'2026-11-20',owner:'山田 太郎',prob:60,
       items:[{p:'PR02',q:1},{p:'PR05',q:2}],hearing:'H001'},
     {id:'O002',name:'コンロッド大端部 ホーニング盤',acc:'A002',stage:5,amount:20400000,close:'2026-08-28',owner:'山田 太郎',prob:100,items:[{p:'PR01',q:1},{p:'PR05',q:1}],project:'P002'},
-    {id:'O003',name:'EV向けモーターハウジング 自動ホーニングセル',acc:'A003',stage:5,amount:61100000,close:'2026-07-31',owner:'小林 直樹',prob:100,items:[{p:'PR04',q:1},{p:'PR06',q:1},{p:'PR07',q:1}],project:'P003',hearing:'H002'},
+    {id:'O003',name:'EV向けモーターハウジング 自動ホーニングセル',acc:'A003',stage:5,amount:61100000,close:'2026-07-31',owner:'小林 直樹',prob:100,items:[{p:'PR04',q:1},{p:'PR06',q:1},{p:'PR07',q:1},{p:'PR05',q:1}],project:'P003',hearing:'H002'},
     {id:'O004',name:'バルブボディ 多軸ホーニング盤',acc:'A004',stage:5,amount:34400000,close:'2026-06-30',owner:'小林 直樹',prob:100,items:[{p:'PR02',q:1},{p:'PR05',q:1}],project:'P004'},
-    {id:'O005',name:'コンプレッサー部品 ホーニング自動機',acc:'A005',stage:5,amount:28600000,close:'2026-05-29',owner:'山田 太郎',prob:100,items:[{p:'PR03',q:1},{p:'PR06',q:1}],project:'P005'},
+    {id:'O005',name:'コンプレッサー部品 ホーニング自動機',acc:'A005',stage:5,amount:28600000,close:'2026-05-29',owner:'山田 太郎',prob:100,items:[{p:'PR03',q:1},{p:'PR06',q:1},{p:'PR16',q:1}],project:'P005'},
     {id:'O006',name:'ギア内径 ホーニング盤 改造',acc:'A001',stage:4,amount:6500000,close:'2026-10-30',owner:'山田 太郎',prob:80,items:[{p:'PR08',q:1}]},
     {id:'O007',name:'シリンダースリーブ ホーニング盤',acc:'A006',stage:5,amount:20400000,close:'2026-03-31',owner:'小林 直樹',prob:100,items:[{p:'PR01',q:1},{p:'PR05',q:1}],project:'P007'},
     {id:'O008',name:'第二工場 増産対応 ホーニング盤2台',acc:'A005',stage:1,amount:48000000,close:'2027-01-29',owner:'山田 太郎',prob:20,items:[{p:'PR03',q:2}]},
     {id:'O009',name:'釜（シャトル部品）内径 ホーニング盤',acc:'A007',stage:2,amount:19800000,close:'2026-12-18',owner:'山田 太郎',prob:40,items:[{p:'PR01',q:1},{p:'PR05',q:1}]},
-    {id:'O010',name:'金型ガイドブッシュ穴 仕上げホーニング',acc:'A008',stage:0,amount:9000000,close:'2027-02-26',owner:'小林 直樹',prob:10,items:[{p:'PR08',q:1}]}
+    {id:'O010',name:'金型ガイドブッシュ穴 仕上げホーニング',acc:'A008',stage:0,amount:9000000,close:'2027-02-26',owner:'小林 直樹',prob:10,items:[{p:'PR08',q:1},{p:'PR15',q:1}]}
   ],
   /* 案件：子オブジェクト（加工・機案・設計・製造・調達）と工数をぶら下げる */
   projects:[
     {id:'P002',no:'PJ-2026-0012',name:'【みなと精機工業】コンロッド大端部 縦型ホーニング盤',acc:'A002',opp:'O002',stage:1,due:'2027-01-29',amount:20400000,budget:14000000,purchase:13500000,owner:'佐藤 健',sales:'山田 太郎',
       start:'2026-09-01',
-      kakou:{phase:'試作加工',d1:'2026-09-24',d2:'2026-10-09',d3:'2026-10-20'},
+      kakou:{phase:'精度検証',d1:'2026-09-24',d2:'2026-10-09',d3:'2026-10-20'},
       kian:{phase:'要求確認',d1:'2026-10-14',d2:'2026-10-28',d3:'2026-11-06',d4:'2026-11-13'},
       sekkei:{phase:'未着手',d1:'2026-11-09',d2:'2026-11-20',d3:'2026-12-04',d4:'2026-12-11'},
       seizou:{phase:'未着手',d1:'2026-12-14',d2:'2027-01-15'},
       chou:{phase:'長納期品手配',d1:'2026-10-01',d2:'2026-12-10'}},
-    {id:'P003',no:'PJ-2026-0009',name:'【Global Motor Parts】EV向けモーターハウジング 自動ホーニングセル',acc:'A003',opp:'O003',stage:2,due:'2027-03-19',amount:61100000,budget:43000000,purchase:41000000,owner:'佐藤 健',sales:'小林 直樹',
+    {id:'P003',no:'PJ-2026-0009',name:'【Aoba Motor Parts】EV向けモーターハウジング 自動ホーニングセル',acc:'A003',opp:'O003',stage:2,due:'2027-03-19',amount:61100000,budget:43000000,purchase:41000000,owner:'佐藤 健',sales:'小林 直樹',
       start:'2026-08-03',overseas:true,
       kakou:{phase:'完了',d1:'2026-08-20',d2:'2026-09-03',d3:'2026-09-10'},
-      kian:{phase:'機案書作成',d1:'2026-09-14',d2:'2026-10-02',d3:'2026-10-16',d4:'2026-10-23'},
+      kian:{phase:'機案書作成',d1:'2026-09-14',d2:'2026-10-09',d3:'2026-10-16',d4:'2026-10-23'},
       sekkei:{phase:'未着手',d1:'2026-10-26',d2:'2026-11-13',d3:'2026-12-04',d4:'2026-12-18'},
       seizou:{phase:'未着手',d1:'2027-01-06',d2:'2027-02-26'},
       chou:{phase:'見積取得',d1:'2026-10-05',d2:'2027-01-15'}},
@@ -477,7 +478,7 @@ const DB = {
         'A-013':'シリンダーブロック（4気筒）','A-043':'2',works:[{part:'CB-4G-001'},{part:'CB-4G-002'}],'A-016':'FC250','A-017':'なし','A-225':'86','A-226':'140','A-227':'30','A-228':'50','A-229':'有','A-028':'基準面指示図_rev1.pdf',
         qm:[{name:'真円度',st:'あり',pre:'0.010',target:'0.003',method:'真円度測定機',n:'5'},{name:'円筒度',st:'あり',pre:'0.015',target:'0.005',method:'真円度測定機',n:'5'},{name:'真直度',st:'なし'},{name:'端面振れ'},{name:'直角度'},{name:'表面粗さ',st:'あり',target:'Rz 1.6',method:'粗さ計',n:'5'}],
         'A-059':'要求あり','A-059c':'C/T（サイクルタイム）','A-059v':'45','A-059u':'秒/個','A-060':'800','A-062':'2直'}},
-    {id:'H002',no:'SF-2026-00817',name:'Global Motor Parts EV向けモーターハウジング 自動ホーニングセル',opp:'O003',acc:'A003',status:'完了',updated:'2026-07-10',
+    {id:'H002',no:'SF-2026-00817',name:'Aoba Motor Parts EV向けモーターハウジング 自動ホーニングセル',opp:'O003',acc:'A003',status:'完了',updated:'2026-07-10',
       ans:{'A-004':'Rayong, Thailand（Plant 2）','A-005':'Somchai P. / somchai@example.com','A-003':'東南アジア','A-007':['能力増強','自動化'],'A-010':'60000000','A-008':'PR04','A-009':'1','A-011':'2027-03-19',
         'A-301':'新規','A-302':'正式','A-303':'新規先','A-305':'（現地代理店）','A-306':'A',
         'A-013':'モーターハウジング','A-043':'1',works:[{part:'MH-EV-120'}],'A-016':'ADC12','A-017':'なし（鋳造品）','A-225':'120','A-226':'180','A-227':'20','A-228':'40','A-229':'無','A-230':'2026-07-31','A-028':'基準面指示図_rev1.pdf','A-033':'把持禁止部位指示図_rev1.pdf',
@@ -591,6 +592,7 @@ function bindKanban(){
     col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over')});
     col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));
     col.addEventListener('drop',e=>{e.preventDefault();const p=byId(DB.projects,e.dataTransfer.getData('text/plain'));
+      if(p&&p.stage===+col.dataset.stage){col.classList.remove('drag-over');return;}
       if(p){p.hist.unshift({dt:nowStr(),f:'ステージ',from:STAGES[p.stage],to:STAGES[+col.dataset.stage],by:meName()});p.stage=+col.dataset.stage;toast(`「${p.name}」のステージを「${STAGES[p.stage]}」に更新しました。関係者へ通知しました（自動化フロー）`);
         DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[p.stage]}」になりました`,tm:nowStr(),link:'#/project/'+p.id,unread:true});route();}});
   });
@@ -889,20 +891,28 @@ function autoVal(q,h){
   if(q.id==='A-183'){const m=byId(DB.products,h.ans['A-008']);return m?(m.family==='自動機・セル機'?'全面カバー（セル標準）':'前面スライドカバー（標準）')+' ※機種から自動決定':'（対象設備／機種を選択すると自動決定）';}
 }
 
+const HS_VIEWS={all:['すべてのヒアリングシート',h=>true],open:['回答中',h=>h.status!=='完了'],done:['完了',h=>h.status==='完了'],mine:['自分の商談のシート',h=>(byId(DB.opps,h.opp)||{}).owner===meName()]};
 function pgHearings(){
-  return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート</div><h1>すべてのヒアリングシート ▾</h1></div>
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート</div><h1>${lvSel('hearings',HS_VIEWS)}</h1></div>
     <div class="actions"><button class="btn brand" onclick="newHearing()">新規</button></div></div></div>
   <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>番号</th><th>ヒアリングシート名</th><th>取引先</th><th>商談</th><th>状況</th><th>必須項目の回答率</th><th>最終更新</th></tr></thead><tbody>
-  ${DB.hearings.map(h=>{let d=0,t=0;LAYERS.forEach(L=>{const[x,y]=layerProg(h.ans,L.n);d+=x;t+=y});
+  ${lvApply('hearings',HS_VIEWS,DB.hearings).map(h=>{let d=0,t=0;LAYERS.forEach(L=>{const[x,y]=layerProg(h.ans,L.n);d+=x;t+=y});
     return `<tr><td>${h.no}</td><td><a href="#/hearing/${h.id}">${esc(h.name)}</a></td><td>${al(h.acc)}</td><td><a href="#/opp/${h.opp}">${esc((byId(DB.opps,h.opp)||{}).name)}</a></td><td><span class="pill ${h.status==='完了'?'g':'y'}">${h.status}</span></td>
     <td style="min-width:160px"><div class="progress"><div style="width:${d/t*100}%"></div></div><span class="small muted">${d}/${t}</span></td><td>${fmtD(h.updated)}</td></tr>`}).join('')}
   </tbody></table></div></div>
   <div class="note">項目・データ型・必須条件・分岐は「次世代営業ヒアリング データ項目定義書 V1.0」（全141項目）に準拠しています。</div>`;
 }
 function newHearing(oppId){
-  const o = oppId?byId(DB.opps,oppId):DB.opps.find(o=>!DB.hearings.find(h=>h.opp===o.id)&&o.stage<5);
+  if(!oppId){
+    const cand=DB.opps.filter(o=>o.stage<5&&!DB.hearings.find(h=>h.opp===o.id));
+    if(!cand.length){toast('ヒアリングシート未作成の受注前商談がありません。商談を作成してからお試しください','info');return;}
+    modal('新規ヒアリングシート',`<div class="form1"><label>紐付ける商談（ヒアリングシート未作成の受注前商談）<select id="nhOpp">${cand.map(o=>`<option value="${o.id}">${esc(o.name)}（${esc(acc(o.acc).name)}）</option>`).join('')}</select></label></div>`,
+      ()=>{const v=$('#nhOpp').value;setTimeout(()=>newHearing(v),0);},'作成');
+    return;
+  }
+  const o = byId(DB.opps,oppId);
   const id='H'+String(100+DB.hearings.length);
-  DB.hearings.unshift({id,no:'SF-2026-00'+(880+DB.hearings.length),name:`${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans:{'A-003':'日本',qm:QM_DEFAULT.map(n=>({name:n}))}});
+  o.hearing=id; DB.hearings.unshift({id,no:'SF-2026-00'+(900+DB.hearings.length),name:`${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans:{'A-003':'日本',qm:QM_DEFAULT.map(n=>({name:n}))}});
   UI.hsLayer=1; UI.hsFocus=null; go('#/hearing/'+id); toast('ヒアリングシートを作成し、商談に紐付けました');
 }
 function pgHearing(id){
@@ -1092,7 +1102,7 @@ function newRequest(pid){
 function closeCase(id){
   const c=byId(DB.cases,id); c.cause=$('#cCause').value; c.measure=$('#cMeasure').value;
   const kid='KB'+String(DB.knowledge.length+1).padStart(2,'0');
-  DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='不具合'?'トラブル事例':'原因と対策',views:0,updated:'2026-10-08',
+  DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='不具合'?'トラブル事例':'原因と対策',views:0,votes:0,status:'下書き',updated:'2026-10-08',
     body:{現象:c.desc,原因:c.cause,対策:c.measure,関連案件:byId(DB.projects,c.pj).name}});
   c.status='クローズ'; c.kb=kid;
   toast('ケースをクローズし、ナレッジ記事（下書き）を自動作成しました'); go('#/kb/'+kid);
@@ -1137,10 +1147,10 @@ function globalSearch(q){ if(q.trim()) go('#/search/'+encodeURIComponent(q.trim(
 /* ---------- 追加サンプルデータ（レコード数 2倍化・すべて架空） ---------- */
 DB.accounts.push(
   {id:'A009',name:'しらかば自動車工業株式会社',industry:'自動車',region:'群馬県',type:'既存顧客',phone:'027-000-0009',owner:'小林 直樹'},
-  {id:'A010',name:'PT. Nusantara Engine Components',industry:'汎用エンジン',region:'インドネシア',type:'新規',phone:'+62-0-000-0010',owner:'伊藤 大輔'},
+  {id:'A010',name:'PT. Minato Engine Indonesia',industry:'汎用エンジン',region:'インドネシア',type:'新規',phone:'+62-0-000-0010',owner:'伊藤 大輔'},
   {id:'A011',name:'あさひ油機株式会社',industry:'油空圧',region:'兵庫県',type:'既存顧客',phone:'078-000-0011',owner:'山田 太郎'},
   {id:'A012',name:'こだま電機製作所株式会社',industry:'家電',region:'埼玉県',type:'既存顧客',phone:'048-000-0012',owner:'高橋 美咲'},
-  {id:'A013',name:'Changzhou Precision Hydraulics Co., Ltd.',industry:'油空圧',region:'中国',type:'新規',phone:'+86-0-000-0013',owner:'伊藤 大輔'},
+  {id:'A013',name:'Sakura Hydraulics (Changzhou) Co., Ltd.',industry:'油空圧',region:'中国',type:'新規',phone:'+86-0-000-0013',owner:'伊藤 大輔'},
   {id:'A014',name:'わかば発動機株式会社',industry:'オートバイ',region:'静岡県',type:'既存顧客',phone:'053-000-0014',owner:'小林 直樹'},
   {id:'A015',name:'いずみ金型工業株式会社',industry:'金型',region:'岐阜県',type:'既存顧客',phone:'058-000-0015',owner:'山田 太郎'},
   {id:'A016',name:'かもめ精工株式会社',industry:'ミシン',region:'長野県',type:'既存顧客',phone:'026-000-0016',owner:'高橋 美咲'}
@@ -1173,26 +1183,26 @@ DB.opps.push(
   {id:'O013',name:'モーター軸受穴 半自動ホーニング盤 2台',acc:'A012',stage:5,amount:43800000,close:'2026-08-07',owner:'高橋 美咲',prob:100,items:[{p:'PR11',q:2},{p:'PR18',q:4}],project:'P010'},
   {id:'O014',name:'クランクケース ホーニング盤 更新',acc:'A014',stage:5,amount:36200000,close:'2026-04-24',owner:'小林 直樹',prob:100,items:[{p:'PR02',q:1},{p:'PR15',q:1}],project:'P011'},
   {id:'O015',name:'油圧シリンダー 長尺ホーニング盤（中国向け）',acc:'A013',stage:5,amount:42000000,close:'2026-09-04',owner:'伊藤 大輔',prob:100,items:[{p:'PR10',q:1},{p:'PR16',q:1},{p:'PR05',q:1}],project:'P012'},
-  {id:'O016',name:'エンジンブロック 自動ホーニングセル（インドネシア）',acc:'A010',stage:2,amount:61500000,close:'2027-01-29',owner:'伊藤 大輔',prob:40,items:[{p:'PR04',q:1},{p:'PR14',q:1}]},
+  {id:'O016',name:'エンジンブロック 自動ホーニングセル（インドネシア）',acc:'A010',stage:2,amount:61500000,close:'2027-01-29',owner:'伊藤 大輔',prob:40,items:[{p:'PR04',q:1},{p:'PR14',q:1}],hearing:'H003'},
   {id:'O017',name:'ガイドポスト穴 手動ホーニング盤',acc:'A015',stage:4,amount:7700000,close:'2026-10-30',owner:'山田 太郎',prob:80,items:[{p:'PR12',q:1},{p:'PR18',q:2}]},
-  {id:'O018',name:'釜軸穴 半自動ホーニング盤',acc:'A016',stage:3,amount:21000000,close:'2026-11-27',owner:'高橋 美咲',prob:60,items:[{p:'PR11',q:1}]},
+  {id:'O018',name:'釜軸穴 半自動ホーニング盤',acc:'A016',stage:3,amount:21000000,close:'2026-11-27',owner:'高橋 美咲',prob:60,items:[{p:'PR11',q:1}],hearing:'H004'},
   {id:'O019',name:'シリンダースリーブ 2号機 増設',acc:'A006',stage:1,amount:20400000,close:'2027-02-26',owner:'小林 直樹',prob:20,items:[{p:'PR01',q:1},{p:'PR05',q:1}]},
-  {id:'O020',name:'保守契約 更新（年間）',acc:'A002',stage:4,amount:1200000,close:'2026-10-31',owner:'山田 太郎',prob:90,items:[{p:'PR17',q:1}]}
+  {id:'O020',name:'保守契約 更新（年間）',acc:'A002',stage:4,amount:1200000,close:'2026-10-31',owner:'山田 太郎',prob:80,items:[{p:'PR17',q:1}]}
 );
 DB.projects.push(
   {id:'P008',no:'PJ-2026-0002',name:'【しらかば自動車工業】シリンダーライナー 自動ホーニングライン',acc:'A009',opp:'O011',stage:4,due:'2026-12-25',amount:92800000,budget:68000000,purchase:60000000,owner:'松本 翔',sales:'小林 直樹',start:'2026-06-22',
     kakou:{phase:'完了',d1:'2026-07-01',d2:'2026-07-15',d3:'2026-07-24'},kian:{phase:'完了',d1:'2026-07-20',d2:'2026-07-31',d3:'2026-08-07',d4:'2026-08-14'},
-    sekkei:{phase:'出図済',d1:'2026-08-10',d2:'2026-08-24',d3:'2026-09-07',d4:'2026-09-14'},seizou:{phase:'組立',d1:'2026-09-14',d2:'2026-12-04'},chou:{phase:'入荷済',d1:'2026-08-17',d2:'2026-10-30'}},
+    sekkei:{phase:'出図済',d1:'2026-08-10',d2:'2026-08-24',d3:'2026-09-07',d4:'2026-09-14'},seizou:{phase:'組立',d1:'2026-09-14',d2:'2026-12-04'},chou:{phase:'発注済',d1:'2026-08-17',d2:'2026-10-30'}},
   {id:'P009',no:'PJ-2026-0004',name:'【あさひ油機】ポンプケーシング 横型ホーニング盤',acc:'A011',opp:'O012',stage:3,due:'2027-01-22',amount:25600000,budget:18500000,purchase:15000000,owner:'木村 拓也',sales:'山田 太郎',start:'2026-07-21',
     kakou:{phase:'完了',d1:'2026-08-05',d2:'2026-08-19',d3:'2026-08-26'},kian:{phase:'完了',d1:'2026-08-24',d2:'2026-09-04',d3:'2026-09-11',d4:'2026-09-18'},
     sekkei:{phase:'DR1',d1:'2026-09-21',d2:'2026-10-09',d3:'2026-10-30',d4:'2026-11-13'},seizou:{phase:'未着手',d1:'2026-11-16',d2:'2027-01-08'},chou:{phase:'長納期品手配',d1:'2026-09-28',d2:'2026-12-11'}},
   {id:'P010',no:'PJ-2026-0007',name:'【こだま電機製作所】モーター軸受穴 半自動ホーニング盤',acc:'A012',opp:'O013',stage:2,due:'2026-11-20',amount:43800000,budget:32000000,purchase:35500000,owner:'松本 翔',sales:'高橋 美咲',start:'2026-08-17',
     kakou:{phase:'完了',d1:'2026-08-26',d2:'2026-09-09',d3:'2026-09-18'},kian:{phase:'原価見積',d1:'2026-09-21',d2:'2026-10-02',d3:'2026-10-09',d4:'2026-10-16'},
-    sekkei:{phase:'未着手',d1:'2026-10-19',d2:'2026-10-30',d3:'2026-11-06',d4:'2026-11-13'},seizou:{phase:'未着手',d1:'2026-10-26',d2:'2026-11-13'},chou:{phase:'長納期品手配',d1:'2026-09-28',d2:'2026-11-06'}},
+    sekkei:{phase:'未着手',d1:'2026-10-19',d2:'2026-10-30',d3:'2026-11-06',d4:'2026-11-13'},seizou:{phase:'未着手',d1:'2026-11-09',d2:'2026-11-18'},chou:{phase:'長納期品手配',d1:'2026-09-28',d2:'2026-11-06'}},
   {id:'P011',no:'PJ-2026-0005',name:'【わかば発動機】クランクケース ホーニング盤 更新',acc:'A014',opp:'O014',stage:5,due:'2026-09-18',amount:36200000,budget:26000000,purchase:22000000,owner:'木村 拓也',sales:'小林 直樹',start:'2026-05-07',
     kakou:{phase:'完了',d1:'2026-05-15',d2:'2026-05-29',d3:'2026-06-05'},kian:{phase:'完了',d1:'2026-06-01',d2:'2026-06-12',d3:'2026-06-19',d4:'2026-06-26'},
     sekkei:{phase:'出図済',d1:'2026-06-22',d2:'2026-07-03',d3:'2026-07-17',d4:'2026-07-24'},seizou:{phase:'完了',d1:'2026-07-27',d2:'2026-09-04'},chou:{phase:'入荷済',d1:'2026-06-29',d2:'2026-08-07'}},
-  {id:'P012',no:'PJ-2026-0010',name:'【Changzhou Precision Hydraulics】油圧シリンダー 長尺ホーニング盤',acc:'A013',opp:'O015',stage:1,due:'2027-02-26',amount:42000000,budget:30000000,purchase:28000000,owner:'佐藤 健',sales:'伊藤 大輔',start:'2026-09-14',overseas:true,
+  {id:'P012',no:'PJ-2026-0010',name:'【Sakura Hydraulics (Changzhou)】油圧シリンダー 長尺ホーニング盤',acc:'A013',opp:'O015',stage:1,due:'2027-02-26',amount:42000000,budget:30000000,purchase:28000000,owner:'佐藤 健',sales:'伊藤 大輔',start:'2026-09-14',overseas:true,
     kakou:{phase:'試作加工',d1:'2026-09-30',d2:'2026-10-14',d3:'2026-10-21'},kian:{phase:'要求確認',d1:'2026-10-19',d2:'2026-11-02',d3:'2026-11-09',d4:'2026-11-16'},
     sekkei:{phase:'未着手',d1:'2026-11-16',d2:'2026-12-04',d3:'2026-12-18',d4:'2026-12-25'},seizou:{phase:'未着手',d1:'2027-01-06',d2:'2027-02-12'},chou:{phase:'見積取得',d1:'2026-10-12',d2:'2027-01-15'}}
 );
@@ -1219,7 +1229,7 @@ DB.kousu.push(
   {pj:'P012',sub:'kakou',name:'試作加工・測定',plan:50,act:20,cm:''},
   {pj:'P012',sub:'kian',name:'中国規格（CCC）調査',plan:16,act:4,cm:''},
   {pj:'P002',sub:'chou',name:'長納期品手配',plan:20,act:12,cm:''},
-  {pj:'P004',sub:'seizou',name:'部品加工',plan:120,act:20,cm:''},
+  {pj:'P004',sub:'seizou',name:'部品加工',plan:120,act:0,cm:'着手前（予定のみ）'},
   {pj:'P003',sub:'chou',name:'ロボット見積取得',plan:16,act:10,cm:''},
   {pj:'P005',sub:'seizou',name:'調整・検査',plan:80,act:30,cm:''}
 );
@@ -1259,7 +1269,7 @@ const HS_DOMESTIC_DONE = {'A-004':'長野県○○市 本社工場','A-005':'藤
   'A-137':'半自動機(MR/MS系)','A-328':'別置き式','A-328f':'ペーパーフィルター','A-328w':'不要','A-330':'ボックスファン（標準）','A-331':'選択1','A-333':'30種（標準）',
   'A-166':'AC200V 3相','A-167':'50Hz','A-169':'0.5','A-185':'日進標準色'};
 DB.hearings.push(
-  {id:'H003',no:'SF-2026-00888',name:'PT. Nusantara Engine エンジンブロック 自動ホーニングセル',opp:'O016',acc:'A010',status:'回答中',updated:'2026-10-03',
+  {id:'H003',no:'SF-2026-00888',name:'PT. Minato Engine エンジンブロック 自動ホーニングセル',opp:'O016',acc:'A010',status:'回答中',updated:'2026-10-03',
     ans:{'A-004':'Karawang, Indonesia（Plant 1）','A-005':'Budi Santoso / budi@example.com','A-003':'東南アジア','A-007':['能力増強','自動化'],'A-010':'60000000','A-008':'PR04','A-009':'1','A-011':'2027-06-30',
       'A-301':'新規','A-302':'概略','A-303':'新規先','A-013':'エンジンブロック（3気筒）','A-043':'1',works:[{part:'EB-3C-01'}],'A-016':'FC230',qm:QM_DEFAULT.map(n=>({name:n})),'A-137':'セル機','A-140':'Yes'}},
   {id:'H004',no:'SF-2026-00891',name:'かもめ精工 釜軸穴 半自動ホーニング盤',opp:'O018',acc:'A016',status:'完了',updated:'2026-09-30',ans:HS_DOMESTIC_DONE}
@@ -1310,7 +1320,7 @@ DB.activities = [
   {id:'AC14',type:'ToDo',subject:'ヒアリングシートの作成',date:'2026-10-13',what:['opp','O009'],owner:'山田 太郎',status:'未着手',memo:''},
   {id:'AC15',type:'行動',subject:'引き合い対応（電話）',date:'2026-10-05',what:['opp','O010'],who:'C009',owner:'小林 直樹',status:'完了',memo:'図面を後日受領予定。'},
   {id:'AC16',type:'行動',subject:'増産計画ヒアリング',date:'2026-10-20',what:['opp','O008'],who:'C006',owner:'山田 太郎',status:'予定',memo:''},
-  {id:'AC17',type:'ToDo',subject:'原価見積の回答（ロボット搬送ユニット）',date:'2026-10-09',what:['project','P003'],owner:'斎藤 誠',status:'完了',memo:''},
+  {id:'AC17',type:'ToDo',subject:'原価見積の回答（ロボット搬送ユニット）',date:'2026-10-05',what:['project','P003'],owner:'斎藤 誠',status:'完了',memo:''},
   {id:'AC18',type:'行動',subject:'年次訪問（既納機の稼働状況確認）',date:'2026-09-18',what:['account','A001'],who:'C001',owner:'山田 太郎',status:'完了',memo:'第二工場での更新ニーズあり。'},
   {id:'AC19',type:'行動',subject:'ライン連結部 仕様打合せ',date:'2026-10-05',what:['project','P008'],who:'C010',owner:'松本 翔',status:'完了',memo:'連結コンベアの追加要望。追加請求で対応する方針。'},
   {id:'AC20',type:'ToDo',subject:'追加請求（ライン連結部）の承認フォロー',date:'2026-10-09',what:['project','P008'],owner:'小林 直樹',status:'未着手',memo:''},
@@ -1329,16 +1339,23 @@ DB.activities = [
   {id:'AC33',type:'ToDo',subject:'見積提出後のフォロー',date:'2026-10-13',what:['opp','O018'],who:'C017',owner:'高橋 美咲',status:'未着手',memo:''},
   {id:'AC34',type:'行動',subject:'2号機増設の情報交換',date:'2026-10-19',what:['opp','O019'],who:'C007',owner:'小林 直樹',status:'予定',memo:''},
   {id:'AC35',type:'ToDo',subject:'保守契約書の送付',date:'2026-10-09',what:['opp','O020'],who:'C003',owner:'山田 太郎',status:'未着手',memo:''},
+  {id:'AC37',type:'行動',subject:'納入立会い・検収',date:'2026-09-29',what:['project','P007'],who:'C007',owner:'木村 拓也',status:'完了',memo:'検収完了。測定値のばらつきは別途ケースで対応。'},
+  {id:'AC38',type:'ToDo',subject:'長納期品（主軸ユニット）の発注確認',date:'2026-10-13',what:['project','P009'],owner:'吉田 さやか',status:'未着手',memo:''},
+  {id:'AC39',type:'行動',subject:'技術部 案件レビュー会議（採算悪化）',date:'2026-10-13',what:['project','P010'],owner:'石井 隆',status:'予定',memo:'松本・井上・企画部（森田）同席。'},
+  {id:'AC40',type:'ToDo',subject:'月次 採算レポートの確認',date:'2026-10-15',what:['project','P005'],owner:'森田 浩',status:'未着手',memo:''},
+  {id:'AC41',type:'行動',subject:'組立工程の段取り確認',date:'2026-10-06',what:['project','P008'],owner:'清水 健太',status:'完了',memo:''},
   {id:'AC36',type:'行動',subject:'新製品紹介（展示会フォロー）',date:'2026-09-29',what:['account','A012'],who:'C013',owner:'高橋 美咲',status:'完了',memo:''}
 ];
-DB.quotes = DB.opps.map(o=>({id:'Q'+o.id.slice(1),no:'QT-2026-'+o.id.slice(1).padStart(4,'0'),opp:o.id,status:o.stage>=5?'承認済':o.stage>=3?'提出済':'作成中',date:o.stage>=3?'2026-09-'+String(10+(+o.id.slice(1))).padStart(2,'0'):'2026-10-08',valid:'2026-12-31'}));
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
+DB.quotes = DB.opps.map(o=>{const date=o.stage>=5?addDays(o.close,-21):o.stage>=3?addDays('2026-10-08',-7-(+o.id.slice(1))%10):'2026-10-08';
+  return {id:'Q'+o.id.slice(1),no:'QT-2026-'+o.id.slice(1).padStart(4,'0'),opp:o.id,status:o.stage>=5?'承認済':o.stage>=3?'提出済':'作成中',date,valid:addDays(date,90)};});
 DB.batches = ['09/25','09/26','09/27','09/28','09/29','09/30','10/01','10/02','10/03','10/04','10/05','10/06','10/07','10/08'].map((d,i)=>{const n=[2,3,1,4,2,3,9,3,2,4,1,2,5,18][i];
   return {id:'B'+String(i+1).padStart(2,'0'),dt:`2026/${d} 02:00`,file:`item_master_2026${d.replace('/','')}.csv`,status:(i===4||i===9)?'一部エラー':'成功',ins:i===6?9:0,upd:i===6?0:n,err:(i===4||i===9)?1:0,
     errMsg:i===4?'TL-TOOL：商品コードが重複しています':i===9?'TL-STONE：標準価格が数値ではありません（"12,000円"）':'',
     prods:i===13?DB.products.map(p=>p.id):i===6?DB.products.slice(9).map(p=>p.id):Array.from({length:n},(_,k)=>DB.products[(i*3+k)%DB.products.length].id)};});
 DB.projects.forEach(p=>{p.hist=[{dt:fmtD(p.start)+' 09:00',f:'作成',from:'',to:'商談受注フローにより自動作成',by:'自動化フロー'}];
-  if(p.stage>0) p.hist.unshift({dt:'2026/09/'+(10+p.stage)+' 17:20',f:'ステージ',from:STAGES[p.stage-1],to:STAGES[p.stage],by:p.owner});});
-DB.knowledge.forEach(k=>k.votes=Math.round(k.views/6));
+  if(p.stage>0){const sd=new Date(p.start),span=Math.min(TODAY-sd,new Date(p.due)-sd);sd.setTime(sd.getTime()+span*Math.min(0.9,p.stage/6));p.hist.unshift({dt:fmtD(sd.toISOString().slice(0,10))+' 17:20',f:'ステージ',from:STAGES[p.stage-1],to:STAGES[p.stage],by:p.owner});}});
+DB.knowledge.forEach(k=>{k.votes=Math.round(k.views/6);k.status='公開済';});
 UI.follow = new Set(['project:P003']); UI.lv = {}; UI.recent = []; UI.kbCat = 'すべて';
 
 /* ---------- リンク・共通部品 ---------- */
@@ -1618,6 +1635,7 @@ function renderNav(cur){
     NAV.filter(n=>n.roles.includes(ROLE)).map(n=>`<a class="nav-item ${cur===n.k?'active':''}" href="#/${n.k}">${n.label}</a>`).join('');
 }
 function route(){
+  if(!/^#\/kb\//.test(CUR)) UI.kbSeen=null;
   const h = CUR.replace(/^#\//,'') || 'home';
   const [page,id,sub] = h.split('/');
   const navKey = {project:'projects',opp:'opps',account:'accounts',contact:'contacts',request:'requests',case:'cases',kb:'knowledge',hearing:'hearings',sub:'projects',
@@ -1846,7 +1864,7 @@ function newOpp(accId){
    ========================================================= */
 function pgRequests(){
   const V={all:['すべての依頼',r=>true],open:['未完了（承認待ち・依頼中）',r=>r.status==='承認待ち'||r.status==='依頼中'],mine:['自分が依頼したもの',r=>r.requester===meName()],
-    approve:['自分の承認待ち',r=>r.status==='承認待ち'&&r.approvals.some(x=>x.st==='未承認'&&userBy(x.who)&&userBy(x.who).name===meName())],cost:['原価見積依頼',r=>r.type==='原価見積依頼'],add:['追加請求',r=>r.type==='追加請求']};
+    approve:['営業部長の承認待ち',r=>r.status==='承認待ち'],cost:['原価見積依頼',r=>r.type==='原価見積依頼'],add:['追加請求',r=>r.type==='追加請求']};
   const rows=lvApply('requests',V,DB.requests);
   return listPage({icon:'i-req',em:'✉',label:'依頼',sel:lvSel('requests',V),count:rows.length,
     table:tbl(['依頼番号','件名','種別','案件','依頼先','状況','依頼者','依頼日'],rows.map(r=>tr([`<a href="#/request/${r.id}">${r.no}</a>`,`<a href="#/request/${r.id}">${esc(r.name)}</a>`,r.type,`<a href="#/project/${r.pj}">${byId(DB.projects,r.pj).no}</a>`,r.to,stPill(r.status),ul(r.requester),fmtD(r.created)])))});
@@ -1855,16 +1873,16 @@ function pgRequest(id){
   const r=byId(DB.requests,id); if(!r) return notFound();
   const p=byId(DB.projects,r.pj);
   const tgt=r.lines.reduce((a,l)=>a+l.target*l.q,0), ans=r.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0);
-  const steps=r.type==='追加請求'?['申請前','承認待ち','承認済']:['依頼中','回答済','完了'];
-  const cur=r.type==='追加請求'?(r.status==='承認済'?2:r.status==='承認待ち'?1:0):(r.status==='回答済'?1:r.status==='完了'?2:0);
+  const steps=r.type==='追加請求'?['申請前','承認待ち',r.status==='却下'?'却下':'承認済']:['依頼中','回答済','完了'];
+  const cur=r.type==='追加請求'?(r.status==='承認済'||r.status==='却下'?2:r.status==='承認待ち'?1:0):(r.status==='回答済'?1:r.status==='完了'?2:0);
   const canApprove=r.status==='承認待ち'&&ROLE!=='gijutsu';
   const others=DB.requests.filter(x=>x.pj===r.pj&&x.id!==id);
   return recHeader({icon:'i-req',em:'✉',label:'依頼｜'+r.no,title:esc(r.name),
     actions:`${r.type==='原価見積依頼'&&r.status==='依頼中'?`<button class="btn brand" onclick="answerReq('${r.id}')">回答を入力</button>`:''}${r.type==='原価見積依頼'&&r.status==='回答済'?`<button class="btn" onclick="finishReq('${r.id}')">見積に反映して完了</button>`:''}
       ${canApprove?`<div class="btn-group"><button class="btn success" onclick="approve('${r.id}',true)">承認</button><button class="btn danger" onclick="approve('${r.id}',false)">却下</button></div>`:''}
       ${r.status==='承認待ち'&&ROLE==='gijutsu'?`<span class="pill y">承認者：営業部長（企画部／営業部ロールで承認できます）</span>`:''}`,
-    hl:[['種別',r.type],['案件',pl(p.id)],['依頼先',r.to],['ターゲット合計',yen(tgt)],['回答合計',ans?yen(ans):'—'],['依頼者',ul(r.requester)]]})
-  +`<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
+    hl:[['種別',r.type],['状況',stPill(r.status)],['案件',pl(p.id)],['依頼先',r.to],['ターゲット合計',yen(tgt)],['回答合計',ans?yen(ans):'—'],['依頼者',ul(r.requester)]]})
+  +`<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?(s==='却下'?'rej':'cur'):''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
   <div class="grid2"><div>
   ${relCard('i-req','✉',r.type==='追加請求'?'追加請求明細':'1．'+r.to+'へ見積依頼',r.lines.length,tbl(['明細No','品目','品目詳細','#数量','#ターゲット単価','#回答単価','#差異'],
     r.lines.map((l,i)=>tr([`<a onclick="lineModal('${r.id}',${i})">${l.no}</a>`,esc(l.item),esc(l.detail),[l.q.toFixed(2)],[yen(l.target)],[l.ans==null?'<span class="muted">回答待ち</span>':yen(l.ans)],[`<span style="color:${l.ans>l.target?'var(--red)':''}">${l.ans==null?'':(l.ans-l.target>0?'+':'')+(l.ans-l.target).toLocaleString()}</span>`]]))))}
@@ -1924,10 +1942,10 @@ function pgKnowledge(){
       tbl(['タイトル','カテゴリ','#閲覧数','#役に立った','元ケース','最終更新'],rows.map(k=>{const c=DB.cases.find(x=>x.kb===k.id);return tr([`<a href="#/kb/${k.id}">${esc(k.title)}</a>`,k.cat,[k.views],[k.votes],c?`<a href="#/case/${c.id}">${c.no}</a>`:'—',fmtD(k.updated)]);}))});
 }
 function pgKb(id){
-  const k=byId(DB.knowledge,id); if(!k) return notFound(); k.views++;
+  const k=byId(DB.knowledge,id); if(!k) return notFound(); if(UI.kbSeen!==id){k.views++;UI.kbSeen=id;} k.votes=k.votes||0; k.status=k.status||'公開済';
   const c=DB.cases.find(x=>x.kb===id), rel=DB.knowledge.filter(x=>x.id!==id&&x.cat===k.cat);
-  return recHeader({icon:'i-know',em:'📖',label:'ナレッジ｜'+k.cat,title:esc(k.title),actions:`<span class="pill ${k.views<=1?'y':'g'}">${k.views<=1?'下書き':'公開済'}</span>${k.views<=1?`<button class="btn brand" onclick="byId(DB.knowledge,'${id}').views=5;toast('記事を公開しました');route()">公開する</button>`:''}<button class="btn" onclick="byId(DB.knowledge,'${id}').votes++;toast('「役に立った」を記録しました','info');route()">👍 役に立った（${k.votes}）</button>`,
-    hl:[['カテゴリ',k.cat],['閲覧',k.views],['最終更新',fmtD(k.updated)],['元ケース',c?`<a href="#/case/${c.id}">${c.no} ${esc(c.subject)}</a>`:'—']]})
+  return recHeader({icon:'i-know',em:'📖',label:'ナレッジ｜'+k.cat,title:esc(k.title),actions:`<span class="pill ${k.status==='下書き'?'y':'g'}">${k.status}</span>${k.status==='下書き'?`<button class="btn brand" onclick="byId(DB.knowledge,'${id}').status='公開済';toast('記事を公開しました');route()">公開する</button>`:''}<button class="btn" onclick="byId(DB.knowledge,'${id}').votes++;toast('「役に立った」を記録しました','info');route()">👍 役に立った（${k.votes}）</button>`,
+    hl:[['カテゴリ',k.cat],['公開状況',k.status],['閲覧',k.views],['最終更新',fmtD(k.updated)],['元ケース',c?`<a href="#/case/${c.id}">${c.no} ${esc(c.subject)}</a>`:'—']]})
   +`<div class="grid2"><div class="card"><div class="card-b kb-article" style="padding-top:4px">${Object.entries(k.body).map(([h,t])=>`<h3>${h}</h3><p>${esc(t)}</p>`).join('')}</div></div>
   <div>${relCard('i-know','📖','同じカテゴリの記事',rel.length,rel.map(x=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${x.id}">${esc(x.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
   ${c?relCard('i-project','📁','関連案件',1,pl(c.pj)):''}</div></div>`;
@@ -1936,7 +1954,7 @@ function newKb(){
   modal('新規ナレッジ記事',`<div class="form1"><label>タイトル<input id="kbT" value="（デモ）試作時の面粗度不良の対策"></label>
     <label>カテゴリ<select id="kbC"><option>トラブル事例</option><option>原因と対策</option><option>作業手順</option><option>既知の不具合</option></select></label>
     <label>現象<textarea id="kbB1" rows="2">面粗度が要求値を満たさない。</textarea></label><label>対策<textarea id="kbB2" rows="2">砥石番手と加工条件を見直す。</textarea></label></div>`,
-    ()=>{const id='KB'+String(DB.knowledge.length+1).padStart(2,'0');DB.knowledge.unshift({id,title:$('#kbT').value,cat:$('#kbC').value,views:0,votes:0,updated:'2026-10-08',body:{現象:$('#kbB1').value,対策:$('#kbB2').value}});setTimeout(()=>go('#/kb/'+id),0);toast('記事を下書き保存しました');});
+    ()=>{const id='KB'+String(DB.knowledge.length+1).padStart(2,'0');DB.knowledge.unshift({id,title:$('#kbT').value,cat:$('#kbC').value,views:0,votes:0,status:'下書き',updated:'2026-10-08',body:{現象:$('#kbB1').value,対策:$('#kbB2').value}});setTimeout(()=>go('#/kb/'+id),0);toast('記事を下書き保存しました');});
 }
 
 /* =========================================================
@@ -1990,7 +2008,7 @@ function renderNotifCount(){const n=DB.notifs.filter(x=>x.unread).length;const b
   if(UI.notifOpen) renderNotifPanel();}
 function toggleNotif(){UI.notifOpen=!UI.notifOpen;renderNotifPanel();}
 function renderNotifPanel(){
-  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
+  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel" style="top:${Math.round($('.g-header').getBoundingClientRect().bottom)+4}px"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
     ${DB.notifs.slice(0,8).map((n,i)=>`<div class="it ${n.unread?'unread':''}"><a href="${n.link}" onclick="DB.notifs[${i}].unread=false;UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}</div></div>`).join('')}</div>`:'';
 }
 document.addEventListener('click',e=>{if(UI.notifOpen&&!e.target.closest('.notif-panel')&&!e.target.closest('.icon-btn')){UI.notifOpen=false;renderNotifPanel();}});
