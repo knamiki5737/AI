@@ -35,6 +35,8 @@ input,select,textarea{font-family:inherit;font-size:13px}
 
 /* ---------- グローバルヘッダー ---------- */
 .g-header{background:#fff;height:50px;display:flex;align-items:center;padding:0 12px;gap:12px;border-bottom:1px solid var(--border)}
+.icon-btn:disabled{opacity:.35;cursor:default}
+a.logo{text-decoration:none}
 .logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--brand-dark);white-space:nowrap}
 .logo .mark{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#0176d3,#3ba755);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
 .g-search{flex:1;max-width:560px;margin:0 auto;position:relative}
@@ -280,7 +282,7 @@ a.tab{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 </div>
 
 <header class="g-header">
-  <div class="logo"><div class="mark">P</div><span>日進ProSOL</span></div>
+  <button class="icon-btn" title="戻る" onclick="goBack()" id="backBtn">←</button><a class="logo" href="#/home"><div class="mark">P</div><span>日進ProSOL</span></a>
   <div class="g-search"><input id="gsearch" placeholder="案件・商談・取引先・ナレッジを検索..." onkeydown="if(event.key==='Enter')globalSearch(this.value)"></div>
   <div class="g-tools">
     <label class="small muted">ロール</label>
@@ -552,7 +554,24 @@ function setRole(r){
 /* =========================================================
    ルーター
    ========================================================= */
-window.addEventListener('hashchange',route);
+/* 画面遷移：プレビュー（埋め込み表示）でも動くよう、URLのハッシュに依存せずアプリ内で遷移する */
+let CUR = (location.hash && location.hash.startsWith('#/')) ? location.hash : '#/home';
+const NAV_HIST = [];
+const IS_TOP = (()=>{try{return window.top===window.self;}catch(e){return false;}})();
+function go(h){
+  if(!h||h===CUR){route();return;}
+  NAV_HIST.push(CUR); CUR=h;
+  if(IS_TOP){try{history.pushState(null,'',h);}catch(e){}}
+  route();
+}
+function goBack(){ if(!NAV_HIST.length) return; CUR=NAV_HIST.pop(); if(IS_TOP){try{history.replaceState(null,'',CUR);}catch(e){}} route(); }
+document.addEventListener('click',e=>{
+  if(e.defaultPrevented||e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey) return;
+  const a=e.target.closest('a[href^="#/"]'); if(!a) return;
+  e.preventDefault(); go(a.getAttribute('href'));
+});
+window.addEventListener('popstate',()=>{CUR=(location.hash&&location.hash.startsWith('#/'))?location.hash:'#/home';route();});
+window.addEventListener('hashchange',()=>{if(location.hash.startsWith('#/')&&location.hash!==CUR){CUR=location.hash;route();}});
 /* =========================================================
    ホーム（ダッシュボード）
    ========================================================= */
@@ -665,7 +684,7 @@ function runWonFlow(o){
     <div class="flow-step"><div class="n">4</div><div><b>ヒアリングシートを紐付け</b>：${DB.hearings.find(h=>h.opp===o.id)?'あり（案件へ連携）':'なし'}</div></div>
     <div class="flow-step"><div class="n">5</div><div><b>関係者へ通知</b>：技術部（案件担当の割当依頼）、調達部、企画部</div></div>
     <div class="flow-step" style="border:none"><div class="n" style="background:#b0adab">!</div><div class="small muted">エラーハンドリング：生成失敗時はシステム管理者へメール通知し、商談に「案件生成エラー」フラグを立てます（設計で確定）</div></div>`,
-    ()=>{location.hash='#/project/'+pid},'案件を開く');
+    ()=>{go('#/project/'+pid)},'案件を開く');
   route();
 }
 /* =========================================================
@@ -884,7 +903,7 @@ function newHearing(oppId){
   const o = oppId?byId(DB.opps,oppId):DB.opps.find(o=>!DB.hearings.find(h=>h.opp===o.id)&&o.stage<5);
   const id='H'+String(100+DB.hearings.length);
   DB.hearings.unshift({id,no:'SF-2026-00'+(880+DB.hearings.length),name:`${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans:{'A-003':'日本',qm:QM_DEFAULT.map(n=>({name:n}))}});
-  UI.hsLayer=1; UI.hsFocus=null; location.hash='#/hearing/'+id; toast('ヒアリングシートを作成し、商談に紐付けました');
+  UI.hsLayer=1; UI.hsFocus=null; go('#/hearing/'+id); toast('ヒアリングシートを作成し、商談に紐付けました');
 }
 function pgHearing(id){
   const h=byId(DB.hearings,id); if(!h) return notFound();
@@ -1064,7 +1083,7 @@ function newRequest(pid){
         lines:[{no:no+'-1',item:$('#rItem').value,detail:'',q:1,target:+$('#rTgt').value,ans:type==='追加請求'?+$('#rTgt').value:null}],
         approvals:type==='追加請求'?[{step:'承認申請が提出されました',date:nowStr(),st:'申請済み',who:USERS[ROLE].name.replace(/（.*/,'')},{step:'部長承認',date:nowStr(),st:'未承認',who:'田中 三郎（営業部長）'}]:[]});
       DB.notifs.unshift({t:`新しい依頼「${$('#rName').value}」が届きました（${$('#rTo').value}）`,tm:nowStr(),link:'#/request/'+id,unread:true});
-      setTimeout(()=>location.hash='#/request/'+id,0);toast('依頼を起票し、依頼先へ通知しました');});
+      setTimeout(()=>go('#/request/'+id),0);toast('依頼を起票し、依頼先へ通知しました');});
 }
 
 /* =========================================================
@@ -1076,7 +1095,7 @@ function closeCase(id){
   DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='不具合'?'トラブル事例':'原因と対策',views:0,updated:'2026-10-08',
     body:{現象:c.desc,原因:c.cause,対策:c.measure,関連案件:byId(DB.projects,c.pj).name}});
   c.status='クローズ'; c.kb=kid;
-  toast('ケースをクローズし、ナレッジ記事（下書き）を自動作成しました'); location.hash='#/kb/'+kid;
+  toast('ケースをクローズし、ナレッジ記事（下書き）を自動作成しました'); go('#/kb/'+kid);
 }
 /* ---------- ナレッジ ---------- */
 /* =========================================================
@@ -1114,7 +1133,7 @@ function pgCosts(){
    オブジェクト構成（参照用）
    ========================================================= */
 /* ---------- 検索 ---------- */
-function globalSearch(q){ if(q.trim()) location.hash='#/search/'+encodeURIComponent(q.trim()); }
+function globalSearch(q){ if(q.trim()) go('#/search/'+encodeURIComponent(q.trim())); }
 /* =========================================================
    ユーザー・活動・見積・取込履歴（追加データ）
    ========================================================= */
@@ -1282,7 +1301,7 @@ function newContact(accId){
   modal('新規取引先責任者',`<div class="form1">
     <label>取引先<select id="cAcc">${DB.accounts.map(a=>`<option value="${a.id}" ${a.id===accId?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label>
     <label>氏名<input id="cName" value="（デモ）新規 担当者"></label><label>役職・部署<input id="cTitle" value="生産技術課"></label><label>メール<input id="cMail" value="new@example.com"></label></div>`,
-  ()=>{const id='C'+String(DB.contacts.length+1).padStart(3,'0')+'N';DB.contacts.push({id,acc:$('#cAcc').value,name:$('#cName').value,title:$('#cTitle').value,email:$('#cMail').value});setTimeout(()=>location.hash='#/contact/'+id,0);toast('取引先責任者を作成しました');});
+  ()=>{const id='C'+String(DB.contacts.length+1).padStart(3,'0')+'N';DB.contacts.push({id,acc:$('#cAcc').value,name:$('#cName').value,title:$('#cTitle').value,email:$('#cMail').value});setTimeout(()=>go('#/contact/'+id),0);toast('取引先責任者を作成しました');});
 }
 
 /* ---------- 取引先 ---------- */
@@ -1311,7 +1330,7 @@ function newAccount(){
   modal('新規取引先',`<div class="form1"><label>取引先名<input id="naName" value="（デモ）みどり精密工業株式会社"></label>
     <label>業界<select id="naInd">${['自動車','オートバイ','汎用エンジン','油空圧','家電','金型','ミシン','その他'].map(x=>`<option>${x}</option>`).join('')}</select></label>
     <label>地域<input id="naReg" value="長野県"></label></div>`,
-  ()=>{const id='A'+String(DB.accounts.length+1).padStart(3,'0');DB.accounts.push({id,name:$('#naName').value,industry:$('#naInd').value,region:$('#naReg').value,type:'新規',phone:'—',owner:meName()});setTimeout(()=>location.hash='#/account/'+id,0);toast('取引先を作成しました');});
+  ()=>{const id='A'+String(DB.accounts.length+1).padStart(3,'0');DB.accounts.push({id,name:$('#naName').value,industry:$('#naInd').value,region:$('#naReg').value,type:'新規',phone:'—',owner:meName()});setTimeout(()=>go('#/account/'+id),0);toast('取引先を作成しました');});
 }
 
 /* ---------- 商品・取込履歴 ---------- */
@@ -1411,7 +1430,7 @@ const RECORD_PAGES = ['project','sub','opp','account','contact','hearing','reque
 function trackRecent(page){
   if(!RECORD_PAGES.includes(page)) return; const h1=$('#main h1'); if(!h1) return;
   const t=h1.textContent.trim(), lab=($('#main .obj-label')||{}).textContent||'';
-  UI.recent=[{h:location.hash,t,k:lab.split('｜')[0]},...UI.recent.filter(r=>r.h!==location.hash)].slice(0,8);
+  UI.recent=[{h:CUR,t,k:lab.split('｜')[0]},...UI.recent.filter(r=>r.h!==CUR)].slice(0,8);
 }
 
 /* =========================================================
@@ -1436,7 +1455,7 @@ function renderNav(cur){
     NAV.filter(n=>n.roles.includes(ROLE)).map(n=>`<a class="nav-item ${cur===n.k?'active':''}" href="#/${n.k}">${n.label}</a>`).join('');
 }
 function route(){
-  const h = location.hash.replace(/^#\//,'') || 'home';
+  const h = CUR.replace(/^#\//,'') || 'home';
   const [page,id,sub] = h.split('/');
   const navKey = {project:'projects',opp:'opps',account:'accounts',contact:'contacts',request:'requests',case:'cases',kb:'knowledge',hearing:'hearings',sub:'projects',
     product:'products',batch:'products',quote:'opps',quotes:'opps',activity:'activities',user:'',users:''}[page]??page;
@@ -1451,6 +1470,7 @@ function route(){
   trackRecent(page);
   window.scrollTo(0,0);
   renderNotifCount();
+  const bb=$('#backBtn'); if(bb) bb.disabled=!NAV_HIST.length;
 }
 
 /* =========================================================
@@ -1465,14 +1485,14 @@ function pgHome(){
   const pipe = DB.opps.filter(o=>o.stage<5).reduce((a,o)=>a+o.amount,0);
   const todos = DB.activities.filter(a=>a.owner===meName()&&a.status!=='完了').sort((a,b)=>a.date.localeCompare(b.date));
   const roleMsg = {kikaku:'全社の案件進捗と採算を俯瞰します',eigyo:'担当商談・ヒアリング状況と案件の納期を確認します',gijutsu:'担当工程と工数・依頼・不具合対応を確認します'}[ROLE];
-  const go=(lvk,lv,h)=>`onclick="UI.lv['${lvk}']='${lv}';location.hash='${h}'"`;
+  const go=(lvk,lv,h)=>`onclick="UI.lv['${lvk}']='${lv}';go('${h}')"`;
   return `
   <div class="page-h"><div class="top"><span class="obj-icon i-report">🏠</span><div><div class="obj-label">ホーム</div><h1>${USERS[ROLE].name} さんのホーム</h1></div>
     <div class="actions"><span class="pill b">${roleMsg}</span></div></div></div>
   <div class="grid4">
     <div class="card kpi click" ${go('projects','active','#/projects/table')}><div class="l">進行中の案件</div><div class="v">${act.length}<span class="small"> 件</span></div><div class="s">受注額合計 ${man(act.reduce((a,p)=>a+p.amount,0))}　›</div></div>
     <div class="card kpi click" ${go('projects','risk','#/projects/table')}><div class="l">要対応（いずれかのランプが赤）</div><div class="v" style="color:var(--red)">${risk.length}<span class="small"> 件</span></div><div class="s">${risk.map(x=>acc(x.p.acc).name.replace('株式会社','')).join('、')||'なし'}　›</div></div>
-    <div class="card kpi click" onclick="location.hash='#/costs'"><div class="l">見込粗利率（進行中平均）</div><div class="v">${avgM.toFixed(1)}<span class="small"> %</span></div><div class="s">目標 ${MARGIN_TARGET}%（デモ設定値）　›</div></div>
+    <div class="card kpi click" onclick="go('#/costs')"><div class="l">見込粗利率（進行中平均）</div><div class="v">${avgM.toFixed(1)}<span class="small"> %</span></div><div class="s">目標 ${MARGIN_TARGET}%（デモ設定値）　›</div></div>
     ${ROLE==='eigyo'?`<div class="card kpi click" ${go('opps','open','#/opps')}><div class="l">商談パイプライン</div><div class="v">${man(pipe)}</div><div class="s">受注前の商談 ${DB.opps.filter(o=>o.stage<5).length} 件　›</div></div>`
       :`<div class="card kpi click" ${go('requests','open','#/requests')}><div class="l">未完了の依頼</div><div class="v">${pending.length}<span class="small"> 件</span></div><div class="s">承認待ち・回答待ちの依頼　›</div></div>`}
   </div>
@@ -1520,7 +1540,7 @@ function pgProjects(mode){
   return head+`<div class="card"><div class="card-b" style="padding-top:12px"><div class="kanban">
     ${STAGES.map((s,i)=>{const ps=rows.filter(p=>p.stage===i);
       return `<div class="k-col"><div class="k-col-h">${s}（${ps.length}）</div><div class="k-col-b" data-stage="${i}">
-      ${ps.map(p=>{const c=pjCalc(p);return `<div class="k-card" draggable="true" data-id="${p.id}" onclick="location.hash='#/project/${p.id}'">
+      ${ps.map(p=>{const c=pjCalc(p);return `<div class="k-card" draggable="true" data-id="${p.id}" onclick="go('#/project/${p.id}')">
         <div class="t">${esc(p.name)}</div><div class="s">${esc(acc(p.acc).name)}</div>
         <div class="row"><span class="s">納期 ${fmtD(p.due)}</span>${lamps(c)}</div>
         <div class="row"><span class="s">${man(c.revenue)}｜${esc(p.owner)}</span><span class="pill ${c.marginLamp}">粗利 ${c.margin.toFixed(1)}%</span></div></div>`}).join('')}
@@ -1529,7 +1549,7 @@ function pgProjects(mode){
 }
 function pjNewInfo(){
   modal('案件の作成について','<p>案件は、商談のフェーズを「受注」にすると<b>自動化フローで自動生成</b>されます（手入力による二重登録を防ぐため）。</p><p class="mt8">受注前の商談を開いて、パスの「受注」をクリックしてお試しください。</p>',
-    ()=>{UI.lv.opps='open';location.hash='#/opps';},'受注前の商談一覧を開く');
+    ()=>{UI.lv.opps='open';go('#/opps');},'受注前の商談一覧を開く');
 }
 function pgProject(id){
   const p = byId(DB.projects,id); if(!p) return notFound();
@@ -1629,7 +1649,7 @@ function pgOpp(id){
   const o=byId(DB.opps,id); if(!o) return notFound();
   const hs=DB.hearings.find(h=>h.opp===id), items=oppItems(o), q=DB.quotes.find(x=>x.opp===id), cs=DB.contacts.filter(c=>c.acc===o.acc);
   return recHeader({icon:'i-opp',em:'★',label:'商談',title:esc(o.name),
-    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`location.hash='#/hearing/${hs.id}'`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="location.hash='#/quote/${q.id}';setTimeout(()=>quotePreview('${q.id}'),50)">見積書出力</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`,
+    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`go('#/hearing/${hs.id}')`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="go('#/quote/${q.id}');setTimeout(()=>quotePreview('${q.id}'),50)">見積書出力</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`,
     hl:[['取引先',al(o.acc)],['金額',yen(o.amount)],['完了予定日',fmtD(o.close)],['確度',o.prob+'%'],['商談所有者',ul(o.owner)],['案件',o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'未生成']]})
   +`${pathHtml(OPP_STAGES,o.stage,`setOppStage('${o.id}',`,o.stage>=5?'受注済み':'フェーズを完了としてマーク')}
   ${o.stage<5?`<div class="note mb8">デモ：フェーズを「受注」にすると、自動化フローが<b>案件を自動生成</b>し、関係者へ通知します。</div>`:''}
@@ -1655,7 +1675,7 @@ function newOpp(accId){
     <label>完了予定日<input id="oClose" type="date" value="2026-12-25"></label></div>`,
     ()=>{const id='O'+(900+DB.opps.length);const o={id,name:$('#oName').value,acc:$('#oAcc').value,stage:0,amount:0,close:$('#oClose').value,owner:meName(),prob:10,items:[{p:'PR08',q:1}]};
       o.amount=oppItems(o).reduce((a,i)=>a+i.pr.price*i.q,0);DB.opps.unshift(o);DB.quotes.push({id:'Q'+id.slice(1),no:'QT-2026-'+id.slice(1).padStart(4,'0'),opp:id,status:'作成中',date:'2026-10-08',valid:'2026-12-31'});
-      setTimeout(()=>location.hash='#/opp/'+id,0);toast('商談を作成しました');});
+      setTimeout(()=>go('#/opp/'+id),0);toast('商談を作成しました');});
 }
 
 /* =========================================================
@@ -1731,7 +1751,7 @@ function newCase(pid){
     <label>内容<textarea id="csDesc" rows="3">仕上げ面粗度 Rz1.6 の要求に対し Rz2.3。</textarea></label></div>`,
     ()=>{const p=byId(DB.projects,$('#csPj').value);const id='CS'+(10+DB.cases.length);DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:$('#csSub').value,pj:p.id,acc:p.acc,type:$('#csType').value,priority:'中',status:'対応中',opened:'2026-10-08',owner:p.owner,cause:'',measure:'',desc:$('#csDesc').value});
       DB.notifs.unshift({t:`ケース「${$('#csSub').value}」が起票されました`,tm:nowStr(),link:'#/case/'+id,unread:true});
-      setTimeout(()=>location.hash='#/case/'+id,0);toast('ケースを起票し、技術担当へ通知しました');});
+      setTimeout(()=>go('#/case/'+id),0);toast('ケースを起票し、技術担当へ通知しました');});
 }
 function pgKnowledge(){
   const cats=['すべて','トラブル事例','原因と対策','作業手順','既知の不具合'];
@@ -1753,7 +1773,7 @@ function newKb(){
   modal('新規ナレッジ記事',`<div class="form1"><label>タイトル<input id="kbT" value="（デモ）試作時の面粗度不良の対策"></label>
     <label>カテゴリ<select id="kbC"><option>トラブル事例</option><option>原因と対策</option><option>作業手順</option><option>既知の不具合</option></select></label>
     <label>現象<textarea id="kbB1" rows="2">面粗度が要求値を満たさない。</textarea></label><label>対策<textarea id="kbB2" rows="2">砥石番手と加工条件を見直す。</textarea></label></div>`,
-    ()=>{const id='KB'+String(DB.knowledge.length+1).padStart(2,'0');DB.knowledge.unshift({id,title:$('#kbT').value,cat:$('#kbC').value,views:0,votes:0,updated:'2026-10-08',body:{現象:$('#kbB1').value,対策:$('#kbB2').value}});setTimeout(()=>location.hash='#/kb/'+id,0);toast('記事を下書き保存しました');});
+    ()=>{const id='KB'+String(DB.knowledge.length+1).padStart(2,'0');DB.knowledge.unshift({id,title:$('#kbT').value,cat:$('#kbC').value,views:0,votes:0,updated:'2026-10-08',body:{現象:$('#kbB1').value,対策:$('#kbB2').value}});setTimeout(()=>go('#/kb/'+id),0);toast('記事を下書き保存しました');});
 }
 
 /* =========================================================
