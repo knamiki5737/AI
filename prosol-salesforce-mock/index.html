@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日進ProSOL 案件管理モック</title>
+<style>
+/* =========================================================
+   株式会社日進ProSOL様 Salesforce構築プロジェクト
+   画面モック（Lightning Experience 風 / 単一HTML・外部依存なし）
+   作成：thomas株式会社
+   ※表示データはすべて架空のデモデータです
+   ========================================================= */
+:root{
+  --brand:#0176d3; --brand-dark:#014486; --brand-light:#d8edff;
+  --bg:#f3f3f3; --card:#fff; --border:#dddbda; --border-light:#e5e5e5;
+  --text:#181818; --text-weak:#3e3e3c; --text-mute:#706e6b;
+  --green:#2e844a; --green-bg:#cdefc4; --yellow:#dd7a01; --yellow-bg:#fef1cd;
+  --red:#ba0517; --red-bg:#feded8; --purple:#5a1ba9;
+  --path-done:#3ba755; --path-cur:#014486;
+  --custom:#3c9662; --std:#1b96ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:"Salesforce Sans","Hiragino Kaku Gothic ProN","Hiragino Sans","Meiryo",-apple-system,"Segoe UI",sans-serif;
+  font-size:13px;color:var(--text);background:var(--bg);line-height:1.5}
+a{color:var(--brand);text-decoration:none;cursor:pointer}
+a:hover{text-decoration:underline}
+button{font-family:inherit;font-size:13px;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:13px}
+
+/* ---------- デモバナー ---------- */
+.demo-banner{background:#032d60;color:#fff;font-size:12px;padding:4px 16px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.demo-banner b{color:#90d0fe}
+
+/* ---------- グローバルヘッダー ---------- */
+.g-header{background:#fff;height:50px;display:flex;align-items:center;padding:0 12px;gap:12px;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:8px;font-weight:700;color:var(--brand-dark);white-space:nowrap}
+.logo .mark{width:30px;height:30px;border-radius:6px;background:linear-gradient(135deg,#0176d3,#3ba755);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.g-search{flex:1;max-width:560px;margin:0 auto;position:relative}
+.g-search input{width:100%;border:1px solid var(--border);border-radius:4px;padding:6px 10px 6px 30px;background:#fff}
+.g-search::before{content:"🔍";position:absolute;left:9px;top:6px;font-size:12px;opacity:.6}
+.g-tools{display:flex;align-items:center;gap:10px}
+.icon-btn{position:relative;width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center}
+.badge-count{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;border-radius:10px;font-size:10px;padding:0 5px;line-height:16px}
+.role-select{border:1px solid var(--border);border-radius:4px;padding:5px 8px;background:#fff}
+.avatar{width:32px;height:32px;border-radius:50%;background:#b0adab;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+
+/* ---------- アプリナビ ---------- */
+.app-nav{background:#fff;border-bottom:3px solid var(--brand);display:flex;align-items:stretch;height:40px;padding-left:12px;box-shadow:0 2px 2px rgba(0,0,0,.06);overflow-x:auto}
+.app-name{display:flex;align-items:center;gap:8px;padding-right:18px;margin-right:6px;font-size:16px;white-space:nowrap}
+.app-name .grid{font-size:16px;color:var(--text-mute)}
+.nav-item{display:flex;align-items:center;padding:0 12px;color:var(--text);border-bottom:3px solid transparent;margin-bottom:-3px;white-space:nowrap}
+.nav-item:hover{background:#f3f3f3;text-decoration:none}
+.nav-item.active{border-bottom-color:var(--brand-dark);font-weight:700;background:#f3f9ff}
+
+/* ---------- レイアウト ---------- */
+main{padding:12px;max-width:1500px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px;box-shadow:0 2px 2px rgba(0,0,0,.05);margin-bottom:12px}
+.card-h{display:flex;align-items:center;gap:8px;padding:10px 12px;font-weight:700;font-size:14px}
+.card-h .right{margin-left:auto;display:flex;gap:6px;font-weight:400}
+.card-b{padding:0 12px 12px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:1000px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+@media(max-width:700px){main{padding:12px 16px}.g-search,.g-tools label{display:none}.logo span{display:none}.g-tools{margin-left:auto}.tbl{min-width:640px}.bar-chart .row{grid-template-columns:110px 1fr 56px!important}.fields{grid-template-columns:1fr}.notif-panel{right:8px;width:calc(100vw - 16px)}.app-name{font-size:14px}.page-h h1{font-size:16px}}
+
+.obj-icon{width:28px;height:28px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
+.obj-icon.sm{width:22px;height:22px;font-size:12px}
+.i-project{background:#3c9662}.i-opp{background:#ff5d2d}.i-acc{background:#5867e8}.i-contact{background:#a094ed}
+.i-hear{background:#0b827c}.i-req{background:#e3066a}.i-case{background:#f2cf5b;color:#333}.i-know{background:#ec94ed}
+.i-kakou{background:#e86e4a}.i-kian{background:#4a74e8}.i-sekkei{background:#d1446b}.i-seizou{background:#7a5af5}.i-chou{background:#06a59a}
+.i-kousu{background:#747474}.i-report{background:#2e844a}.i-prod{background:#b781d3}.i-quote{background:#88c651}
+
+/* ---------- ボタン ---------- */
+.btn{border:1px solid var(--border);background:#fff;color:var(--brand);border-radius:4px;padding:4px 12px;line-height:22px;white-space:nowrap}
+.btn:hover{background:#f3f3f3}
+.btn.brand{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.brand:hover{background:var(--brand-dark)}
+.btn.success{background:var(--green);border-color:var(--green);color:#fff}
+.btn.danger{color:var(--red)}
+.btn-group{display:inline-flex}
+.btn-group .btn{border-radius:0;margin-left:-1px}
+.btn-group .btn:first-child{border-radius:4px 0 0 4px;margin-left:0}
+.btn-group .btn:last-child{border-radius:0 4px 4px 0}
+
+/* ---------- ページヘッダー ---------- */
+.page-h{background:#fff;border:1px solid var(--border);border-radius:4px;padding:12px;margin-bottom:12px;box-shadow:0 2px 2px rgba(0,0,0,.05)}
+.page-h .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.page-h .obj-label{font-size:12px;color:var(--text-weak)}
+.page-h h1{font-size:18px;font-weight:700;line-height:1.3}
+.page-h .actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.highlights{display:flex;gap:28px;margin-top:12px;flex-wrap:wrap}
+.highlights .f .l{font-size:12px;color:var(--text-mute)}
+.highlights .f .v{font-size:13px}
+
+/* ---------- パス ---------- */
+.path{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);border-radius:4px;padding:10px 12px;margin-bottom:12px}
+.path ol{display:flex;flex:1;list-style:none;min-width:0}
+.path li{flex:1;position:relative;height:32px;margin-right:6px;background:#ecebea;color:var(--text);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%);white-space:nowrap;overflow:hidden;padding:0 14px}
+.path li:first-child{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);border-radius:16px 0 0 16px}
+.path li:last-child{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,10px 50%);border-radius:0 16px 16px 0;margin-right:0}
+.path li.done{background:var(--path-done);color:#fff}
+.path li.cur{background:var(--path-cur);color:#fff;font-weight:700}
+.path li.sel{outline:none;box-shadow:inset 0 0 0 2px #000}
+.path li:hover:not(.cur){filter:brightness(.95)}
+
+/* ---------- タブ ---------- */
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 12px;overflow-x:auto}
+.tab{padding:10px 14px;color:var(--text-weak);border-bottom:2px solid transparent;margin-bottom:-1px;cursor:pointer;white-space:nowrap}
+.tab:hover{color:var(--brand)}
+.tab.active{color:var(--text);border-bottom-color:var(--brand);font-weight:700}
+.tab-body{padding:12px}
+
+/* ---------- テーブル ---------- */
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:12.5px}
+.tbl th{background:#fafaf9;color:var(--text-weak);font-weight:700;text-align:left;padding:6px 8px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);white-space:nowrap}
+.tbl td{padding:6px 8px;border-bottom:1px solid var(--border-light);vertical-align:middle}
+.tbl tr:hover td{background:#f3f9ff}
+.tbl .num{text-align:right;font-variant-numeric:tabular-nums}
+.tbl tfoot td{font-weight:700;background:#fafaf9}
+
+/* ---------- 項目（詳細） ---------- */
+.fields{display:grid;grid-template-columns:1fr 1fr;column-gap:24px}
+.field{border-bottom:1px solid var(--border-light);padding:6px 2px}
+.field .l{font-size:12px;color:var(--text-mute)}
+.field .v{min-height:20px}
+.section-title{background:#f3f3f3;border-radius:4px;padding:4px 10px;font-weight:700;margin:12px 0 6px;font-size:13px}
+
+/* ---------- ピル・ランプ ---------- */
+.pill{display:inline-block;border-radius:12px;padding:0 8px;font-size:11.5px;line-height:20px;background:#ecebea;white-space:nowrap}
+.pill.g{background:var(--green-bg);color:#194e31}.pill.y{background:var(--yellow-bg);color:#8c4b02}.pill.r{background:var(--red-bg);color:#8e030f}
+.pill.b{background:var(--brand-light);color:var(--brand-dark)}
+.lamps{display:inline-flex;gap:3px;vertical-align:middle}
+.lamp{width:10px;height:10px;border-radius:50%;border:1px solid rgba(0,0,0,.25)}
+.lamp.g{background:#45c65a}.lamp.y{background:#fcc003}.lamp.r{background:#ea001e}
+.lamp-legend{font-size:11.5px;color:var(--text-mute)}
+
+/* ---------- カンバン ---------- */
+.kanban{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+.k-col{min-width:220px;flex:1;background:#f3f3f3;border-radius:4px}
+.k-col-h{background:var(--brand-dark);color:#fff;font-weight:700;text-align:center;padding:6px;font-size:12.5px;
+  clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%)}
+.k-col:first-child .k-col-h{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%);border-radius:14px 0 0 14px}
+.k-col-b{padding:6px;min-height:120px}
+.k-col-b.drag-over{background:#d8edff}
+.k-card{background:#fff;border:1px solid var(--border);border-radius:4px;padding:8px;margin-bottom:6px;cursor:grab;box-shadow:0 1px 1px rgba(0,0,0,.05)}
+.k-card:hover{border-color:var(--brand)}
+.k-card .t{font-size:12.5px;color:var(--brand);font-weight:700;margin-bottom:2px}
+.k-card .s{font-size:11.5px;color:var(--text-mute)}
+.k-card .row{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+
+/* ---------- KPI ---------- */
+.kpi{padding:12px}
+.kpi .l{color:var(--text-mute);font-size:12px}
+.kpi .v{font-size:26px;font-weight:300;line-height:1.3}
+.kpi .s{font-size:11.5px;color:var(--text-mute)}
+
+/* ---------- ガント ---------- */
+.gantt{position:relative;font-size:11.5px}
+.g-row{display:grid;grid-template-columns:160px 1fr;align-items:center;border-bottom:1px solid var(--border-light);min-height:28px}
+.g-row .g-name{padding:4px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-track{position:relative;height:28px}
+.g-bar{position:absolute;top:7px;height:14px;border-radius:3px;opacity:.9}
+.g-bar.plan{background:#c9c7c5}
+.g-today{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:2}
+.g-head{display:grid;grid-template-columns:160px 1fr;font-weight:700;color:var(--text-mute)}
+.g-months{position:relative;height:22px}
+.g-months span{position:absolute;top:2px;border-left:1px solid var(--border);padding-left:4px}
+
+/* ---------- ヒアリングシート ---------- */
+.hs-layout{display:grid;grid-template-columns:240px 1fr 300px;gap:12px}
+@media(max-width:1100px){.hs-layout{grid-template-columns:1fr}}
+.layer-nav{list-style:none}
+.layer-nav li{padding:8px 10px;border-left:3px solid transparent;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.layer-nav li:hover{background:#f3f9ff}
+.layer-nav li.active{border-left-color:var(--brand);background:#f3f9ff;font-weight:700}
+.layer-nav .prog{font-size:11px;color:var(--text-mute);font-weight:400}
+.q{border:1px solid var(--border-light);border-radius:4px;padding:10px 12px;margin-bottom:8px;background:#fff;transition:background .4s}
+.q.new{background:#fff8e1;border-color:#fcc003}
+.q.focus{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.q .ql{font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.q .req{color:var(--red)}
+.q .branch{font-size:11px;color:#8c4b02;background:var(--yellow-bg);border-radius:10px;padding:0 6px;font-weight:400}
+.q .why-btn{font-size:11px;font-weight:400;margin-left:auto}
+.q input[type=text],.q input[type=number],.q input[type=date],.q select,.q textarea{width:100%;border:1px solid var(--border);border-radius:4px;padding:5px 8px;background:#fff}
+.radio-row{display:flex;flex-wrap:wrap;gap:6px}
+.radio-row label{border:1px solid var(--border);border-radius:16px;padding:3px 12px;cursor:pointer;user-select:none}
+.radio-row input{display:none}
+.radio-row input:checked+span{color:#fff}
+.radio-row label:has(input:checked){background:var(--brand);border-color:var(--brand);color:#fff}
+.why-box{background:#f3f9ff;border-left:3px solid var(--brand);padding:8px 10px;margin-top:6px;font-size:12px;color:var(--text-weak)}
+.progress{height:8px;background:#ecebea;border-radius:4px;overflow:hidden}
+.progress>div{height:100%;background:var(--green)}
+
+/* ---------- その他 ---------- */
+.toast{position:fixed;top:100px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:12px 20px;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.25);z-index:100;min-width:320px;max-width:90vw}
+.toast.info{background:#444}
+.modal-bg{position:fixed;inset:0;background:rgba(8,7,7,.55);display:flex;align-items:center;justify-content:center;z-index:90;padding:16px}
+.modal{background:#fff;border-radius:4px;width:640px;max-width:100%;max-height:90vh;display:flex;flex-direction:column}
+.modal-h{padding:14px 16px;border-bottom:1px solid var(--border);font-size:18px;text-align:center}
+.modal-b{padding:16px;overflow:auto}
+.modal-f{padding:10px 16px;border-top:1px solid var(--border);background:#f3f3f3;display:flex;justify-content:flex-end;gap:6px}
+.flow-step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px dashed var(--border)}
+.flow-step .n{width:22px;height:22px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0}
+.notif-panel{position:absolute;right:56px;top:46px;width:360px;background:#fff;border:1px solid var(--border);border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:80}
+.notif-panel .it{padding:10px 12px;border-bottom:1px solid var(--border-light);font-size:12.5px}
+.notif-panel .it.unread{background:#f3f9ff}
+.notif-panel .it .tm{font-size:11px;color:var(--text-mute)}
+.muted{color:var(--text-mute)}
+.small{font-size:11.5px}
+.right{text-align:right}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mb8{margin-bottom:8px}
+.flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.note{background:#fffbe6;border:1px solid #f2cf5b;border-radius:4px;padding:8px 10px;font-size:12px;color:#5c4400}
+.spec-tag{display:inline-block;font-size:10.5px;border:1px solid #b0adab;color:var(--text-mute);border-radius:3px;padding:0 4px;margin-left:4px;vertical-align:middle;font-weight:400}
+.feed-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border-light)}
+.bar-chart .row{display:grid;grid-template-columns:200px 1fr 90px;align-items:center;gap:8px;margin:6px 0;font-size:12px}
+.bar-chart .bars{position:relative;height:22px}
+.bar-chart .b1,.bar-chart .b2{position:absolute;left:0;height:10px;border-radius:2px}
+.bar-chart .b1{top:0;background:#90d0fe}
+.bar-chart .b2{top:11px}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--text-mute);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.kb-article h3{font-size:14px;margin:12px 0 4px}
+.kb-article p,.kb-article li{font-size:13px}
+.kb-article ol{padding-left:20px}
+.obj-map{display:grid;grid-template-columns:1fr 1.4fr 2.4fr;gap:12px}
+.obj-map .grp{border:2px dashed #8ab8f0;border-radius:6px;padding:8px}
+.obj-map .grp h4{color:var(--brand);font-size:13px;margin-bottom:6px}
+.cyl{display:inline-block;border-radius:50%/12px;padding:10px 14px;margin:4px;border:1px solid #888;font-size:12px;text-align:center;min-width:90px;cursor:pointer}
+.cyl.std{background:#cfe7fd}.cyl.cus{background:#dcebd7}
+.cyl:hover{outline:2px solid var(--brand)}
+</style>
+</head>
+<body>
+<div class="demo-banner">
+  <span><b>画面モック</b>　株式会社日進ProSOL様 Salesforce構築プロジェクト（要件レビュー・業務照合用）</span>
+  <span>表示データはすべて架空のデモデータです ／ ブラウザ内のみで動作し、データは保存されません</span>
+</div>
+
+<header class="g-header">
+  <div class="logo"><div class="mark">P</div><span>日進ProSOL</span></div>
+  <div class="g-search"><input id="gsearch" placeholder="案件・商談・取引先・ナレッジを検索..." onkeydown="if(event.key==='Enter')globalSearch(this.value)"></div>
+  <div class="g-tools">
+    <label class="small muted">ロール</label>
+    <select class="role-select" id="roleSel" onchange="setRole(this.value)">
+      <option value="kikaku">企画部</option>
+      <option value="eigyo">営業部</option>
+      <option value="gijutsu">技術部</option>
+    </select>
+    <button class="icon-btn" title="通知" onclick="toggleNotif()">🔔<span class="badge-count" id="notifCount"></span></button>
+    <div class="avatar" id="avatar" title="">山</div>
+  </div>
+  <div id="notifPanel"></div>
+</header>
+
+<nav class="app-nav" id="appNav"></nav>
+<main id="main"></main>
+<div id="overlay"></div>
+
+<script>
+/* =========================================================
+   デモデータ（すべて架空）
+   ========================================================= */
+const TODAY = new Date('2026-10-08');
+const STAGES = ['仕様確認','試作加工','機案・見積作成','設計','製造','納入'];
+const OPP_STAGES = ['引き合い','ヒアリング','仕様提案','見積提出','交渉','受注'];
+const RATE = 8000;          // 社内工数単価（円/h）※デモ用の仮置き
+const MARGIN_TARGET = 25;   // 目標粗利率（%）※デモ用の仮置き
+
+const USERS = {
+  kikaku:{name:'中村 恵（企画部）',initial:'中'},
+  eigyo:{name:'山田 太郎（営業部）',initial:'山'},
+  gijutsu:{name:'佐藤 健（技術部）',initial:'佐'}
+};
+
+const DB = {
+  accounts:[
+    {id:'A001',name:'あおば自動車部品株式会社',industry:'自動車',region:'愛知県',type:'既存顧客',phone:'0566-00-0001',owner:'山田 太郎'},
+    {id:'A002',name:'みなと精機工業株式会社',industry:'汎用エンジン',region:'静岡県',type:'既存顧客',phone:'054-000-0002',owner:'山田 太郎'},
+    {id:'A003',name:'Global Motor Parts (Thailand) Co., Ltd.',industry:'自動車（EV）',region:'タイ',type:'新規',phone:'+66-0-000-0003',owner:'小林 直樹'},
+    {id:'A004',name:'さくら油圧株式会社',industry:'油空圧',region:'大阪府',type:'既存顧客',phone:'06-0000-0004',owner:'小林 直樹'},
+    {id:'A005',name:'ひかり家電製造株式会社',industry:'家電',region:'滋賀県',type:'既存顧客',phone:'077-000-0005',owner:'山田 太郎'},
+    {id:'A006',name:'くすのき二輪工業株式会社',industry:'オートバイ',region:'静岡県',type:'既存顧客',phone:'053-000-0006',owner:'小林 直樹'}
+  ],
+  contacts:[
+    {id:'C001',acc:'A001',name:'青木 誠',title:'生産技術部 課長',email:'aoki@example.com'},
+    {id:'C002',acc:'A001',name:'石田 美香',title:'購買部',email:'ishida@example.com'},
+    {id:'C003',acc:'A002',name:'上野 剛',title:'設備技術課 係長',email:'ueno@example.com'},
+    {id:'C004',acc:'A003',name:'Somchai P.',title:'Production Engineering Manager',email:'somchai@example.com'},
+    {id:'C005',acc:'A004',name:'江口 浩二',title:'製造部 部長',email:'eguchi@example.com'},
+    {id:'C006',acc:'A005',name:'大西 真理',title:'生産技術センター',email:'onishi@example.com'},
+    {id:'C007',acc:'A006',name:'加藤 修',title:'設備保全課',email:'kato@example.com'}
+  ],
+  products:[
+    {id:'PR01',code:'HM-V200',name:'縦型ホーニング盤（単軸）',family:'ホーニング盤',price:18000000},
+    {id:'PR02',code:'HM-V400',name:'縦型ホーニング盤（多軸）',family:'ホーニング盤',price:32000000},
+    {id:'PR03',code:'HM-H300',name:'横型ホーニング盤',family:'ホーニング盤',price:24000000},
+    {id:'PR04',code:'AC-CELL',name:'自動ホーニングセル（ロボット搬送）',family:'自動機・セル機',price:52000000},
+    {id:'PR05',code:'OP-GAUGE',name:'インプロセス エアゲージ',family:'オプション',price:2400000},
+    {id:'PR06',code:'OP-RANK',name:'ランクセレクト装置',family:'オプション',price:3800000},
+    {id:'PR07',code:'OP-CE',name:'CE規格対応パッケージ',family:'オプション',price:2900000},
+    {id:'PR08',code:'SV-RETRO',name:'既設機 改造・オーバーホール',family:'サービス',price:6500000},
+    {id:'PR09',code:'TL-STONE',name:'ホーニング砥石（消耗品）',family:'消耗品',price:12000}
+  ],
+  opps:[
+    {id:'O001',name:'シリンダーブロック用ホーニング盤 更新',acc:'A001',stage:3,amount:36800000,close:'2026-11-20',owner:'山田 太郎',prob:60,
+      items:[{p:'PR02',q:1},{p:'PR05',q:2}],hearing:'H001'},
+    {id:'O002',name:'コンロッド大端部 ホーニング盤',acc:'A002',stage:5,amount:20400000,close:'2026-08-28',owner:'山田 太郎',prob:100,items:[{p:'PR01',q:1},{p:'PR05',q:1}],project:'P002'},
+    {id:'O003',name:'EV向けモーターハウジング 自動ホーニングセル',acc:'A003',stage:5,amount:61100000,close:'2026-07-31',owner:'小林 直樹',prob:100,items:[{p:'PR04',q:1},{p:'PR06',q:1},{p:'PR07',q:1}],project:'P003',hearing:'H002'},
+    {id:'O004',name:'バルブボディ 多軸ホーニング盤',acc:'A004',stage:5,amount:34400000,close:'2026-06-30',owner:'小林 直樹',prob:100,items:[{p:'PR02',q:1},{p:'PR05',q:1}],project:'P004'},
+    {id:'O005',name:'コンプレッサー部品 ホーニング自動機',acc:'A005',stage:5,amount:28600000,close:'2026-05-29',owner:'山田 太郎',prob:100,items:[{p:'PR03',q:1},{p:'PR06',q:1}],project:'P005'},
+    {id:'O006',name:'ギア内径 ホーニング盤 改造',acc:'A001',stage:4,amount:6500000,close:'2026-10-30',owner:'山田 太郎',prob:80,items:[{p:'PR08',q:1}]},
+    {id:'O007',name:'シリンダースリーブ ホーニング盤',acc:'A006',stage:5,amount:20400000,close:'2026-03-31',owner:'小林 直樹',prob:100,items:[{p:'PR01',q:1},{p:'PR05',q:1}],project:'P007'},
+    {id:'O008',name:'第二工場 増産対応 ホーニング盤2台',acc:'A005',stage:1,amount:48000000,close:'2027-01-29',owner:'山田 太郎',prob:20,items:[{p:'PR03',q:2}]}
+  ],
+  /* 案件：子オブジェクト（加工・機案・設計・製造・調達）と工数をぶら下げる */
+  projects:[
+    {id:'P002',no:'PJ-2026-0012',name:'【みなと精機工業】コンロッド大端部 縦型ホーニング盤',acc:'A002',opp:'O002',stage:1,due:'2027-01-29',amount:20400000,budget:14000000,purchase:13500000,owner:'佐藤 健',sales:'山田 太郎',
+      start:'2026-09-01',
+      kakou:{phase:'試作加工',d1:'2026-09-24',d2:'2026-10-09',d3:'2026-10-20'},
+      kian:{phase:'要求確認',d1:'2026-10-14',d2:'2026-10-28',d3:'2026-11-06',d4:'2026-11-13'},
+      sekkei:{phase:'未着手',d1:'2026-11-09',d2:'2026-11-20',d3:'2026-12-04',d4:'2026-12-11'},
+      seizou:{phase:'未着手',d1:'2026-12-14',d2:'2027-01-15'},
+      chou:{phase:'長納期品手配',d1:'2026-10-01',d2:'2026-12-10'}},
+    {id:'P003',no:'PJ-2026-0009',name:'【Global Motor Parts】EV向けモーターハウジング 自動ホーニングセル',acc:'A003',opp:'O003',stage:2,due:'2027-03-19',amount:61100000,budget:43000000,purchase:41000000,owner:'佐藤 健',sales:'小林 直樹',
+      start:'2026-08-03',overseas:true,
+      kakou:{phase:'完了',d1:'2026-08-20',d2:'2026-09-03',d3:'2026-09-10'},
+      kian:{phase:'機案書作成',d1:'2026-09-14',d2:'2026-10-02',d3:'2026-10-16',d4:'2026-10-23'},
+      sekkei:{phase:'未着手',d1:'2026-10-26',d2:'2026-11-13',d3:'2026-12-04',d4:'2026-12-18'},
+      seizou:{phase:'未着手',d1:'2027-01-06',d2:'2027-02-26'},
+      chou:{phase:'見積取得',d1:'2026-10-05',d2:'2027-01-15'}},
+    {id:'P004',no:'PJ-2026-0006',name:'【さくら油圧】バルブボディ 多軸ホーニング盤',acc:'A004',opp:'O004',stage:3,due:'2026-12-18',amount:34400000,budget:25000000,purchase:21500000,owner:'佐藤 健',sales:'小林 直樹',
+      start:'2026-07-01',
+      kakou:{phase:'完了',d1:'2026-07-15',d2:'2026-07-29',d3:'2026-08-05'},
+      kian:{phase:'完了',d1:'2026-08-07',d2:'2026-08-21',d3:'2026-08-28',d4:'2026-09-04'},
+      sekkei:{phase:'DR2',d1:'2026-09-01',d2:'2026-09-15',d3:'2026-10-02',d4:'2026-10-16'},
+      seizou:{phase:'未着手',d1:'2026-10-19',d2:'2026-12-04'},
+      chou:{phase:'発注済',d1:'2026-09-07',d2:'2026-11-06'}},
+    {id:'P005',no:'PJ-2026-0003',name:'【ひかり家電製造】コンプレッサー部品 ホーニング自動機',acc:'A005',opp:'O005',stage:4,due:'2026-10-30',amount:28600000,budget:21000000,purchase:17600000,owner:'佐藤 健',sales:'山田 太郎',
+      start:'2026-06-01',
+      kakou:{phase:'完了',d1:'2026-06-10',d2:'2026-06-24',d3:'2026-07-01'},
+      kian:{phase:'完了',d1:'2026-06-29',d2:'2026-07-10',d3:'2026-07-17',d4:'2026-07-24'},
+      sekkei:{phase:'出図済',d1:'2026-07-21',d2:'2026-08-04',d3:'2026-08-18',d4:'2026-08-25'},
+      seizou:{phase:'組立',d1:'2026-08-31',d2:'2026-10-16'},
+      chou:{phase:'入荷済',d1:'2026-07-27',d2:'2026-09-11'}},
+    {id:'P007',no:'PJ-2026-0001',name:'【くすのき二輪工業】シリンダースリーブ ホーニング盤',acc:'A006',opp:'O007',stage:5,due:'2026-09-30',amount:20400000,budget:15000000,purchase:11500000,owner:'佐藤 健',sales:'小林 直樹',
+      start:'2026-04-06',
+      kakou:{phase:'完了',d1:'2026-04-15',d2:'2026-04-28',d3:'2026-05-08'},
+      kian:{phase:'完了',d1:'2026-05-11',d2:'2026-05-22',d3:'2026-05-29',d4:'2026-06-05'},
+      sekkei:{phase:'出図済',d1:'2026-06-08',d2:'2026-06-19',d3:'2026-07-03',d4:'2026-07-10'},
+      seizou:{phase:'完了',d1:'2026-07-13',d2:'2026-09-11'},
+      chou:{phase:'入荷済',d1:'2026-06-15',d2:'2026-08-07'}}
+  ],
+  /* 工数管理：案件の子（工程）に紐づく予定/実績 */
+  kousu:[
+    {pj:'P002',sub:'kakou',name:'試作治具製作',plan:40,act:46,cm:'ワーク固定方法を変更'},
+    {pj:'P002',sub:'kakou',name:'試作加工・測定',plan:60,act:38,cm:''},
+    {pj:'P002',sub:'kian',name:'要求仕様確認',plan:16,act:6,cm:''},
+    {pj:'P003',sub:'kakou',name:'図面確認',plan:10,act:10,cm:''},
+    {pj:'P003',sub:'kakou',name:'加工不具合',plan:50,act:60,cm:'新規材質対応により工数超過'},
+    {pj:'P003',sub:'kakou',name:'加工調整',plan:150,act:150,cm:''},
+    {pj:'P003',sub:'kian',name:'機案書作成',plan:80,act:64,cm:''},
+    {pj:'P003',sub:'kian',name:'海外規格（CE）調査',plan:24,act:30,cm:'CCC要否の確認に追加工数'},
+    {pj:'P004',sub:'kakou',name:'試作加工',plan:60,act:58,cm:''},
+    {pj:'P004',sub:'kian',name:'機案書作成',plan:60,act:62,cm:''},
+    {pj:'P004',sub:'sekkei',name:'機械設計',plan:240,act:236,cm:''},
+    {pj:'P004',sub:'sekkei',name:'電気設計',plan:120,act:150,cm:'多軸制御の仕様追加'},
+    {pj:'P004',sub:'chou',name:'購入品手配',plan:40,act:35,cm:''},
+    {pj:'P005',sub:'kakou',name:'試作加工',plan:50,act:48,cm:''},
+    {pj:'P005',sub:'kian',name:'機案書作成',plan:40,act:40,cm:''},
+    {pj:'P005',sub:'sekkei',name:'機械設計',plan:200,act:226,cm:'ロボットハンド再設計'},
+    {pj:'P005',sub:'sekkei',name:'電気設計',plan:100,act:118,cm:''},
+    {pj:'P005',sub:'seizou',name:'組立',plan:280,act:310,cm:'部品入荷遅れにより段取り替え'},
+    {pj:'P005',sub:'chou',name:'購入品手配',plan:40,act:52,cm:''},
+    {pj:'P007',sub:'kakou',name:'試作加工',plan:40,act:38,cm:''},
+    {pj:'P007',sub:'kian',name:'機案書作成',plan:30,act:28,cm:''},
+    {pj:'P007',sub:'sekkei',name:'機械設計',plan:160,act:150,cm:''},
+    {pj:'P007',sub:'seizou',name:'組立・調整',plan:240,act:236,cm:''},
+    {pj:'P007',sub:'chou',name:'購入品手配',plan:30,act:30,cm:''}
+  ],
+  /* 依頼：各部門への原価見積依頼 ／ 追加請求の承認 */
+  requests:[
+    {id:'R001',no:'RQ-0001246',name:'ホーニングセル 原価見積依頼',pj:'P003',type:'原価見積依頼',to:'製造部',status:'回答済',requester:'小林 直樹',created:'2026-09-10',
+      lines:[{no:'RQ-0001246-1',item:'ロボット搬送ユニット',detail:'6軸ロボット＋ハンド',q:1,target:4200000,ans:4450000},
+             {no:'RQ-0001246-2',item:'ホーニングヘッド',detail:'φ80〜φ120対応',q:2,target:1800000,ans:1750000},
+             {no:'RQ-0001246-3',item:'安全柵・カバー',detail:'CE準拠',q:1,target:900000,ans:1080000},
+             {no:'RQ-0001246-4',item:'制御盤',detail:'海外電源仕様',q:1,target:2600000,ans:2700000}],
+      approvals:[]},
+    {id:'R002',no:'RQ-0001251',name:'ホーニングセル 追加請求（ランクセレクト仕様変更）',pj:'P003',type:'追加請求',to:'営業部',status:'承認待ち',requester:'佐藤 健',created:'2026-10-02',
+      lines:[{no:'RQ-0001251-1',item:'ランクセレクト 3ランク→5ランク',detail:'顧客要望による仕様変更',q:1,target:1200000,ans:1450000},
+             {no:'RQ-0001251-2',item:'追加設計工数',detail:'40h',q:1,target:240000,ans:240000}],
+      approvals:[{step:'承認申請が提出されました',date:'2026/10/02 16:26',st:'申請済み',who:'佐藤 健'},
+                 {step:'部長承認',date:'2026/10/02 16:26',st:'未承認',who:'田中 三郎（営業部長）'}]},
+    {id:'R003',no:'RQ-0001238',name:'バルブボディ 調達品 原価見積依頼',pj:'P004',type:'原価見積依頼',to:'調達部',status:'依頼中',requester:'小林 直樹',created:'2026-10-05',
+      lines:[{no:'RQ-0001238-1',item:'主軸ユニット',detail:'4軸',q:4,target:650000,ans:null},
+             {no:'RQ-0001238-2',item:'クーラント装置',detail:'',q:1,target:800000,ans:null}],
+      approvals:[]},
+    {id:'R004',no:'RQ-0001232',name:'コンプレッサー部品 追加請求（ハンド再設計）',pj:'P005',type:'追加請求',to:'営業部',status:'承認済',requester:'佐藤 健',created:'2026-09-02',
+      lines:[{no:'RQ-0001232-1',item:'ロボットハンド再設計',detail:'ワーク形状変更対応',q:1,target:600000,ans:600000}],
+      approvals:[{step:'承認申請が提出されました',date:'2026/09/02 16:26',st:'申請済み',who:'佐藤 健'},
+                 {step:'部長承認',date:'2026/09/02 18:10',st:'却下',who:'田中 三郎（営業部長）'},
+                 {step:'承認申請が提出されました',date:'2026/09/03 09:12',st:'申請済み',who:'佐藤 健'},
+                 {step:'部長承認',date:'2026/09/03 13:40',st:'承認済み',who:'田中 三郎（営業部長）'}]}
+  ],
+  cases:[
+    {id:'CS01',no:'00001024',subject:'納入後 エアゲージの測定値がばらつく',pj:'P007',acc:'A006',type:'不具合',priority:'高',status:'対応中',opened:'2026-10-03',owner:'佐藤 健',
+      cause:'',measure:'',desc:'納入後2週目より、仕上げ径の測定値が±3μmばらつくとの連絡。'},
+    {id:'CS02',no:'00001019',subject:'設計変更：クーラントタンク容量を200L→300Lへ',pj:'P004',acc:'A004',type:'変更',priority:'中',status:'クローズ',opened:'2026-09-18',owner:'佐藤 健',
+      cause:'顧客ライン側のクーラント集中管理方式の変更',measure:'タンク容量変更、配管径見直し。設計変更通知を発行',desc:'顧客より容量変更の依頼。',kb:'KB03'},
+    {id:'CS03',no:'00001011',subject:'組立時 主軸の芯ずれ',pj:'P005',acc:'A005',type:'不具合',priority:'高',status:'クローズ',opened:'2026-09-05',owner:'佐藤 健',
+      cause:'ベース加工面の平面度不足',measure:'加工面の再仕上げ、受入検査項目に平面度を追加',desc:'組立工程で主軸芯ずれ0.03mmを検出。',kb:'KB01'}
+  ],
+  knowledge:[
+    {id:'KB01',title:'主軸芯ずれの原因と対策（ベース平面度）',cat:'トラブル事例',views:42,updated:'2026-09-08',
+      body:{現象:'組立工程において主軸の芯ずれ（0.03mm）を検出。',原因:'ベース加工面の平面度不足（規格0.01mmに対し0.025mm）。',対策:'加工面の再仕上げを実施。受入検査項目に平面度測定を追加。',再発防止:'調達部より外注先へ検査成績書の提出を義務化。'}},
+    {id:'KB02',title:'海外向け案件：電源電圧・周波数の確認手順',cat:'作業手順',views:87,updated:'2026-08-20',
+      body:{目的:'海外案件で現地電源仕様の確認漏れによる手戻りを防ぐ。',手順:'①ヒアリングシートLayer5で現地電圧・周波数を必ず取得 ②トランス要否を設計へ連絡 ③CE/CCC等の規格要否と合わせて機案書に記載',注意:'タイ・中国・欧州で周波数が異なるため国ごとに確認すること。'}},
+    {id:'KB03',title:'クーラントタンク容量変更時の確認ポイント',cat:'原因と対策',views:15,updated:'2026-09-25',
+      body:{現象:'顧客のクーラント集中管理方式変更に伴うタンク容量変更。',対策:'タンク容量・配管径・ポンプ能力をセットで見直す。',再発防止:'ヒアリングシートLayer4に「クーラント供給方式」を追加。'}},
+    {id:'KB04',title:'既知の不具合：エアゲージ校正値のドリフト',cat:'既知の不具合',views:23,updated:'2026-07-11',
+      body:{現象:'エア源圧力の変動で測定値がドリフトする。',回避策:'レギュレータ二次圧の確認、マスターリングで再校正。',恒久対策:'精密レギュレータを標準採用（2026年下期機種から）。'}}
+  ],
+  hearings:[
+    {id:'H001',name:'HS-0021 あおば自動車部品 シリンダーブロック',opp:'O001',acc:'A001',status:'回答中',updated:'2026-10-06',
+      ans:{budget:'38000000',due:'2027-06-30',dest:'国内',purpose:'老朽更新',equip:'単体ホーニング盤',work:'シリンダーブロック（4気筒）',material:'鋳鉄（FC250）',stock:'40',dia:'φ86 / L140',process:'粗＋仕上げ（2段）',gauge:'インプロセス エアゲージ',spindle:'4',rank:'不要',load:'手置き'}},
+    {id:'H002',name:'HS-0017 Global Motor Parts EVモーターハウジング',opp:'O003',acc:'A003',status:'完了',updated:'2026-07-10',
+      ans:{budget:'60000000',due:'2027-03-19',dest:'海外',country:'タイ',std:'CE',export:'必要',purpose:'増産',equip:'セル機',work:'モーターハウジング',material:'アルミ（ADC12）',stock:'30',dia:'φ120 / L180',process:'粗＋仕上げ（2段）',gauge:'インプロセス エアゲージ',spindle:'2',rank:'必要',rankn:'5',load:'ロボット',robotMaker:'指定あり',robotName:'（顧客指定メーカー）',ifc:'EtherNet/IP',ng:'NGシュート排出',volt:'380V',freq:'50Hz',cover:'全面カバー',paint:'顧客指定色'}}
+  ],
+  notifs:[
+    {t:'追加請求「ホーニングセル ランクセレクト仕様変更」の承認依頼が届いています',tm:'2026/10/02 16:26',link:'#/request/R002',unread:true},
+    {t:'案件「コンプレッサー部品 ホーニング自動機」の納期まで22日です（製造：組立中）',tm:'2026/10/08 08:00',link:'#/project/P005',unread:true},
+    {t:'商品マスタ取込バッチが正常終了しました（更新 9件）',tm:'2026/10/08 02:00',link:'#/products',unread:false}
+  ]
+};
+
+/* =========================================================
+   状態・ユーティリティ
+   ========================================================= */
+let ROLE = 'kikaku';
+const UI = {pjTab:{}, hsLayer:1, hsFocus:null, notifOpen:false};
+const $ = s => document.querySelector(s);
+const yen = n => n==null?'—':'¥'+Math.round(n).toLocaleString('ja-JP');
+const man = n => (Math.round(n/10000)).toLocaleString('ja-JP')+'万円';
+const fmtD = s => s ? s.replace(/-/g,'/') : '—';
+const byId = (arr,id) => arr.find(x=>x.id===id);
+const acc = id => byId(DB.accounts,id)||{};
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const daysTo = s => Math.round((new Date(s)-TODAY)/86400000);
+
+const SUBS = [
+  {k:'kakou',  label:'加工管理',    icon:'i-kakou', em:'🛠', phases:['要件確認','試作加工','精度検証','加工調整','完了'],      cols:['試作加工期日','精度検証期日','加工調整期日']},
+  {k:'kian',   label:'機案見積管理', icon:'i-kian',  em:'📐', phases:['要求確認','機案書作成','原価見積','顧客見積','完了'],     cols:['要求確認期日','機案書確定期日','原価見積期日','顧客見積期日']},
+  {k:'sekkei', label:'設計管理',    icon:'i-sekkei',em:'📏', phases:['未着手','要求確認','DR1','DR2','出図済'],              cols:['着手予定日','DR1予定日','DR2予定日','出図予定日']},
+  {k:'seizou', label:'製造管理',    icon:'i-seizou',em:'🏭', phases:['未着手','部品加工','組立','調整・検査','完了'],         cols:['着手予定日','完成予定日']},
+  {k:'chou',   label:'調達管理',    icon:'i-chou',  em:'📦', phases:['見積取得','長納期品手配','発注済','入荷済'],            cols:['手配開始日','全数入荷予定日']}
+];
+
+/* ---------- 集約ロジック（進捗・粗利・納期） ---------- */
+function pjCalc(p){
+  const ks = DB.kousu.filter(k=>k.pj===p.id);
+  const plan = ks.reduce((a,k)=>a+k.plan,0), act = ks.reduce((a,k)=>a+k.act,0);
+  const laborForecast = Math.max(plan,act)*RATE;
+  const costForecast = p.purchase + laborForecast + extraCost(p);
+  const addRev = DB.requests.filter(r=>r.pj===p.id&&r.type==='追加請求'&&r.status==='承認済').reduce((a,r)=>a+r.lines.reduce((b,l)=>b+(l.ans||0)*l.q,0),0);
+  const revenue = p.amount + addRev;
+  const margin = (revenue-costForecast)/revenue*100;
+  const days = daysTo(p.due);
+  // 進捗：計画上の経過率 vs ステージ進捗率
+  const total = (new Date(p.due)-new Date(p.start)), elapsed = (TODAY-new Date(p.start));
+  const planPct = Math.min(100,Math.max(0,elapsed/total*100));
+  const actPct = p.stage>=5?100:(p.stage/5)*100;
+  const progLamp = actPct>=planPct-10?'g':actPct>=planPct-25?'y':'r';
+  const marginLamp = margin>=MARGIN_TARGET?'g':margin>=MARGIN_TARGET-5?'y':'r';
+  const dueLamp = p.stage>=5?'g':(days<0?'r':(days<30&&p.stage<4)?'r':days<45?'y':'g');
+  const overHours = ks.filter(k=>k.act>k.plan).length;
+  return {plan,act,costForecast,revenue,addRev,margin,days,planPct,actPct,progLamp,marginLamp,dueLamp,overHours};
+}
+function extraCost(p){ return 0; }
+function lamps(c){ return `<span class="lamps" title="進捗／粗利／納期"><span class="lamp ${c.progLamp}"></span><span class="lamp ${c.marginLamp}"></span><span class="lamp ${c.dueLamp}"></span></span>`; }
+const LAMP_TXT = {g:'順調',y:'注意',r:'要対応'};
+
+/* =========================================================
+   ロール別ナビゲーション
+   ========================================================= */
+const NAV = [
+  {k:'home',label:'ホーム',roles:['kikaku','eigyo','gijutsu']},
+  {k:'accounts',label:'取引先',roles:['kikaku','eigyo']},
+  {k:'opps',label:'商談',roles:['kikaku','eigyo']},
+  {k:'hearings',label:'ヒアリングシート',roles:['kikaku','eigyo','gijutsu']},
+  {k:'projects',label:'案件',roles:['kikaku','eigyo','gijutsu']},
+  {k:'requests',label:'依頼',roles:['kikaku','eigyo','gijutsu']},
+  {k:'cases',label:'変更・問題情報',roles:['kikaku','gijutsu']},
+  {k:'knowledge',label:'ナレッジ',roles:['kikaku','eigyo','gijutsu']},
+  {k:'products',label:'商品',roles:['kikaku','eigyo']},
+  {k:'costs',label:'原価予実',roles:['kikaku']},
+  {k:'objmap',label:'オブジェクト構成',roles:['kikaku','eigyo','gijutsu']}
+];
+function renderNav(cur){
+  $('#appNav').innerHTML = `<div class="app-name"><span class="grid">⋮⋮⋮</span>案件管理</div>` +
+    NAV.filter(n=>n.roles.includes(ROLE)).map(n=>`<a class="nav-item ${cur===n.k?'active':''}" href="#/${n.k}">${n.label}</a>`).join('');
+}
+function setRole(r){
+  ROLE=r; $('#avatar').textContent=USERS[r].initial; $('#avatar').title=USERS[r].name;
+  toast(`ロールを「${$('#roleSel').selectedOptions[0].text}」に切り替えました（タブ・ページレイアウト・項目表示が変わります）`,'info');
+  route();
+}
+
+/* =========================================================
+   ルーター
+   ========================================================= */
+window.addEventListener('hashchange',route);
+function route(){
+  const h = location.hash.replace(/^#\//,'') || 'home';
+  const [page,id,sub] = h.split('/');
+  const navKey = {project:'projects',opp:'opps',account:'accounts',request:'requests',case:'cases',kb:'knowledge',hearing:'hearings',sub:'projects'}[page]||page;
+  renderNav(navKey);
+  const m = $('#main');
+  const R = {home:pgHome,projects:pgProjects,project:()=>pgProject(id),sub:()=>pgSub(id,sub),opps:pgOpps,opp:()=>pgOpp(id),
+    accounts:pgAccounts,account:()=>pgAccount(id),hearings:pgHearings,hearing:()=>pgHearing(id),requests:pgRequests,request:()=>pgRequest(id),
+    cases:pgCases,case:()=>pgCase(id),knowledge:pgKnowledge,kb:()=>pgKb(id),products:pgProducts,costs:pgCosts,objmap:pgObjMap,search:()=>pgSearch(decodeURIComponent(id||''))};
+  m.innerHTML = (R[page]||pgHome)();
+  if(page==='projects') bindKanban();
+  window.scrollTo(0,0);
+  renderNotifCount();
+}
+
+/* =========================================================
+   ホーム（ダッシュボード）
+   ========================================================= */
+function pgHome(){
+  const act = DB.projects.filter(p=>p.stage<5);
+  const calcs = act.map(p=>({p,c:pjCalc(p)}));
+  const risk = calcs.filter(x=>[x.c.progLamp,x.c.marginLamp,x.c.dueLamp].includes('r'));
+  const avgM = calcs.reduce((a,x)=>a+x.c.margin,0)/calcs.length;
+  const pending = DB.requests.filter(r=>r.status==='承認待ち'||r.status==='依頼中');
+  const pipe = DB.opps.filter(o=>o.stage<5).reduce((a,o)=>a+o.amount,0);
+  const roleMsg = {kikaku:'全社の案件進捗と採算を俯瞰します',eigyo:'担当商談・ヒアリング状況と案件の納期を確認します',gijutsu:'担当工程と工数・依頼・不具合対応を確認します'}[ROLE];
+  return `
+  <div class="page-h"><div class="top"><span class="obj-icon i-report">🏠</span><div><div class="obj-label">ホーム</div><h1>${USERS[ROLE].name} さんのホーム</h1></div>
+    <div class="actions"><span class="pill b">${roleMsg}</span></div></div></div>
+  <div class="grid4">
+    <div class="card kpi"><div class="l">進行中の案件</div><div class="v">${act.length}<span class="small"> 件</span></div><div class="s">受注額合計 ${man(act.reduce((a,p)=>a+p.amount,0))}</div></div>
+    <div class="card kpi"><div class="l">要対応（いずれかのランプが赤）</div><div class="v" style="color:var(--red)">${risk.length}<span class="small"> 件</span></div><div class="s">${risk.map(x=>acc(x.p.acc).name.replace('株式会社','')).join('、')||'なし'}</div></div>
+    <div class="card kpi"><div class="l">見込粗利率（進行中平均）</div><div class="v">${avgM.toFixed(1)}<span class="small"> %</span></div><div class="s">目標 ${MARGIN_TARGET}%（デモ設定値）</div></div>
+    <div class="card kpi"><div class="l">${ROLE==='eigyo'?'商談パイプライン':'未完了の依頼'}</div><div class="v">${ROLE==='eigyo'?man(pipe):pending.length+'<span class="small"> 件</span>'}</div><div class="s">${ROLE==='eigyo'?'受注前の商談 '+DB.opps.filter(o=>o.stage<5).length+' 件':'承認待ち・回答待ちの依頼'}</div></div>
+  </div>
+  <div class="grid2">
+    <div>
+      <div class="card"><div class="card-h"><span class="obj-icon sm i-project">📁</span>進行中案件の状況 <span class="right"><a href="#/projects">進捗一覧（カンバン）へ</a></span></div>
+        <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>案件</th><th>ステージ</th><th>進捗/粗利/納期</th><th class="num">見込粗利率</th><th>納期</th><th class="num">残日数</th></tr></thead><tbody>
+        ${calcs.sort((a,b)=>a.c.days-b.c.days).map(({p,c})=>`<tr><td><a href="#/project/${p.id}">${esc(p.name)}</a></td><td>${STAGES[p.stage]}</td><td>${lamps(c)}</td>
+          <td class="num">${c.margin.toFixed(1)}%</td><td>${fmtD(p.due)}</td><td class="num" style="color:${c.days<30?'var(--red)':''}">${c.days}日</td></tr>`).join('')}
+        </tbody></table><div class="lamp-legend mt8">● ランプ：左から 進捗／粗利／納期（緑=順調・黄=注意・赤=要対応）。工数実績・仕入・追加請求から自動集約</div></div></div>
+      <div class="card"><div class="card-h"><span class="obj-icon sm i-report">📊</span>案件別 見込原価 vs 受注額 <span class="right"><a href="#/costs">原価予実ダッシュボードへ</a></span></div>
+        <div class="card-b">${barChart(calcs.map(x=>({label:acc(x.p.acc).name.replace('株式会社',''),a:x.c.revenue,b:x.c.costForecast,m:x.c.margin})))}</div></div>
+    </div>
+    <div>
+      <div class="card"><div class="card-h"><span class="obj-icon sm i-req">✉</span>承認・依頼の受信箱</div><div class="card-b">
+        ${pending.map(r=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/request/${r.id}">${esc(r.name)}</a><div class="small muted">${r.type}｜${r.to}｜${r.status}</div></div></div>`).join('')}
+      </div></div>
+      <div class="card"><div class="card-h"><span class="obj-icon sm i-case">⚠</span>対応中の変更・問題</div><div class="card-b">
+        ${DB.cases.filter(c=>c.status!=='クローズ').map(c=>`<div class="feed-item"><span class="obj-icon sm i-case">⚠</span><div><a href="#/case/${c.id}">${esc(c.subject)}</a><div class="small muted">${c.type}｜優先度 ${c.priority}｜${fmtD(c.opened)}</div></div></div>`).join('')||'<div class="muted">なし</div>'}
+      </div></div>
+      <div class="card"><div class="card-h"><span class="obj-icon sm i-know">📖</span>よく見られているナレッジ</div><div class="card-b">
+        ${[...DB.knowledge].sort((a,b)=>b.views-a.views).slice(0,3).map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><div><a href="#/kb/${k.id}">${esc(k.title)}</a><div class="small muted">${k.cat}｜閲覧 ${k.views}</div></div></div>`).join('')}
+      </div></div>
+    </div>
+  </div>`;
+}
+function barChart(rows){
+  const mx = Math.max(...rows.map(r=>Math.max(r.a,r.b)));
+  return `<div class="legend"><span><i style="background:#90d0fe"></i>受注額（追加請求含む）</span><span><i style="background:#3ba755"></i>見込原価（粗利率 目標以上）</span><span><i style="background:#fcc003"></i>見込原価（注意）</span><span><i style="background:#ea001e"></i>見込原価（要対応）</span></div>
+  <div class="bar-chart">${rows.map(r=>{const col=r.m>=MARGIN_TARGET?'#3ba755':r.m>=MARGIN_TARGET-5?'#fcc003':'#ea001e';
+    return `<div class="row"><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(r.label)}">${esc(r.label)}</div><div class="bars"><div class="b1" style="width:${r.a/mx*100}%"></div><div class="b2" style="width:${r.b/mx*100}%;background:${col}"></div></div><div class="right">${r.m.toFixed(1)}%</div></div>`}).join('')}</div>`;
+}
+
+/* =========================================================
+   案件 一覧（カンバン：案件横断＝各部門の業務俯瞰）
+   ========================================================= */
+function pgProjects(){
+  return `
+  <div class="page-h"><div class="top"><span class="obj-icon i-project">📁</span><div><div class="obj-label">案件管理</div><h1>進捗一覧 ▾</h1></div>
+    <div class="actions"><button class="btn" onclick="toast('リストビュー（表形式）はモック対象外です','info')">表で表示</button><button class="btn brand" onclick="toast('案件は商談の「受注」で自動生成されます（商談画面でお試しください）','info')">新規</button></div></div>
+    <div class="small muted mt8">${DB.projects.length} 個の項目・並び替え基準：納期 ・ カードをドラッグしてステージを変更できます</div></div>
+  <div class="card"><div class="card-b" style="padding-top:12px"><div class="kanban">
+    ${STAGES.map((s,i)=>{const ps=DB.projects.filter(p=>p.stage===i).sort((a,b)=>a.due.localeCompare(b.due));
+      return `<div class="k-col"><div class="k-col-h">${s}（${ps.length}）</div><div class="k-col-b" data-stage="${i}">
+      ${ps.map(p=>{const c=pjCalc(p);return `<div class="k-card" draggable="true" data-id="${p.id}" onclick="location.hash='#/project/${p.id}'">
+        <div class="t">${esc(p.name)}</div><div class="s">${esc(acc(p.acc).name)}</div>
+        <div class="row"><span class="s">納期 ${fmtD(p.due)}</span>${lamps(c)}</div>
+        <div class="row"><span class="s">${man(c.revenue)}</span><span class="pill ${c.marginLamp}">粗利 ${c.margin.toFixed(1)}%</span></div></div>`}).join('')}
+      </div></div>`}).join('')}
+  </div><div class="lamp-legend">● ランプ：左から 進捗／粗利／納期</div></div></div>`;
+}
+function bindKanban(){
+  document.querySelectorAll('.k-card').forEach(c=>c.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',c.dataset.id)));
+  document.querySelectorAll('.k-col-b').forEach(col=>{
+    col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drag-over')});
+    col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));
+    col.addEventListener('drop',e=>{e.preventDefault();const p=byId(DB.projects,e.dataTransfer.getData('text/plain'));
+      if(p){p.stage=+col.dataset.stage;toast(`「${p.name}」のステージを「${STAGES[p.stage]}」に更新しました。関係者へ通知しました（自動化フロー）`);
+        DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[p.stage]}」になりました`,tm:nowStr(),link:'#/project/'+p.id,unread:true});route();}});
+  });
+}
+
+/* =========================================================
+   案件 詳細（部門横断＝1案件の業務俯瞰）
+   ========================================================= */
+function pgProject(id){
+  const p = byId(DB.projects,id); if(!p) return notFound();
+  const c = pjCalc(p), o = byId(DB.opps,p.opp)||{};
+  const tabsDef = [
+    {k:'sched',label:'🗓 日程管理',roles:['kikaku','eigyo','gijutsu']},
+    {k:'kousu',label:'⏱ 工数管理',roles:['kikaku','gijutsu']},
+    {k:'req',label:'✉ 依頼・承認',roles:['kikaku','eigyo','gijutsu']},
+    {k:'cost',label:'¥ 採算',roles:['kikaku','eigyo']},
+    {k:'detail',label:'詳細',roles:['kikaku','eigyo','gijutsu']},
+    {k:'related',label:'関連',roles:['kikaku','eigyo','gijutsu']}
+  ].filter(t=>t.roles.includes(ROLE));
+  let tab = UI.pjTab[id]; if(!tabsDef.find(t=>t.k===tab)) tab = tabsDef[0].k;
+  const body = {sched:()=>pjSched(p),kousu:()=>pjKousu(p,c),req:()=>pjReq(p),cost:()=>pjCost(p,c),detail:()=>pjDetail(p,o),related:()=>pjRelated(p,o)}[tab]();
+  return `
+  <div class="page-h"><div class="top"><span class="obj-icon i-project">📁</span><div><div class="obj-label">案件管理｜${p.no}</div><h1>${esc(p.name)}</h1></div>
+    <div class="actions"><button class="btn" onclick="toast('フォローしました','info')">＋ フォローする</button>
+      <div class="btn-group"><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="newCase('${p.id}')">変更・問題を起票</button><button class="btn" onclick="toast('編集はモック対象外です','info')">編集</button></div></div></div>
+    <div class="highlights">
+      <div class="f"><div class="l">取引先</div><div class="v"><a href="#/account/${p.acc}">${esc(acc(p.acc).name)}</a></div></div>
+      <div class="f"><div class="l">商談</div><div class="v"><a href="#/opp/${p.opp}">${esc(o.name||'')}</a></div></div>
+      <div class="f"><div class="l">納期</div><div class="v">${fmtD(p.due)}（残 ${c.days} 日）</div></div>
+      <div class="f"><div class="l">技術担当 / 営業担当</div><div class="v">${p.owner} / ${p.sales}</div></div>
+      ${ROLE!=='gijutsu'?`<div class="f"><div class="l">受注額（追加請求含む）</div><div class="v">${yen(c.revenue)}</div></div>
+      <div class="f"><div class="l">見込粗利率</div><div class="v"><span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span></div></div>`:
+      `<div class="f"><div class="l">工数（実績／予定）</div><div class="v">${c.act}h / ${c.plan}h</div></div>`}
+      <div class="f"><div class="l">進捗／粗利／納期</div><div class="v">${lamps(c)} <span class="small muted">${LAMP_TXT[c.progLamp]}・${LAMP_TXT[c.marginLamp]}・${LAMP_TXT[c.dueLamp]}</span></div></div>
+    </div></div>
+  ${pathHtml(STAGES,p.stage,`setPjStage('${p.id}',`,'現在のプロジェクト進捗段階としてマーク')}
+  <div class="grid2"><div class="card"><div class="tabs">${tabsDef.map(t=>`<div class="tab ${t.k===tab?'active':''}" onclick="UI.pjTab['${id}']='${t.k}';route()">${t.label}</div>`).join('')}</div>
+    <div class="tab-body">${body}</div></div>
+    <div>${pjSide(p,c)}</div></div>`;
+}
+let pathSel = null;
+function pathHtml(steps,cur,fn,label){
+  return `<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}" onclick="${fn}${i})" title="${s}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol>
+    <button class="btn brand" onclick="${fn}${Math.min(cur+1,steps.length-1)},true)">${label}</button></div>`;
+}
+function setPjStage(id,i,next){
+  const p=byId(DB.projects,id); if(p.stage===i&&!next) return;
+  p.stage=i; toast(`ステージを「${STAGES[i]}」に更新しました。技術担当・営業担当へ通知しました（自動化フロー）`);
+  DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[i]}」になりました`,tm:nowStr(),link:'#/project/'+id,unread:true}); route();
+}
+function pjSched(p){
+  return SUBS.map(s=>{const d=p[s.k];const ds=['d1','d2','d3','d4'].slice(0,s.cols.length);
+    return `<div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm ${s.icon}">${s.em}</span><a href="#/sub/${p.id}/${s.k}">${s.label} (1)</a></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>フェーズ</th>${s.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+    <tbody><tr><td><span class="pill ${d.phase==='完了'||d.phase==='出図済'||d.phase==='入荷済'?'g':d.phase==='未着手'?'':'b'}">${d.phase}</span></td>${ds.map(k=>`<td style="color:${d.phase!=='完了'&&d.phase!=='出図済'&&d.phase!=='入荷済'&&daysTo(d[k])<0?'var(--red)':''}">${fmtD(d[k])}</td>`).join('')}</tr></tbody></table></div></div>`}).join('')
+  + `<div class="card" style="box-shadow:none"><div class="card-h">大計画（工程ガント）<span class="right small muted">赤線＝本日</span></div><div class="card-b">${gantt(p)}</div></div>`;
+}
+function gantt(p){
+  const s=new Date(p.start), e=new Date(p.due); s.setDate(1); const span=e-s+86400000*10;
+  const pos=d=>((new Date(d)-s)/span*100);
+  const months=[]; const m=new Date(s); while(m<=e){months.push(new Date(m));m.setMonth(m.getMonth()+1);}
+  const colors={kakou:'#e86e4a',kian:'#4a74e8',sekkei:'#d1446b',seizou:'#7a5af5',chou:'#06a59a'};
+  return `<div class="gantt"><div class="g-head"><div></div><div class="g-months">${months.map(d=>`<span style="left:${pos(d)}%">${d.getMonth()+1}月</span>`).join('')}</div></div>
+  ${SUBS.map(x=>{const d=p[x.k];const ks=['d1','d2','d3','d4'].filter(k=>d[k]);const a=d[ks[0]],b=d[ks[ks.length-1]];
+    return `<div class="g-row"><div class="g-name">${x.label}</div><div class="g-track"><div class="g-bar" style="left:${pos(a)}%;width:${Math.max(1,pos(b)-pos(a))}%;background:${colors[x.k]}" title="${fmtD(a)}〜${fmtD(b)}"></div>
+    ${TODAY>=s&&TODAY<=e?`<div class="g-today" style="left:${pos(TODAY)}%"></div>`:''}</div></div>`}).join('')}
+  <div class="g-row"><div class="g-name"><b>納期</b></div><div class="g-track"><div class="g-bar" style="left:${pos(p.due)-0.5}%;width:1%;background:#000" title="${fmtD(p.due)}"></div></div></div></div>`;
+}
+function pjKousu(p,c){
+  const ks=DB.kousu.filter(k=>k.pj===p.id);
+  return `<div class="flex mb8"><span class="pill ${c.act>c.plan?'r':'g'}">実績 ${c.act}h／予定 ${c.plan}h</span>${c.overHours?`<span class="pill y">予定超過の工程 ${c.overHours} 件</span>`:''}
+    <span style="margin-left:auto"><button class="btn" onclick="addKousu('${p.id}')">工数を追加</button></span></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>工程区分</th><th>工程名</th><th class="num">予定工数</th><th class="num">実績工数</th><th class="num">差異</th><th>コメント</th></tr></thead><tbody>
+  ${ks.map(k=>{const s=SUBS.find(x=>x.k===k.sub);return `<tr><td><span class="obj-icon sm ${s.icon}">${s.em}</span> ${s.label}</td><td>${esc(k.name)}</td><td class="num">${k.plan}</td><td class="num">${k.act}</td>
+    <td class="num" style="color:${k.act>k.plan?'var(--red)':''}">${k.act-k.plan>0?'+':''}${k.act-k.plan}</td><td>${esc(k.cm)}</td></tr>`}).join('')}
+  </tbody><tfoot><tr><td colspan="2">合計</td><td class="num">${c.plan}</td><td class="num">${c.act}</td><td class="num">${c.act-c.plan>0?'+':''}${c.act-c.plan}</td><td></td></tr></tfoot></table></div>
+  <div class="small muted mt8">※工数の実績は各部門の子レコード（加工・機案・設計・製造・調達）から入力し、案件へ自動集約されます。</div>`;
+}
+function addKousu(id){
+  modal('工数を追加',`<div class="fields" style="grid-template-columns:1fr">
+    <label>工程区分<select id="kSub" class="role-select" style="width:100%">${SUBS.map(s=>`<option value="${s.k}">${s.label}</option>`).join('')}</select></label>
+    <label class="mt8">工程名<input id="kName" class="role-select" style="width:100%" value="追加調整"></label>
+    <div class="flex mt8"><label>予定工数(h)<input id="kPlan" type="number" class="role-select" value="10"></label><label>実績工数(h)<input id="kAct" type="number" class="role-select" value="16"></label></div>
+    <label class="mt8">コメント<input id="kCm" class="role-select" style="width:100%" value="現地調整の追加対応"></label></div>`,
+    ()=>{DB.kousu.push({pj:id,sub:$('#kSub').value,name:$('#kName').value,plan:+$('#kPlan').value,act:+$('#kAct').value,cm:$('#kCm').value});
+      toast('工数を登録しました。案件の工数合計・見込原価・粗利ランプを再計算しました');});
+}
+function pjReq(p){
+  const rs=DB.requests.filter(r=>r.pj===p.id);
+  return `<div class="flex mb8"><span class="muted">各部門への原価見積依頼や追加請求の承認をチケットとして管理します</span><span style="margin-left:auto"><button class="btn" onclick="newRequest('${p.id}')">新規依頼</button></span></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>依頼番号</th><th>件名</th><th>種別</th><th>依頼先</th><th>状況</th><th>依頼日</th></tr></thead><tbody>
+  ${rs.map(r=>`<tr><td><a href="#/request/${r.id}">${r.no}</a></td><td>${esc(r.name)}</td><td>${r.type}</td><td>${r.to}</td><td>${stPill(r.status)}</td><td>${fmtD(r.created)}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">依頼はありません</td></tr>'}
+  </tbody></table></div>`;
+}
+function stPill(s){const m={'承認済':'g','回答済':'g','承認待ち':'y','依頼中':'b','却下':'r','クローズ':'g','対応中':'y','新規':'b'};return `<span class="pill ${m[s]||''}">${s}</span>`}
+function pjCost(p,c){
+  const labor=Math.max(c.plan,c.act)*RATE;
+  return `<div class="fields">
+    ${fld('受注額（商談より）',yen(p.amount))}${fld('追加請求（承認済）',yen(c.addRev))}
+    ${fld('予算原価',yen(p.budget))}${fld('見込原価',yen(c.costForecast))}
+    ${fld('　うち仕入・外注（調達管理）',yen(p.purchase))}${fld('　うち社内工数（工数管理 × 単価）',yen(labor)+` <span class="small muted">${Math.max(c.plan,c.act)}h × ${yen(RATE)}</span>`)}
+    ${fld('見込粗利',yen(c.revenue-c.costForecast))}${fld('見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`)}
+  </div><div class="note mt12">集約ロジック（案）：見込原価 ＝ 仕入・外注 ＋ max(予定工数, 実績工数) × 工数単価。工数単価・目標粗利率・ランプの閾値は本モックでの仮置きです。要件レビューで確定します。</div>`;
+}
+const fld=(l,v,spec)=>`<div class="field"><div class="l">${l}${spec?`<span class="spec-tag">${spec}</span>`:''}</div><div class="v">${v}</div></div>`;
+function pjDetail(p,o){
+  return `<div class="section-title">基本情報</div><div class="fields">
+    ${fld('案件番号',p.no,'自動採番')}${fld('案件名',esc(p.name))}${fld('取引先',`<a href="#/account/${p.acc}">${esc(acc(p.acc).name)}</a>`)}${fld('商談',`<a href="#/opp/${p.opp}">${esc(o.name)}</a>`)}
+    ${fld('ステージ',STAGES[p.stage])}${fld('納期',fmtD(p.due))}${fld('案件開始日',fmtD(p.start))}${fld('海外案件',p.overseas?'☑':'☐')}
+    ${fld('技術担当',p.owner)}${fld('営業担当',p.sales)}</div>
+    <div class="section-title">システム情報</div><div class="fields">${fld('作成者','（自動）商談受注フロー')}${fld('最終更新','佐藤 健, '+fmtD('2026-10-07'))}</div>`;
+}
+function pjRelated(p,o){
+  const hs=DB.hearings.find(h=>h.opp===p.opp); const cs=DB.cases.filter(c=>c.pj===p.id);
+  return `<div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm i-opp">★</span>商談</div><div class="card-b"><a href="#/opp/${o.id}">${esc(o.name)}</a>　${yen(o.amount)}　${OPP_STAGES[o.stage]}</div></div>
+  <div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm i-hear">📋</span>ヒアリングシート</div><div class="card-b">${hs?`<a href="#/hearing/${hs.id}">${esc(hs.name)}</a>　${hs.status}`:'<span class="muted">なし</span>'}</div></div>
+  <div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm i-case">⚠</span>変更・問題情報 (${cs.length})</div><div class="card-b">${cs.map(c=>`<div><a href="#/case/${c.id}">${c.no}</a> ${esc(c.subject)} ${stPill(c.status)}</div>`).join('')||'<span class="muted">なし</span>'}</div></div>`;
+}
+function pjSide(p,c){
+  const feed=[
+    {t:'工数実績が入力されました',d:'2026/10/07',w:'佐藤 健'},
+    {t:'原価見積依頼に回答がありました',d:'2026/10/05',w:'製造部'},
+    {t:'現地訪問：仕様確認打合せ',d:'2026/10/01',w:p.sales}];
+  return `<div class="card"><div class="card-h">進捗サマリー</div><div class="card-b">
+    <div class="small muted">計画上の経過率 ${c.planPct.toFixed(0)}% ／ ステージ進捗 ${c.actPct.toFixed(0)}%</div>
+    <div class="progress mt8"><div style="width:${c.actPct}%"></div></div>
+    <div class="progress mt8"><div style="width:${c.planPct}%;background:#b0adab"></div></div>
+    <div class="legend mt8"><span><i style="background:var(--green)"></i>進捗</span><span><i style="background:#b0adab"></i>計画経過</span></div></div></div>
+  <div class="card"><div class="card-h">活動</div><div class="card-b">
+    <div class="flex mb8"><button class="btn" onclick="toast('活動（ToDo/行動）の登録はモック対象外です','info')">ToDo</button><button class="btn" onclick="toast('活動（ToDo/行動）の登録はモック対象外です','info')">行動</button></div>
+    ${feed.map(f=>`<div class="feed-item"><span class="obj-icon sm i-kousu">•</span><div>${f.t}<div class="small muted">${f.d}｜${f.w}</div></div></div>`).join('')}</div></div>`;
+}
+
+/* ---------- 子レコード（階層構造：大計画→中計画） ---------- */
+function pgSub(pid,k){
+  const p=byId(DB.projects,pid), s=SUBS.find(x=>x.k===k); if(!p||!s) return notFound();
+  const d=p[k]; const cur=Math.max(0,s.phases.indexOf(d.phase)); const ks=DB.kousu.filter(x=>x.pj===pid&&x.sub===k);
+  return `<div class="page-h"><div class="top"><span class="obj-icon ${s.icon}">${s.em}</span><div><div class="obj-label">${s.label}</div><h1>${esc(p.name.replace(/】.*/,'】'))} ${s.label}</h1></div>
+    <div class="actions"><a class="btn" href="#/project/${pid}">← 親案件へ</a></div></div>
+    <div class="highlights">${fld('親案件',`<a href="#/project/${pid}">${esc(p.name)}</a>`)}${fld('フェーズ',d.phase)}${s.cols.map((c,i)=>fld(c,fmtD(d['d'+(i+1)]))).join('')}</div></div>
+  ${pathHtml(s.phases,cur,`setSubPhase('${pid}','${k}',`,'現在のフェーズとしてマーク')}
+  <div class="card"><div class="card-h"><span class="obj-icon sm i-kousu">⏱</span>工数管理 (${ks.length})<span class="right"><button class="btn" onclick="addKousu('${pid}')">New</button></span></div>
+  <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>工程名</th><th class="num">実績工数</th><th class="num">予定工数</th><th>コメント</th></tr></thead><tbody>
+  ${ks.map(x=>`<tr><td>${esc(x.name)}</td><td class="num" style="color:${x.act>x.plan?'var(--red)':''}">${x.act}</td><td class="num">${x.plan}</td><td>${esc(x.cm)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">工数はまだ登録されていません</td></tr>'}
+  </tbody></table></div></div>
+  <div class="note">「案件（大計画）」の下に部門ごとの「${s.label}（中計画）」、その下に「工数管理」がぶら下がる階層構造です。フェーズを進めると親案件の日程管理タブに反映されます。</div>`;
+}
+function setSubPhase(pid,k,i){const p=byId(DB.projects,pid),s=SUBS.find(x=>x.k===k);p[k].phase=s.phases[Math.min(i,s.phases.length-1)];toast(`${s.label}のフェーズを「${p[k].phase}」に更新しました`);route();}
+
+/* =========================================================
+   商談
+   ========================================================= */
+function pgOpps(){
+  const os=ROLE==='eigyo'?DB.opps:DB.opps;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-opp">★</span><div><div class="obj-label">商談</div><h1>すべての商談 ▾</h1></div>
+    <div class="actions"><button class="btn brand" onclick="newOpp()">新規</button></div></div></div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>商談名</th><th>取引先</th><th>フェーズ</th><th class="num">金額</th><th>完了予定日</th><th class="num">確度</th><th>所有者</th><th>案件</th></tr></thead><tbody>
+  ${os.map(o=>`<tr><td><a href="#/opp/${o.id}">${esc(o.name)}</a></td><td><a href="#/account/${o.acc}">${esc(acc(o.acc).name)}</a></td><td>${OPP_STAGES[o.stage]}</td><td class="num">${yen(o.amount)}</td><td>${fmtD(o.close)}</td><td class="num">${o.prob}%</td><td>${o.owner}</td>
+    <td>${o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'<span class="muted">—</span>'}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function pgOpp(id){
+  const o=byId(DB.opps,id); if(!o) return notFound();
+  const hs=DB.hearings.find(h=>h.opp===id);
+  const items=o.items.map(i=>({...i,pr:byId(DB.products,i.p)}));
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-opp">★</span><div><div class="obj-label">商談</div><h1>${esc(o.name)}</h1></div>
+    <div class="actions"><button class="btn" onclick="newHearing('${o.id}')">ヒアリングシート作成</button><button class="btn" onclick="toast('見積書PDF出力はモック対象外です（帳票レイアウトは設計工程で確定）','info')">見積書出力</button></div></div>
+    <div class="highlights">${fld('取引先',`<a href="#/account/${o.acc}">${esc(acc(o.acc).name)}</a>`)}${fld('金額',yen(o.amount))}${fld('完了予定日',fmtD(o.close))}${fld('商談所有者',o.owner)}${fld('案件',o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'未生成')}</div></div>
+  ${pathHtml(OPP_STAGES,o.stage,`setOppStage('${o.id}',`,o.stage>=5?'受注済み':'フェーズを完了としてマーク')}
+  ${o.stage<5?`<div class="note mb8">デモ：フェーズを「受注」にすると、自動化フローが<b>案件を自動生成</b>し、関係者へ通知します。</div>`:''}
+  <div class="grid2"><div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-prod">▦</span>商談商品 (${items.length})<span class="right"><button class="btn" onclick="toast('商品の追加はモック対象外です','info')">商品を追加</button></span></div>
+      <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>商品コード</th><th>商品名</th><th class="num">数量</th><th class="num">販売価格</th><th class="num">合計</th></tr></thead><tbody>
+      ${items.map(i=>`<tr><td>${i.pr.code}</td><td>${esc(i.pr.name)}</td><td class="num">${i.q}</td><td class="num">${yen(i.pr.price)}</td><td class="num">${yen(i.pr.price*i.q)}</td></tr>`).join('')}
+      </tbody></table></div></div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-quote">¥</span>見積 (1)</div><div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>見積番号</th><th>見積名</th><th class="num">合計</th><th>状況</th></tr></thead>
+      <tbody><tr><td>Q-${o.id.slice(1)}-01</td><td>${esc(o.name)} 御見積</td><td class="num">${yen(o.amount)}</td><td>${o.stage>=3?'提出済':'作成中'}</td></tr></tbody></table></div></div>
+  </div><div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-hear">📋</span>ヒアリングシート</div><div class="card-b">${hs?`<a href="#/hearing/${hs.id}">${esc(hs.name)}</a><div class="small muted">${hs.status}｜最終更新 ${fmtD(hs.updated)}</div>${hsSummary(hs)}`:`<div class="muted">未作成</div><button class="btn mt8" onclick="newHearing('${o.id}')">作成する</button>`}</div></div>
+    <div class="card"><div class="card-h">活動</div><div class="card-b"><div class="feed-item"><span class="obj-icon sm i-kousu">•</span><div>仕様打合せ（Web会議）<div class="small muted">2026/10/01｜${o.owner}</div></div></div></div></div>
+  </div></div>`;
+}
+function hsSummary(h){
+  const a=h.ans; const items=[['予算',a.budget?man(+a.budget):''],['希望納期',fmtD(a.due)],['納入先',a.dest+(a.country?'（'+a.country+'）':'')],['設備種別',a.equip],['加工品',a.work],['材質',a.material]];
+  return `<div class="fields mt8" style="grid-template-columns:1fr">${items.filter(x=>x[1]).map(x=>fld(x[0],esc(x[1]))).join('')}</div>`;
+}
+function setOppStage(id,i){
+  const o=byId(DB.opps,id); if(o.stage>=5){toast('受注済みの商談です','info');return;}
+  o.stage=i; o.prob=[10,20,40,60,80,100][i];
+  if(i===5){ runWonFlow(o); return; }
+  toast(`フェーズを「${OPP_STAGES[i]}」に更新しました`); route();
+}
+function runWonFlow(o){
+  const n=DB.projects.length+10; const pid='P'+String(100+n);
+  const add=(d,days)=>{const x=new Date(d);x.setDate(x.getDate()+days);return x.toISOString().slice(0,10)};
+  const st='2026-10-08', due=add(st,180);
+  const p={id:pid,no:'PJ-2026-00'+(n+10),name:`【${acc(o.acc).name.replace(/株式会社|Co\., Ltd\./g,'').trim()}】${o.name}`,acc:o.acc,opp:o.id,stage:0,due,amount:o.amount,budget:Math.round(o.amount*0.72),purchase:Math.round(o.amount*0.6),owner:'（割当待ち）',sales:o.owner,start:st,
+    kakou:{phase:'要件確認',d1:add(st,14),d2:add(st,28),d3:add(st,35)},kian:{phase:'要求確認',d1:add(st,30),d2:add(st,44),d3:add(st,51),d4:add(st,58)},
+    sekkei:{phase:'未着手',d1:add(st,60),d2:add(st,74),d3:add(st,88),d4:add(st,95)},seizou:{phase:'未着手',d1:add(st,100),d2:add(st,165)},chou:{phase:'見積取得',d1:add(st,40),d2:add(st,140)}};
+  DB.projects.push(p); o.project=pid; o.close='2026-10-08';
+  DB.notifs.unshift({t:`商談「${o.name}」が受注となり、案件 ${p.no} を自動生成しました`,tm:nowStr(),link:'#/project/'+pid,unread:true});
+  modal('自動化フロー：商談成約 → 案件自動生成',`
+    <div class="flow-step"><div class="n">1</div><div><b>トリガー</b>：商談のフェーズが「受注」に更新</div></div>
+    <div class="flow-step"><div class="n">2</div><div><b>案件を自動生成</b>：<a href="#/project/${pid}" onclick="closeModal()">${p.no}</a> ${esc(p.name)}<br><span class="small muted">取引先・商談・受注額・営業担当を引き継ぎ</span></div></div>
+    <div class="flow-step"><div class="n">3</div><div><b>子レコードを生成</b>：加工管理／機案見積管理／設計管理／製造管理／調達管理（標準リードタイムから日程を仮置き）</div></div>
+    <div class="flow-step"><div class="n">4</div><div><b>ヒアリングシートを紐付け</b>：${DB.hearings.find(h=>h.opp===o.id)?'あり（案件へ連携）':'なし'}</div></div>
+    <div class="flow-step"><div class="n">5</div><div><b>関係者へ通知</b>：技術部（案件担当の割当依頼）、調達部、企画部</div></div>
+    <div class="flow-step" style="border:none"><div class="n" style="background:#b0adab">!</div><div class="small muted">エラーハンドリング：生成失敗時はシステム管理者へメール通知し、商談に「案件生成エラー」フラグを立てます（設計で確定）</div></div>`,
+    ()=>{location.hash='#/project/'+pid},'案件を開く');
+  route();
+}
+function newOpp(){
+  modal('新規商談',`<div class="fields" style="grid-template-columns:1fr">
+    <label>商談名<input id="oName" class="role-select" style="width:100%" value="（デモ）主軸ユニット更新"></label>
+    <label class="mt8">取引先<select id="oAcc" class="role-select" style="width:100%">${DB.accounts.map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('')}</select></label>
+    <label class="mt8">金額<input id="oAmt" type="number" class="role-select" style="width:100%" value="12000000"></label></div>`,
+    ()=>{const id='O'+(900+DB.opps.length);DB.opps.unshift({id,name:$('#oName').value,acc:$('#oAcc').value,stage:0,amount:+$('#oAmt').value,close:'2026-12-25',owner:USERS[ROLE].name.replace(/（.*/,''),prob:10,items:[{p:'PR08',q:1}]});
+      setTimeout(()=>location.hash='#/opp/'+id,0);toast('商談を作成しました');});
+}
+
+/* =========================================================
+   取引先
+   ========================================================= */
+function pgAccounts(){
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-acc">🏢</span><div><div class="obj-label">取引先</div><h1>すべての取引先 ▾</h1></div></div></div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>取引先名</th><th>業界</th><th>地域</th><th>区分</th><th>電話</th><th>所有者</th><th class="num">案件数</th></tr></thead><tbody>
+  ${DB.accounts.map(a=>`<tr><td><a href="#/account/${a.id}">${esc(a.name)}</a></td><td>${a.industry}</td><td>${a.region}</td><td>${a.type}</td><td>${a.phone}</td><td>${a.owner}</td><td class="num">${DB.projects.filter(p=>p.acc===a.id).length}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function pgAccount(id){
+  const a=byId(DB.accounts,id); if(!a) return notFound();
+  const cs=DB.contacts.filter(c=>c.acc===id), os=DB.opps.filter(o=>o.acc===id), ps=DB.projects.filter(p=>p.acc===id), ca=DB.cases.filter(c=>c.acc===id);
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-acc">🏢</span><div><div class="obj-label">取引先</div><h1>${esc(a.name)}</h1></div></div>
+    <div class="highlights">${fld('業界',a.industry)}${fld('地域',a.region)}${fld('区分',a.type)}${fld('電話',a.phone)}${fld('所有者',a.owner)}</div></div>
+  <div class="grid2"><div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-opp">★</span>商談 (${os.length})</div><div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>商談名</th><th>フェーズ</th><th class="num">金額</th><th>完了予定日</th></tr></thead><tbody>
+      ${os.map(o=>`<tr><td><a href="#/opp/${o.id}">${esc(o.name)}</a></td><td>${OPP_STAGES[o.stage]}</td><td class="num">${yen(o.amount)}</td><td>${fmtD(o.close)}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-project">📁</span>案件 (${ps.length})</div><div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>案件</th><th>ステージ</th><th>納期</th><th>状況</th></tr></thead><tbody>
+      ${ps.map(p=>`<tr><td><a href="#/project/${p.id}">${esc(p.name)}</a></td><td>${STAGES[p.stage]}</td><td>${fmtD(p.due)}</td><td>${lamps(pjCalc(p))}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">なし</td></tr>'}</tbody></table></div></div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-case">⚠</span>変更・問題情報 (${ca.length})</div><div class="card-b">${ca.map(c=>`<div><a href="#/case/${c.id}">${c.no}</a> ${esc(c.subject)} ${stPill(c.status)}</div>`).join('')||'<span class="muted">なし</span>'}</div></div>
+  </div><div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-contact">👤</span>取引先責任者 (${cs.length})</div><div class="card-b">${cs.map(c=>`<div class="feed-item"><span class="obj-icon sm i-contact">👤</span><div>${esc(c.name)}<div class="small muted">${esc(c.title)}｜${c.email}</div></div></div>`).join('')}</div></div>
+  </div></div>`;
+}
+
+/* =========================================================
+   ヒアリングシート（5レイヤー＋動的分岐）
+   ========================================================= */
+const LAYERS = [
+  {n:1,t:'ビジネス要件',d:'予算・納期・納入先・投資目的'},
+  {n:2,t:'対象ワーク要件',d:'加工品名・材質・取代・基準面'},
+  {n:3,t:'コア機能（加工）要件',d:'加工条件・定寸方式・軸計測'},
+  {n:4,t:'付帯・IF要件',d:'搬入搬出・NG排出・通信'},
+  {n:5,t:'非機能要件（仕様・環境）',d:'電圧・安全カバー・塗装・規格'}
+];
+/* show: 回答に応じて表示する条件（分岐ロジック） */
+const QS = [
+  {k:'budget',L:1,q:'ご予算（円）',type:'number',req:1,why:'機案の構成（単体機かセル化か）を決める前提。予算と要求が乖離している場合は早期に代替案を提示する。'},
+  {k:'due',L:1,q:'希望納期',type:'date',req:1,why:'長納期品（ロボット・主軸ユニット等）の手配判断に使用。聞き漏れると調達・製造の日程が組めない。'},
+  {k:'dest',L:1,q:'納入先',type:'radio',opts:['国内','海外'],req:1,why:'海外の場合、規格対応・該非判定・現地電源の確認が追加で必要になる（後工程で最も手戻りが多い項目）。'},
+  {k:'country',L:1,q:'納入国',type:'text',show:a=>a.dest==='海外',br:'納入先＝海外',req:1,why:'国により規格（CE/CCC等）・電源周波数が異なるため。'},
+  {k:'std',L:1,q:'CE／CCC等の規格対応が必要ですか？',type:'radio',opts:['CE','CCC','UL','不要','不明（要確認）'],show:a=>a.dest==='海外',br:'納入先＝海外',req:1,why:'規格対応は安全カバー・制御盤の設計と原価に直結する。'},
+  {k:'export',L:1,q:'該非判定は必要ですか？',type:'radio',opts:['必要','不要','不明（要確認）'],show:a=>a.dest==='海外',br:'納入先＝海外',req:1,why:'輸出管理上の手続きが必要か判断する。出荷直前に発覚すると納期遅延の原因となる。'},
+  {k:'purpose',L:1,q:'投資目的',type:'radio',opts:['増産','省人化','品質向上','老朽更新'],req:0,why:'提案の軸（タクト重視か、精度重視か）を決める。'},
+  {k:'equip',L:1,q:'設備種別',type:'radio',opts:['単体ホーニング盤','自動機','セル機'],req:1,why:'自動機・セル機の場合、搬入搬出・ロボットの要件（Layer4）が必須になる。'},
+  {k:'work',L:2,q:'加工品名',type:'text',req:1,why:'過去類似案件の検索キーになる。'},
+  {k:'material',L:2,q:'材質',type:'select',opts:['','鋳鉄（FC250）','鋼（SCM415）','アルミ（ADC12）','焼入れ鋼','その他'],req:1,why:'砥石選定・加工条件・試作加工の要否を決める。'},
+  {k:'stock',L:2,q:'取代（μm）',type:'number',req:1,why:'加工工程数（粗・仕上げの段数）とサイクルタイムの算出に使用。'},
+  {k:'dia',L:2,q:'加工穴径／長さ',type:'text',req:1,why:'ヘッド・ツーリングの選定に使用。'},
+  {k:'base',L:2,q:'加工前基準面',type:'text',req:0,why:'治具設計の前提。前工程の精度不足は芯ずれ不具合の原因になる（ナレッジKB01参照）。'},
+  {k:'process',L:3,q:'加工条件',type:'radio',opts:['仕上げのみ（1段）','粗＋仕上げ（2段）','3段以上'],req:1,why:'軸数・機械構成を決める。'},
+  {k:'gauge',L:3,q:'定寸方式',type:'radio',opts:['インプロセス エアゲージ','機械式定寸','ポストプロセス計測','不要'],req:1,why:'要求精度と測定方式の組み合わせを確認する。'},
+  {k:'spindle',L:3,q:'軸数',type:'number',req:1,why:'機種選定（単軸・多軸）に使用。'},
+  {k:'rank',L:3,q:'ランクセレクトは必要ですか？',type:'radio',opts:['必要','不要'],req:1,why:'ランク分け装置の追加有無。後からの追加は追加請求となりやすい。'},
+  {k:'rankn',L:3,q:'ランク数',type:'number',show:a=>a.rank==='必要',br:'ランクセレクト＝必要',req:1,why:'ランク数により排出シュートの構成が変わる（過去に3→5ランクの仕様変更事例あり）。'},
+  {k:'load',L:4,q:'搬入搬出方式',type:'radio',opts:['手置き','シュート','ロボット','コンベア'],req:1,show:a=>true,why:'自動機・セル機では必須。ロボットの場合は追加確認が発生する。'},
+  {k:'robotMaker',L:4,q:'ロボットのメーカー指定はありますか？',type:'radio',opts:['指定あり','指定なし'],show:a=>a.load==='ロボット',br:'搬入搬出＝ロボット',req:1,why:'顧客標準メーカーがある場合、調達先・制御方式が変わる。'},
+  {k:'robotName',L:4,q:'指定メーカー・機種',type:'text',show:a=>a.load==='ロボット'&&a.robotMaker==='指定あり',br:'メーカー指定あり',req:1,why:'通信IF・安全仕様の確認に使用。'},
+  {k:'ifc',L:4,q:'上位設備との通信IF',type:'select',opts:['','なし（I/O接点のみ）','EtherNet/IP','CC-Link','PROFINET','その他'],show:a=>a.load==='ロボット'||a.equip!=='単体ホーニング盤',br:'自動機／ロボット',req:1,why:'ライン統合時の通信方式。設計後半での変更は制御盤の作り直しになる。'},
+  {k:'ng',L:4,q:'NG品の排出方法',type:'radio',opts:['NGシュート排出','停止・手動取出し','不要'],req:0,why:'自動運転時の異常処置を決める。'},
+  {k:'coolant',L:4,q:'クーラント供給方式',type:'radio',opts:['単独タンク','集中供給'],req:0,why:'集中供給の場合はタンク容量・配管が変わる（ナレッジKB03より追加された項目）。'},
+  {k:'volt',L:5,q:'電源電圧',type:'select',opts:['','200V','220V','380V','400V','その他'],req:1,why:'トランス要否・制御盤設計の前提。'},
+  {k:'freq',L:5,q:'現地電源周波数は？',type:'radio',opts:['50Hz','60Hz'],show:a=>a.dest==='海外',br:'納入先＝海外',req:1,why:'国内と異なる場合が多いため海外案件では必須（ナレッジKB02）。'},
+  {k:'cover',L:5,q:'安全カバー',type:'radio',opts:['全面カバー','部分カバー','顧客にて手配'],req:1,why:'規格対応・設置スペースと合わせて確認。'},
+  {k:'paint',L:5,q:'塗装色',type:'radio',opts:['当社標準色','顧客指定色'],req:0,why:'顧客指定色の場合は色番号を確認。'},
+  {k:'paintNo',L:5,q:'塗装色番号（マンセル等）',type:'text',show:a=>a.paint==='顧客指定色',br:'顧客指定色',req:1,why:'外注塗装の手配に必要。'}
+];
+const visibleQs = a => QS.filter(q=>!q.show||q.show(a));
+function layerProg(a,L){const qs=visibleQs(a).filter(q=>q.L===L&&q.req);const done=qs.filter(q=>a[q.k]);return [done.length,qs.length];}
+
+function pgHearings(){
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート</div><h1>すべてのヒアリングシート ▾</h1></div>
+    <div class="actions"><button class="btn brand" onclick="newHearing()">新規</button></div></div></div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>ヒアリングシート名</th><th>取引先</th><th>商談</th><th>状況</th><th>必須項目の回答率</th><th>最終更新</th></tr></thead><tbody>
+  ${DB.hearings.map(h=>{const a=h.ans;let d=0,t=0;LAYERS.forEach(L=>{const[x,y]=layerProg(a,L.n);d+=x;t+=y});
+    return `<tr><td><a href="#/hearing/${h.id}">${esc(h.name)}</a></td><td>${esc(acc(h.acc).name)}</td><td><a href="#/opp/${h.opp}">${esc((byId(DB.opps,h.opp)||{}).name)}</a></td><td>${stPill(h.status==='完了'?'承認済':'依頼中').replace(/承認済|依頼中/,h.status)}</td>
+    <td style="min-width:160px"><div class="progress"><div style="width:${d/t*100}%"></div></div><span class="small muted">${d}/${t}</span></td><td>${fmtD(h.updated)}</td></tr>`}).join('')}
+  </tbody></table></div></div>`;
+}
+function newHearing(oppId){
+  const o = oppId?byId(DB.opps,oppId):DB.opps.find(o=>!DB.hearings.find(h=>h.opp===o.id)&&o.stage<5);
+  const id='H'+String(100+DB.hearings.length);
+  DB.hearings.unshift({id,name:`HS-00${30+DB.hearings.length} ${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans:{}});
+  UI.hsLayer=1; location.hash='#/hearing/'+id; toast('ヒアリングシートを作成し、商談に紐付けました');
+}
+function pgHearing(id){
+  const h=byId(DB.hearings,id); if(!h) return notFound();
+  const a=h.ans, L=UI.hsLayer, qs=visibleQs(a).filter(q=>q.L===L);
+  let D=0,T=0; LAYERS.forEach(x=>{const[d,t]=layerProg(a,x.n);D+=d;T+=t});
+  const hidden=QS.filter(q=>q.L===L&&q.show&&!q.show(a)).length;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート</div><h1>${esc(h.name)}</h1></div>
+    <div class="actions"><button class="btn" onclick="toast('一時保存しました','info')">一時保存</button><button class="btn brand" onclick="hsComplete('${id}')">回答完了・商談へ連携</button></div></div>
+    <div class="highlights">${fld('取引先',esc(acc(h.acc).name))}${fld('商談',`<a href="#/opp/${h.opp}">${esc((byId(DB.opps,h.opp)||{}).name)}</a>`)}${fld('状況',h.status)}${fld('必須項目の回答',`${D} / ${T}`)}</div></div>
+  <div class="hs-layout">
+    <div class="card"><div class="card-h">レイヤー</div><ul class="layer-nav">${LAYERS.map(x=>{const[d,t]=layerProg(a,x.n);
+      return `<li class="${x.n===L?'active':''}" onclick="UI.hsLayer=${x.n};route()"><div>Layer${x.n}<br><span>${x.t}</span><div class="prog">${x.d}</div></div><span class="pill ${d===t?'g':d?'y':''}">${d}/${t}</span></li>`}).join('')}</ul>
+      <div class="card-b mt8"><div class="small muted">全体の回答率</div><div class="progress mt8"><div style="width:${T?D/T*100:0}%"></div></div></div></div>
+    <div><div class="card"><div class="card-h">Layer${L}：${LAYERS[L-1].t}<span class="right small muted">${hidden?`回答内容により ${hidden} 問を非表示中`:''}</span></div>
+      <div class="card-b" id="qArea">${qs.map(q=>qHtml(q,a,id)).join('')}
+      <div class="flex mt12">${L>1?`<button class="btn" onclick="UI.hsLayer=${L-1};route()">← 前のレイヤー</button>`:''}<span style="margin-left:auto"></span>${L<5?`<button class="btn brand" onclick="UI.hsLayer=${L+1};route()">次のレイヤー →</button>`:`<button class="btn brand" onclick="hsComplete('${id}')">回答完了</button>`}</div></div></div></div>
+    <div>
+      <div class="card"><div class="card-h">💡 ヒアリング意図（Whyガイド）</div><div class="card-b" id="whyPanel">${whyPanel(UI.hsFocus)}</div></div>
+      <div class="card"><div class="card-h">分岐ロジックの状態</div><div class="card-b small">${branchState(a)}</div></div>
+      <div class="card"><div class="card-h">関連ナレッジ</div><div class="card-b small">${a.dest==='海外'?`<div><a href="#/kb/KB02">📖 海外向け案件：電源電圧・周波数の確認手順</a></div>`:''}<div><a href="#/kb/KB01">📖 主軸芯ずれの原因と対策（ベース平面度）</a></div><div><a href="#/kb/KB03">📖 クーラントタンク容量変更時の確認ポイント</a></div></div></div>
+    </div>
+  </div>`;
+}
+function qHtml(q,a,hid){
+  const v=a[q.k]||''; const n=`onchange="hsSet('${hid}','${q.k}',this.value)"`;
+  let input;
+  if(q.type==='radio') input=`<div class="radio-row">${q.opts.map(o=>`<label><input type="radio" name="${q.k}" value="${o}" ${v===o?'checked':''} ${n}><span>${o}</span></label>`).join('')}</div>`;
+  else if(q.type==='select') input=`<select ${n}>${q.opts.map(o=>`<option ${v===o?'selected':''}>${o}</option>`).join('')}</select>`;
+  else input=`<input type="${q.type}" value="${esc(v)}" ${n} onfocus="hsFocus('${q.k}')">`;
+  return `<div class="q ${UI.hsNew&&UI.hsNew.includes(q.k)?'new':''} ${UI.hsFocus===q.k?'focus':''}" onclick="hsFocus('${q.k}')"><div class="ql">${q.req?'<span class="req">*</span>':''}${q.q}${q.br?`<span class="branch">分岐：${q.br}</span>`:''}
+    <a class="why-btn" onclick="event.stopPropagation();hsFocus('${q.k}')">なぜ聞く？</a></div>${input}</div>`;
+}
+function whyPanel(k){
+  const q=QS.find(x=>x.k===k);
+  if(!q) return '<div class="muted small">質問をクリックすると、「なぜ聞くのか」「聞かないと後工程で何が起こるか」を表示します。経験の浅い営業でも次に何を聞くかを迷わないためのガイドです。</div>';
+  return `<div><b>${q.q}</b></div><div class="why-box">${q.why}</div><div class="small muted mt8">Layer${q.L}：${LAYERS[q.L-1].t}${q.req?'｜必須':''}</div>`;
+}
+function hsFocus(k){UI.hsFocus=k;const w=$('#whyPanel');if(w)w.innerHTML=whyPanel(k);document.querySelectorAll('.q').forEach(e=>e.classList.remove('focus'));}
+function hsSet(hid,k,v){
+  const h=byId(DB.hearings,hid); const before=visibleQs(h.ans).map(q=>q.k);
+  h.ans[k]=v; h.updated='2026-10-08'; UI.hsFocus=k;
+  const after=visibleQs(h.ans).map(q=>q.k);
+  const added=after.filter(x=>!before.includes(x)), removed=before.filter(x=>!after.includes(x));
+  UI.hsNew=added;
+  removed.forEach(x=>delete h.ans[x]);
+  if(added.length){const qs=added.map(x=>QS.find(q=>q.k===x));toast(`分岐：回答に応じて ${added.length} 問を追加しました（${qs.map(q=>'Layer'+q.L).filter((v,i,s)=>s.indexOf(v)===i).join('・')}）`,'info');}
+  else if(removed.length) toast(`分岐：不要になった ${removed.length} 問を非表示にしました`,'info');
+  const y=window.scrollY; route(); window.scrollTo(0,y); setTimeout(()=>{UI.hsNew=null},50);
+}
+function branchState(a){
+  const rules=[
+    ['納入先＝海外',a.dest==='海外','納入国・規格対応・該非判定・現地電源周波数を追加'],
+    ['設備種別＝自動機／セル機',a.equip&&a.equip!=='単体ホーニング盤','通信IFを追加'],
+    ['ランクセレクト＝必要',a.rank==='必要','ランク数を追加'],
+    ['搬入搬出＝ロボット',a.load==='ロボット','メーカー指定・通信IFを追加'],
+    ['塗装＝顧客指定色',a.paint==='顧客指定色','色番号を追加']];
+  return rules.map(r=>`<div class="flex" style="padding:3px 0"><span class="pill ${r[1]?'g':''}">${r[1]?'ON':'OFF'}</span><div><b>${r[0]}</b><div class="muted">${r[2]}</div></div></div>`).join('');
+}
+function hsComplete(id){
+  const h=byId(DB.hearings,id); let D=0,T=0; const miss=[];
+  LAYERS.forEach(x=>{const[d,t]=layerProg(h.ans,x.n);D+=d;T+=t;if(d<t)miss.push('Layer'+x.n)});
+  if(D<T){toast(`必須項目が未回答です（${miss.join('、')}）。抜け漏れ防止のため完了できません`,'info');return;}
+  h.status='完了'; const o=byId(DB.opps,h.opp);
+  if(o&&h.ans.budget&&o.stage<2) o.stage=2;
+  toast('ヒアリングシートを完了し、商談へ連携しました（予算・納期・設備種別を商談に反映）'); route();
+}
+
+/* =========================================================
+   依頼（原価見積依頼・追加請求の承認）
+   ========================================================= */
+function pgRequests(){
+  const rs=ROLE==='gijutsu'?DB.requests:DB.requests;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-req">✉</span><div><div class="obj-label">依頼</div><h1>すべての依頼 ▾</h1></div></div></div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>依頼番号</th><th>件名</th><th>種別</th><th>案件</th><th>依頼先</th><th>状況</th><th>依頼者</th><th>依頼日</th></tr></thead><tbody>
+  ${rs.map(r=>`<tr><td><a href="#/request/${r.id}">${r.no}</a></td><td>${esc(r.name)}</td><td>${r.type}</td><td><a href="#/project/${r.pj}">${byId(DB.projects,r.pj).no}</a></td><td>${r.to}</td><td>${stPill(r.status)}</td><td>${r.requester}</td><td>${fmtD(r.created)}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function pgRequest(id){
+  const r=byId(DB.requests,id); if(!r) return notFound();
+  const p=byId(DB.projects,r.pj);
+  const tgt=r.lines.reduce((a,l)=>a+l.target*l.q,0), ans=r.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0);
+  const steps=r.type==='追加請求'?['申請前','承認待ち','承認済']:['依頼中','回答済','完了'];
+  const cur=r.type==='追加請求'?(r.status==='承認済'?2:r.status==='承認待ち'?1:0):(r.status==='回答済'?1:r.status==='完了'?2:0);
+  const canApprove=r.status==='承認待ち'&&ROLE!=='gijutsu';
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-req">✉</span><div><div class="obj-label">依頼｜${r.no}</div><h1>${esc(r.name)}</h1></div>
+    <div class="actions">${r.type==='原価見積依頼'&&r.status==='依頼中'?`<button class="btn brand" onclick="answerReq('${r.id}')">回答を入力</button>`:''}
+      ${canApprove?`<div class="btn-group"><button class="btn success" onclick="approve('${r.id}',true)">承認</button><button class="btn danger" onclick="approve('${r.id}',false)">却下</button></div>`:''}
+      ${r.status==='承認待ち'&&ROLE==='gijutsu'?`<span class="pill y">承認者：営業部長（企画部／営業部ロールで承認できます）</span>`:''}</div></div>
+    <div class="highlights">${fld('種別',r.type)}${fld('案件',`<a href="#/project/${p.id}">${esc(p.name)}</a>`)}${fld('依頼先',r.to)}${fld('ターゲット合計',yen(tgt))}${fld('回答合計',ans?yen(ans):'—')}${fld('依頼者',r.requester)}</div></div>
+  <div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
+  <div class="card"><div class="card-h"><span class="obj-icon sm i-req">✉</span>${r.type==='追加請求'?'追加請求明細':'1．'+r.to+'へ見積依頼'} (${r.lines.length})</div>
+    <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>明細No</th><th>品目</th><th>品目詳細</th><th class="num">数量</th><th class="num">ターゲット単価</th><th class="num">回答単価</th><th class="num">差異</th></tr></thead><tbody>
+    ${r.lines.map(l=>`<tr><td><a>${l.no}</a></td><td>${esc(l.item)}</td><td>${esc(l.detail)}</td><td class="num">${l.q.toFixed(2)}</td><td class="num">${yen(l.target)}</td><td class="num">${l.ans==null?'<span class="muted">回答待ち</span>':yen(l.ans)}</td>
+      <td class="num" style="color:${l.ans>l.target?'var(--red)':''}">${l.ans==null?'':(l.ans-l.target>0?'+':'')+(l.ans-l.target).toLocaleString()}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  ${r.type==='追加請求'?`<div class="card"><div class="card-h"><span class="obj-icon sm" style="background:#f38303">✔</span>承認履歴 (${r.approvals.length})${canApprove?`<span class="right"><div class="btn-group"><button class="btn" onclick="approve('${r.id}',true)">承認</button><button class="btn" onclick="approve('${r.id}',false)">却下</button></div></span>`:''}</div>
+    <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>ステップ名</th><th>日付</th><th>状況</th><th>割り当て先</th></tr></thead><tbody>
+    ${[...r.approvals].reverse().map(x=>`<tr><td><a>${x.step}</a></td><td>${x.date}</td><td>${stPill(x.st.replace('済み','済'))}</td><td><a>${x.who}</a></td></tr>`).join('')}
+    </tbody></table><div class="small muted mt8">承認されると、追加請求額が案件の受注額に加算され、粗利が再計算されます。</div></div></div>`:''}`;
+}
+function approve(id,ok){
+  const r=byId(DB.requests,id); const pend=r.approvals.find(x=>x.st==='未承認');
+  pend.st=ok?'承認済み':'却下'; pend.date=nowStr();
+  r.status=ok?'承認済':'却下';
+  DB.notifs.unshift({t:`追加請求「${r.name}」が${ok?'承認':'却下'}されました`,tm:nowStr(),link:'#/request/'+id,unread:true});
+  toast(ok?'承認しました。案件の受注額に追加請求額を加算し、粗利を再計算しました':'却下しました。申請者へ通知しました'); route();
+}
+function answerReq(id){
+  const r=byId(DB.requests,id);
+  modal('原価見積の回答',`<table class="tbl"><thead><tr><th>品目</th><th class="num">ターゲット</th><th>回答単価</th></tr></thead><tbody>
+    ${r.lines.map((l,i)=>`<tr><td>${esc(l.item)}</td><td class="num">${yen(l.target)}</td><td><input id="ans${i}" type="number" class="role-select" value="${Math.round(l.target*1.05)}"></td></tr>`).join('')}</tbody></table>`,
+    ()=>{r.lines.forEach((l,i)=>l.ans=+$('#ans'+i).value);r.status='回答済';
+      DB.notifs.unshift({t:`原価見積依頼「${r.name}」に回答がありました`,tm:nowStr(),link:'#/request/'+id,unread:true});toast('回答を登録し、依頼者へ通知しました');});
+}
+function newRequest(pid){
+  const p=byId(DB.projects,pid);
+  modal('新規依頼',`<div class="fields" style="grid-template-columns:1fr">
+    <label>種別<select id="rType" class="role-select" style="width:100%"><option>原価見積依頼</option><option>追加請求</option></select></label>
+    <label class="mt8">依頼先<select id="rTo" class="role-select" style="width:100%"><option>製造部</option><option>調達部</option><option>設計部</option><option>営業部</option></select></label>
+    <label class="mt8">件名<input id="rName" class="role-select" style="width:100%" value="${esc(p.name.replace(/【.*】/,''))} 追加部品 見積依頼"></label>
+    <label class="mt8">品目<input id="rItem" class="role-select" style="width:100%" value="治具一式"></label>
+    <label class="mt8">ターゲット単価<input id="rTgt" type="number" class="role-select" style="width:100%" value="500000"></label></div>`,
+    ()=>{const id='R'+(100+DB.requests.length);const type=$('#rType').value;const no='RQ-00012'+(60+DB.requests.length);
+      DB.requests.push({id,no,name:$('#rName').value,pj:pid,type,to:$('#rTo').value,status:type==='追加請求'?'承認待ち':'依頼中',requester:USERS[ROLE].name.replace(/（.*/,''),created:'2026-10-08',
+        lines:[{no:no+'-1',item:$('#rItem').value,detail:'',q:1,target:+$('#rTgt').value,ans:type==='追加請求'?+$('#rTgt').value:null}],
+        approvals:type==='追加請求'?[{step:'承認申請が提出されました',date:nowStr(),st:'申請済み',who:USERS[ROLE].name.replace(/（.*/,'')},{step:'部長承認',date:nowStr(),st:'未承認',who:'田中 三郎（営業部長）'}]:[]});
+      DB.notifs.unshift({t:`新しい依頼「${$('#rName').value}」が届きました（${$('#rTo').value}）`,tm:nowStr(),link:'#/request/'+id,unread:true});
+      setTimeout(()=>location.hash='#/request/'+id,0);toast('依頼を起票し、依頼先へ通知しました');});
+}
+
+/* =========================================================
+   変更・問題情報管理（ケース）→ ナレッジ化
+   ========================================================= */
+function pgCases(){
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-case">⚠</span><div><div class="obj-label">変更・問題情報（ケース）</div><h1>すべてのケース ▾</h1></div></div></div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>ケース番号</th><th>件名</th><th>種別</th><th>優先度</th><th>状況</th><th>案件</th><th>起票日</th><th>ナレッジ</th></tr></thead><tbody>
+  ${DB.cases.map(c=>`<tr><td><a href="#/case/${c.id}">${c.no}</a></td><td>${esc(c.subject)}</td><td>${c.type}</td><td>${c.priority}</td><td>${stPill(c.status)}</td><td><a href="#/project/${c.pj}">${byId(DB.projects,c.pj).no}</a></td><td>${fmtD(c.opened)}</td><td>${c.kb?`<a href="#/kb/${c.kb}">📖 記事</a>`:''}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+function pgCase(id){
+  const c=byId(DB.cases,id); if(!c) return notFound();
+  const st=['新規','対応中','原因・対策確定','クローズ']; const cur=c.status==='クローズ'?3:c.cause?2:c.status==='対応中'?1:0;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-case">⚠</span><div><div class="obj-label">ケース｜${c.no}</div><h1>${esc(c.subject)}</h1></div>
+    <div class="actions">${c.status!=='クローズ'?`<button class="btn brand" onclick="closeCase('${c.id}')">クローズしてナレッジ化</button>`:c.kb?`<a class="btn" href="#/kb/${c.kb}">📖 ナレッジ記事を開く</a>`:''}</div></div>
+    <div class="highlights">${fld('種別',c.type)}${fld('優先度',c.priority)}${fld('案件',`<a href="#/project/${c.pj}">${esc(byId(DB.projects,c.pj).name)}</a>`)}${fld('取引先',esc(acc(c.acc).name))}${fld('担当',c.owner)}</div></div>
+  <div class="path"><ol>${st.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
+  <div class="grid2"><div class="card"><div class="card-h">詳細</div><div class="card-b">
+    <div class="fields" style="grid-template-columns:1fr">${fld('内容',esc(c.desc))}
+    ${fld('原因',c.status==='クローズ'?esc(c.cause):`<textarea id="cCause" class="role-select" style="width:100%" rows="2" placeholder="原因を入力">${esc(c.cause||'エアゲージのエア源圧力が工場エアの変動の影響を受けていた')}</textarea>`)}
+    ${fld('対策',c.status==='クローズ'?esc(c.measure):`<textarea id="cMeasure" class="role-select" style="width:100%" rows="2" placeholder="対策を入力">${esc(c.measure||'精密レギュレータを追加し、マスターリングで再校正')}</textarea>`)}</div></div></div>
+  <div><div class="card"><div class="card-h">類似のナレッジ</div><div class="card-b">${DB.knowledge.filter(k=>/ゲージ|芯|クーラント/.test(k.title)&&k.id!==c.kb).slice(0,2).map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${k.id}">${esc(k.title)}</a></div>`).join('')}</div></div></div></div>`;
+}
+function closeCase(id){
+  const c=byId(DB.cases,id); c.cause=$('#cCause').value; c.measure=$('#cMeasure').value;
+  const kid='KB'+String(DB.knowledge.length+1).padStart(2,'0');
+  DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='不具合'?'トラブル事例':'原因と対策',views:0,updated:'2026-10-08',
+    body:{現象:c.desc,原因:c.cause,対策:c.measure,関連案件:byId(DB.projects,c.pj).name}});
+  c.status='クローズ'; c.kb=kid;
+  toast('ケースをクローズし、ナレッジ記事（下書き）を自動作成しました'); location.hash='#/kb/'+kid;
+}
+function newCase(pid){
+  const p=byId(DB.projects,pid);
+  modal('変更・問題情報を起票',`<div class="fields" style="grid-template-columns:1fr">
+    <label>種別<select id="csType" class="role-select" style="width:100%"><option>不具合</option><option>変更</option><option>問い合わせ</option></select></label>
+    <label class="mt8">件名<input id="csSub" class="role-select" style="width:100%" value="試作加工で面粗度が規格外"></label>
+    <label class="mt8">内容<textarea id="csDesc" class="role-select" style="width:100%" rows="3">仕上げ面粗度 Rz1.6 の要求に対し Rz2.3。</textarea></label></div>`,
+    ()=>{const id='CS'+(10+DB.cases.length);DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:$('#csSub').value,pj:pid,acc:p.acc,type:$('#csType').value,priority:'中',status:'対応中',opened:'2026-10-08',owner:USERS[ROLE].name.replace(/（.*/,''),cause:'',measure:'',desc:$('#csDesc').value});
+      setTimeout(()=>location.hash='#/case/'+id,0);toast('ケースを起票しました');});
+}
+
+/* ---------- ナレッジ ---------- */
+function pgKnowledge(){
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-know">📖</span><div><div class="obj-label">ナレッジ（再発防止）</div><h1>記事一覧</h1></div></div></div>
+  <div class="card"><div class="card-b" style="padding-top:12px"><div class="flex mb8">${['すべて','トラブル事例','原因と対策','作業手順','既知の不具合'].map(c=>`<span class="pill b">${c}</span>`).join('')}</div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>タイトル</th><th>カテゴリ</th><th class="num">閲覧数</th><th>最終更新</th></tr></thead><tbody>
+  ${DB.knowledge.map(k=>`<tr><td><a href="#/kb/${k.id}">${esc(k.title)}</a></td><td>${k.cat}</td><td class="num">${k.views}</td><td>${fmtD(k.updated)}</td></tr>`).join('')}
+  </tbody></table></div></div></div>`;
+}
+function pgKb(id){
+  const k=byId(DB.knowledge,id); if(!k) return notFound(); k.views++;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-know">📖</span><div><div class="obj-label">ナレッジ｜${k.cat}</div><h1>${esc(k.title)}</h1></div>
+    <div class="actions"><span class="pill ${k.views<=1?'y':'g'}">${k.views<=1?'下書き':'公開済'}</span></div></div></div>
+  <div class="card"><div class="card-b kb-article" style="padding-top:4px">${Object.entries(k.body).map(([h,t])=>`<h3>${h}</h3><p>${esc(t)}</p>`).join('')}
+  <div class="small muted mt12">最終更新 ${fmtD(k.updated)}｜閲覧 ${k.views}</div></div></div>`;
+}
+
+/* =========================================================
+   商品（マスタ取込バッチ）
+   ========================================================= */
+function pgProducts(){
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-prod">▦</span><div><div class="obj-label">商品</div><h1>商品マスタ</h1></div>
+    <div class="actions"><button class="btn" onclick="toast('バッチを手動実行しました（デモ）：CSV 9件を取込、エラー 0件','info')">取込履歴</button></div></div></div>
+  <div class="note mb8">基幹システムから出力した商品マスタCSVを、Windows Server のタスクスケジューラ＋データローダーで 1日1回（深夜2:00想定）取り込みます。最終取込：2026/10/08 02:00（更新 9件・エラー 0件）</div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px"><table class="tbl"><thead><tr><th>商品コード</th><th>商品名</th><th>商品ファミリ</th><th class="num">標準価格</th><th>有効</th><th>最終取込</th></tr></thead><tbody>
+  ${DB.products.map(p=>`<tr><td>${p.code}</td><td>${esc(p.name)}</td><td>${p.family}</td><td class="num">${yen(p.price)}</td><td>☑</td><td>2026/10/08 02:00</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
+
+/* =========================================================
+   原価予実（Tableau連携イメージ）
+   ========================================================= */
+function pgCosts(){
+  const all=DB.projects.map(p=>({p,c:pjCalc(p)}));
+  const depts=SUBS.map(s=>{const ks=DB.kousu.filter(k=>k.sub===s.k);return {s,plan:ks.reduce((a,k)=>a+k.plan,0),act:ks.reduce((a,k)=>a+k.act,0)}});
+  const mx=Math.max(...depts.map(d=>Math.max(d.plan,d.act)));
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📊</span><div><div class="obj-label">ダッシュボード</div><h1>原価予実管理（Tableau連携イメージ）</h1></div>
+    <div class="actions"><select class="role-select"><option>2026年度 上期〜下期</option></select></div></div></div>
+  <div class="note mb8">本番では Salesforce の案件・工数・仕入データと基幹システムの実績データを Tableau で統合し可視化します。本画面はレイアウトイメージです（数値はデモデータから算出）。</div>
+  <div class="grid4">
+    <div class="card kpi"><div class="l">受注額合計</div><div class="v">${man(all.reduce((a,x)=>a+x.c.revenue,0))}</div></div>
+    <div class="card kpi"><div class="l">予算原価合計</div><div class="v">${man(all.reduce((a,x)=>a+x.p.budget,0))}</div></div>
+    <div class="card kpi"><div class="l">見込原価合計</div><div class="v">${man(all.reduce((a,x)=>a+x.c.costForecast,0))}</div></div>
+    <div class="card kpi"><div class="l">予実差異</div><div class="v" style="color:var(--red)">${man(all.reduce((a,x)=>a+x.c.costForecast-x.p.budget,0))}</div><div class="s">見込原価 − 予算原価</div></div>
+  </div>
+  <div class="grid2"><div class="card"><div class="card-h">案件別 損益</div><div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>案件</th><th class="num">受注額</th><th class="num">予算原価</th><th class="num">見込原価</th><th class="num">差異</th><th class="num">見込粗利率</th></tr></thead><tbody>
+    ${all.map(({p,c})=>`<tr><td><a href="#/project/${p.id}">${esc(p.name)}</a></td><td class="num">${man(c.revenue)}</td><td class="num">${man(p.budget)}</td><td class="num">${man(c.costForecast)}</td>
+      <td class="num" style="color:${c.costForecast>p.budget?'var(--red)':''}">${man(c.costForecast-p.budget)}</td><td class="num"><span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span></td></tr>`).join('')}
+    </tbody></table></div></div>
+    <div class="card"><div class="card-h">部門別 工数予実（h）</div><div class="card-b">
+      <div class="legend"><span><i style="background:#c9c7c5"></i>予定</span><span><i style="background:#0176d3"></i>実績</span></div>
+      <div class="bar-chart">${depts.map(d=>`<div class="row" style="grid-template-columns:90px 1fr 70px"><div>${d.s.label.replace('管理','')}</div><div class="bars"><div class="b1" style="width:${d.plan/mx*100}%;background:#c9c7c5"></div><div class="b2" style="width:${d.act/mx*100}%;background:${d.act>d.plan?'#ea001e':'#0176d3'}"></div></div><div class="right">${d.act}/${d.plan}</div></div>`).join('')}</div>
+      <div class="small muted mt8">差異要因（工数超過コメント上位）</div>
+      ${DB.kousu.filter(k=>k.act>k.plan&&k.cm).sort((a,b)=>(b.act-b.plan)-(a.act-a.plan)).slice(0,4).map(k=>`<div class="small">・${esc(k.cm)}（+${k.act-k.plan}h）</div>`).join('')}
+    </div></div></div>`;
+}
+
+/* =========================================================
+   オブジェクト構成（参照用）
+   ========================================================= */
+function pgObjMap(){
+  const c=(t,cls,href)=>`<span class="cyl ${cls}" onclick="location.hash='${href}'">${t}</span>`;
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">🗂</span><div><div class="obj-label">参考</div><h1>オブジェクト構成（本モックの画面対応）</h1></div></div>
+    <div class="legend mt8"><span><i style="background:#cfe7fd;border:1px solid #888"></i>標準オブジェクト</span><span><i style="background:#dcebd7;border:1px solid #888"></i>カスタムオブジェクト</span><span>クリックで該当画面へ移動</span></div></div>
+  <div class="card"><div class="card-b" style="padding-top:12px"><div class="obj-map">
+    <div class="grp"><h4>顧客／マスタ管理</h4>${c('取引先','std','#/accounts')}${c('取引先責任者','std','#/account/A001')}${c('活動','std','#/project/P004')}</div>
+    <div class="grp"><h4>営業支援</h4>${c('商談','std','#/opps')}${c('見積','std','#/opp/O001')}${c('商談商品','std','#/opp/O001')}${c('商品','std','#/products')}${c('ヒアリングシート','cus','#/hearings')}</div>
+    <div class="grp"><h4>案件管理</h4>${c('案件管理','cus','#/projects')}<br>${SUBS.map(s=>c(s.label.replace('機案見積','機案'),'cus','#/sub/P003/'+s.k)).join('')}<br>${c('工数管理','cus','#/project/P003')}${c('依頼','cus','#/requests')}${c('ケース（変更・問題）','std','#/cases')}${c('ナレッジ（再発防止）','std','#/knowledge')}</div>
+  </div>
+  <div class="note mt12">「オブジェクト構成図案」をもとに、御見積書 ver2.2 のスコープ（ヒアリングシート電子化 No.9／変更・問題情報管理 No.12／原価予実管理 No.10）を追加して画面化しています。配置・実装方式は要件レビューで確定します。</div></div></div>`;
+}
+
+/* ---------- 検索 ---------- */
+function globalSearch(q){ if(q.trim()) location.hash='#/search/'+encodeURIComponent(q.trim()); }
+function pgSearch(q){
+  const m=s=>String(s).toLowerCase().includes(q.toLowerCase());
+  const res=[...DB.projects.filter(p=>m(p.name)||m(p.no)).map(p=>['案件',p.name,'#/project/'+p.id,'i-project','📁']),
+    ...DB.opps.filter(o=>m(o.name)).map(o=>['商談',o.name,'#/opp/'+o.id,'i-opp','★']),
+    ...DB.accounts.filter(a=>m(a.name)).map(a=>['取引先',a.name,'#/account/'+a.id,'i-acc','🏢']),
+    ...DB.knowledge.filter(k=>m(k.title)||m(JSON.stringify(k.body))).map(k=>['ナレッジ',k.title,'#/kb/'+k.id,'i-know','📖']),
+    ...DB.cases.filter(c=>m(c.subject)).map(c=>['ケース',c.subject,'#/case/'+c.id,'i-case','⚠'])];
+  return `<div class="page-h"><h1>「${esc(q)}」の検索結果（${res.length}件）</h1></div><div class="card"><div class="card-b" style="padding-top:8px">
+    ${res.map(r=>`<div class="feed-item"><span class="obj-icon sm ${r[3]}">${r[4]}</span><div><a href="${r[2]}">${esc(r[1])}</a><div class="small muted">${r[0]}</div></div></div>`).join('')||'<div class="muted">該当なし</div>'}</div></div>`;
+}
+
+/* ---------- 共通部品 ---------- */
+function notFound(){return `<div class="card"><div class="card-b" style="padding:24px">レコードが見つかりません。<a href="#/home">ホームへ</a></div></div>`}
+function nowStr(){return '2026/10/08 '+new Date().toTimeString().slice(0,5)}
+let toastTimer;
+function toast(msg,kind){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const t=document.createElement('div');t.className='toast '+(kind||'');t.textContent=msg;document.body.appendChild(t);
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.remove(),3800);
+}
+let modalOk=null;
+function modal(title,body,onOk,okLabel){
+  modalOk=onOk;
+  $('#overlay').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)closeModal()"><div class="modal"><div class="modal-h">${title}</div><div class="modal-b">${body}</div>
+    <div class="modal-f"><button class="btn" onclick="closeModal()">${onOk?'キャンセル':'閉じる'}</button>${onOk?`<button class="btn brand" onclick="modalSubmit()">${okLabel||'保存'}</button>`:''}</div></div></div>`;
+}
+function modalSubmit(){const f=modalOk;closeModal();if(f){f();route();}}
+function closeModal(){$('#overlay').innerHTML='';}
+function renderNotifCount(){const n=DB.notifs.filter(x=>x.unread).length;const b=$('#notifCount');b.textContent=n||'';b.style.display=n?'':'none';
+  if(UI.notifOpen) renderNotifPanel();}
+function toggleNotif(){UI.notifOpen=!UI.notifOpen;renderNotifPanel();}
+function renderNotifPanel(){
+  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
+    ${DB.notifs.slice(0,8).map((n,i)=>`<div class="it ${n.unread?'unread':''}"><a href="${n.link}" onclick="DB.notifs[${i}].unread=false;UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}</div></div>`).join('')}</div>`:'';
+}
+document.addEventListener('click',e=>{if(UI.notifOpen&&!e.target.closest('.notif-panel')&&!e.target.closest('.icon-btn')){UI.notifOpen=false;renderNotifPanel();}});
+
+
+$('#avatar').title=USERS[ROLE].name; $('#avatar').textContent=USERS[ROLE].initial;
+route();
+</script>
+</body>
+</html>
