@@ -1134,6 +1134,142 @@ function pgCosts(){
    ========================================================= */
 /* ---------- 検索 ---------- */
 function globalSearch(q){ if(q.trim()) go('#/search/'+encodeURIComponent(q.trim())); }
+/* ---------- 追加サンプルデータ（レコード数 2倍化・すべて架空） ---------- */
+DB.accounts.push(
+  {id:'A009',name:'しらかば自動車工業株式会社',industry:'自動車',region:'群馬県',type:'既存顧客',phone:'027-000-0009',owner:'小林 直樹'},
+  {id:'A010',name:'PT. Nusantara Engine Components',industry:'汎用エンジン',region:'インドネシア',type:'新規',phone:'+62-0-000-0010',owner:'伊藤 大輔'},
+  {id:'A011',name:'あさひ油機株式会社',industry:'油空圧',region:'兵庫県',type:'既存顧客',phone:'078-000-0011',owner:'山田 太郎'},
+  {id:'A012',name:'こだま電機製作所株式会社',industry:'家電',region:'埼玉県',type:'既存顧客',phone:'048-000-0012',owner:'高橋 美咲'},
+  {id:'A013',name:'Changzhou Precision Hydraulics Co., Ltd.',industry:'油空圧',region:'中国',type:'新規',phone:'+86-0-000-0013',owner:'伊藤 大輔'},
+  {id:'A014',name:'わかば発動機株式会社',industry:'オートバイ',region:'静岡県',type:'既存顧客',phone:'053-000-0014',owner:'小林 直樹'},
+  {id:'A015',name:'いずみ金型工業株式会社',industry:'金型',region:'岐阜県',type:'既存顧客',phone:'058-000-0015',owner:'山田 太郎'},
+  {id:'A016',name:'かもめ精工株式会社',industry:'ミシン',region:'長野県',type:'既存顧客',phone:'026-000-0016',owner:'高橋 美咲'}
+);
+DB.contacts.push(
+  {id:'C010',acc:'A009',name:'小川 真一',title:'生産技術部 係長',email:'ogawa@example.com'},
+  {id:'C011',acc:'A010',name:'Budi Santoso',title:'Plant Manager',email:'budi@example.com'},
+  {id:'C012',acc:'A011',name:'中島 加奈',title:'設備課',email:'nakajima@example.com'},
+  {id:'C013',acc:'A012',name:'原田 浩',title:'製造技術部 課長',email:'harada@example.com'},
+  {id:'C014',acc:'A013',name:'Li Wei',title:'Engineering Manager',email:'liwei@example.com'},
+  {id:'C015',acc:'A014',name:'岡本 誠司',title:'生産技術課',email:'okamoto@example.com'},
+  {id:'C016',acc:'A015',name:'村上 由美',title:'製造部',email:'murakami@example.com'},
+  {id:'C017',acc:'A016',name:'藤井 隆之',title:'設備保全課',email:'fujii@example.com'},
+  {id:'C018',acc:'A004',name:'長谷川 学',title:'購買部',email:'hasegawa@example.com'}
+);
+DB.products.push(
+  {id:'PR10',code:'HM-V600',name:'縦型ホーニング盤（大径・長尺）',family:'ホーニング盤',price:38000000},
+  {id:'PR11',code:'HM-S200',name:'半自動ホーニング盤（2軸）',family:'ホーニング盤',price:21000000},
+  {id:'PR12',code:'HM-M100',name:'手動ホーニング盤',family:'ホーニング盤',price:6800000},
+  {id:'PR13',code:'AC-LINE',name:'自動ホーニングライン（2台連結）',family:'自動機・セル機',price:88000000},
+  {id:'PR14',code:'OP-ROBOT',name:'ロボット搬送ユニット',family:'オプション',price:9500000},
+  {id:'PR15',code:'OP-INDEX',name:'インデックステーブル（4分割）',family:'オプション',price:4200000},
+  {id:'PR16',code:'OP-COOLER',name:'研削油 油温コントローラー',family:'オプション',price:1600000},
+  {id:'PR17',code:'SV-MAINT',name:'定期保守契約（年間）',family:'サービス',price:1200000},
+  {id:'PR18',code:'TL-TOOL',name:'ホーニングツール（ヘッド一式）',family:'消耗品',price:450000}
+);
+DB.opps.push(
+  {id:'O011',name:'シリンダーライナー 自動ホーニングライン',acc:'A009',stage:5,amount:92800000,close:'2026-06-15',owner:'小林 直樹',prob:100,items:[{p:'PR13',q:1},{p:'PR05',q:2}],project:'P008'},
+  {id:'O012',name:'ポンプケーシング 横型ホーニング盤',acc:'A011',stage:5,amount:25600000,close:'2026-07-17',owner:'山田 太郎',prob:100,items:[{p:'PR03',q:1},{p:'PR16',q:1}],project:'P009'},
+  {id:'O013',name:'モーター軸受穴 半自動ホーニング盤 2台',acc:'A012',stage:5,amount:43800000,close:'2026-08-07',owner:'高橋 美咲',prob:100,items:[{p:'PR11',q:2},{p:'PR18',q:4}],project:'P010'},
+  {id:'O014',name:'クランクケース ホーニング盤 更新',acc:'A014',stage:5,amount:36200000,close:'2026-04-24',owner:'小林 直樹',prob:100,items:[{p:'PR02',q:1},{p:'PR15',q:1}],project:'P011'},
+  {id:'O015',name:'油圧シリンダー 長尺ホーニング盤（中国向け）',acc:'A013',stage:5,amount:42000000,close:'2026-09-04',owner:'伊藤 大輔',prob:100,items:[{p:'PR10',q:1},{p:'PR16',q:1},{p:'PR05',q:1}],project:'P012'},
+  {id:'O016',name:'エンジンブロック 自動ホーニングセル（インドネシア）',acc:'A010',stage:2,amount:61500000,close:'2027-01-29',owner:'伊藤 大輔',prob:40,items:[{p:'PR04',q:1},{p:'PR14',q:1}]},
+  {id:'O017',name:'ガイドポスト穴 手動ホーニング盤',acc:'A015',stage:4,amount:7700000,close:'2026-10-30',owner:'山田 太郎',prob:80,items:[{p:'PR12',q:1},{p:'PR18',q:2}]},
+  {id:'O018',name:'釜軸穴 半自動ホーニング盤',acc:'A016',stage:3,amount:21000000,close:'2026-11-27',owner:'高橋 美咲',prob:60,items:[{p:'PR11',q:1}]},
+  {id:'O019',name:'シリンダースリーブ 2号機 増設',acc:'A006',stage:1,amount:20400000,close:'2027-02-26',owner:'小林 直樹',prob:20,items:[{p:'PR01',q:1},{p:'PR05',q:1}]},
+  {id:'O020',name:'保守契約 更新（年間）',acc:'A002',stage:4,amount:1200000,close:'2026-10-31',owner:'山田 太郎',prob:90,items:[{p:'PR17',q:1}]}
+);
+DB.projects.push(
+  {id:'P008',no:'PJ-2026-0002',name:'【しらかば自動車工業】シリンダーライナー 自動ホーニングライン',acc:'A009',opp:'O011',stage:4,due:'2026-12-25',amount:92800000,budget:68000000,purchase:60000000,owner:'松本 翔',sales:'小林 直樹',start:'2026-06-22',
+    kakou:{phase:'完了',d1:'2026-07-01',d2:'2026-07-15',d3:'2026-07-24'},kian:{phase:'完了',d1:'2026-07-20',d2:'2026-07-31',d3:'2026-08-07',d4:'2026-08-14'},
+    sekkei:{phase:'出図済',d1:'2026-08-10',d2:'2026-08-24',d3:'2026-09-07',d4:'2026-09-14'},seizou:{phase:'組立',d1:'2026-09-14',d2:'2026-12-04'},chou:{phase:'入荷済',d1:'2026-08-17',d2:'2026-10-30'}},
+  {id:'P009',no:'PJ-2026-0004',name:'【あさひ油機】ポンプケーシング 横型ホーニング盤',acc:'A011',opp:'O012',stage:3,due:'2027-01-22',amount:25600000,budget:18500000,purchase:15000000,owner:'木村 拓也',sales:'山田 太郎',start:'2026-07-21',
+    kakou:{phase:'完了',d1:'2026-08-05',d2:'2026-08-19',d3:'2026-08-26'},kian:{phase:'完了',d1:'2026-08-24',d2:'2026-09-04',d3:'2026-09-11',d4:'2026-09-18'},
+    sekkei:{phase:'DR1',d1:'2026-09-21',d2:'2026-10-09',d3:'2026-10-30',d4:'2026-11-13'},seizou:{phase:'未着手',d1:'2026-11-16',d2:'2027-01-08'},chou:{phase:'長納期品手配',d1:'2026-09-28',d2:'2026-12-11'}},
+  {id:'P010',no:'PJ-2026-0007',name:'【こだま電機製作所】モーター軸受穴 半自動ホーニング盤',acc:'A012',opp:'O013',stage:2,due:'2026-11-20',amount:43800000,budget:32000000,purchase:35500000,owner:'松本 翔',sales:'高橋 美咲',start:'2026-08-17',
+    kakou:{phase:'完了',d1:'2026-08-26',d2:'2026-09-09',d3:'2026-09-18'},kian:{phase:'原価見積',d1:'2026-09-21',d2:'2026-10-02',d3:'2026-10-09',d4:'2026-10-16'},
+    sekkei:{phase:'未着手',d1:'2026-10-19',d2:'2026-10-30',d3:'2026-11-06',d4:'2026-11-13'},seizou:{phase:'未着手',d1:'2026-10-26',d2:'2026-11-13'},chou:{phase:'長納期品手配',d1:'2026-09-28',d2:'2026-11-06'}},
+  {id:'P011',no:'PJ-2026-0005',name:'【わかば発動機】クランクケース ホーニング盤 更新',acc:'A014',opp:'O014',stage:5,due:'2026-09-18',amount:36200000,budget:26000000,purchase:22000000,owner:'木村 拓也',sales:'小林 直樹',start:'2026-05-07',
+    kakou:{phase:'完了',d1:'2026-05-15',d2:'2026-05-29',d3:'2026-06-05'},kian:{phase:'完了',d1:'2026-06-01',d2:'2026-06-12',d3:'2026-06-19',d4:'2026-06-26'},
+    sekkei:{phase:'出図済',d1:'2026-06-22',d2:'2026-07-03',d3:'2026-07-17',d4:'2026-07-24'},seizou:{phase:'完了',d1:'2026-07-27',d2:'2026-09-04'},chou:{phase:'入荷済',d1:'2026-06-29',d2:'2026-08-07'}},
+  {id:'P012',no:'PJ-2026-0010',name:'【Changzhou Precision Hydraulics】油圧シリンダー 長尺ホーニング盤',acc:'A013',opp:'O015',stage:1,due:'2027-02-26',amount:42000000,budget:30000000,purchase:28000000,owner:'佐藤 健',sales:'伊藤 大輔',start:'2026-09-14',overseas:true,
+    kakou:{phase:'試作加工',d1:'2026-09-30',d2:'2026-10-14',d3:'2026-10-21'},kian:{phase:'要求確認',d1:'2026-10-19',d2:'2026-11-02',d3:'2026-11-09',d4:'2026-11-16'},
+    sekkei:{phase:'未着手',d1:'2026-11-16',d2:'2026-12-04',d3:'2026-12-18',d4:'2026-12-25'},seizou:{phase:'未着手',d1:'2027-01-06',d2:'2027-02-12'},chou:{phase:'見積取得',d1:'2026-10-12',d2:'2027-01-15'}}
+);
+DB.projects.find(p=>p.id==='P003').overseas=true;
+DB.kousu.push(
+  {pj:'P008',sub:'kakou',name:'試作加工',plan:60,act:62,cm:''},
+  {pj:'P008',sub:'kian',name:'機案書作成',plan:80,act:78,cm:''},
+  {pj:'P008',sub:'sekkei',name:'機械設計',plan:320,act:350,cm:'ライン連結部の追加設計'},
+  {pj:'P008',sub:'sekkei',name:'電気設計',plan:160,act:170,cm:''},
+  {pj:'P008',sub:'seizou',name:'組立',plan:400,act:260,cm:''},
+  {pj:'P008',sub:'chou',name:'購入品手配',plan:60,act:58,cm:''},
+  {pj:'P009',sub:'kakou',name:'試作加工',plan:40,act:44,cm:''},
+  {pj:'P009',sub:'kian',name:'機案書作成',plan:40,act:38,cm:''},
+  {pj:'P009',sub:'sekkei',name:'機械設計',plan:200,act:90,cm:''},
+  {pj:'P009',sub:'sekkei',name:'電気設計',plan:80,act:30,cm:''},
+  {pj:'P010',sub:'kakou',name:'試作加工',plan:50,act:72,cm:'材質変更で試作やり直し'},
+  {pj:'P010',sub:'kian',name:'機案書作成',plan:60,act:70,cm:'2台構成の再検討'},
+  {pj:'P011',sub:'kakou',name:'試作加工',plan:40,act:40,cm:''},
+  {pj:'P011',sub:'kian',name:'機案書作成',plan:40,act:36,cm:''},
+  {pj:'P011',sub:'sekkei',name:'機械設計',plan:220,act:210,cm:''},
+  {pj:'P011',sub:'seizou',name:'組立・調整',plan:300,act:290,cm:''},
+  {pj:'P011',sub:'chou',name:'購入品手配',plan:30,act:32,cm:''},
+  {pj:'P012',sub:'kakou',name:'試作治具製作',plan:30,act:34,cm:'長尺ワーク用の振れ止めを追加'},
+  {pj:'P012',sub:'kakou',name:'試作加工・測定',plan:50,act:20,cm:''},
+  {pj:'P012',sub:'kian',name:'中国規格（CCC）調査',plan:16,act:4,cm:''},
+  {pj:'P002',sub:'chou',name:'長納期品手配',plan:20,act:12,cm:''},
+  {pj:'P004',sub:'seizou',name:'部品加工',plan:120,act:20,cm:''},
+  {pj:'P003',sub:'chou',name:'ロボット見積取得',plan:16,act:10,cm:''},
+  {pj:'P005',sub:'seizou',name:'調整・検査',plan:80,act:30,cm:''}
+);
+DB.requests.push(
+  {id:'R005',no:'RQ-0001258',name:'シリンダーライナー 追加請求（ライン連結部 仕様追加）',pj:'P008',type:'追加請求',to:'営業部',status:'承認待ち',requester:'松本 翔',created:'2026-10-06',
+    lines:[{no:'RQ-0001258-1',item:'連結コンベア追加',detail:'顧客要望によるライン延長',q:1,target:2800000,ans:2800000},{no:'RQ-0001258-2',item:'追加設計工数',detail:'30h',q:1,target:240000,ans:240000}],
+    approvals:[{step:'承認申請が提出されました',date:'2026/10/06 10:12',st:'申請済み',who:'松本 翔'},{step:'部長承認',date:'2026/10/06 10:12',st:'未承認',who:'田中 三郎（営業部長）'}]},
+  {id:'R006',no:'RQ-0001255',name:'ポンプケーシング 原価見積依頼（治具・ツール）',pj:'P009',type:'原価見積依頼',to:'製造部',status:'回答済',requester:'山田 太郎',created:'2026-09-24',
+    lines:[{no:'RQ-0001255-1',item:'専用治具',detail:'ポンプケーシング用',q:2,target:850000,ans:900000},{no:'RQ-0001255-2',item:'ホーニングツール',detail:'φ60',q:4,target:380000,ans:360000}],approvals:[]},
+  {id:'R007',no:'RQ-0001261',name:'軸受穴 調達品 原価見積依頼',pj:'P010',type:'原価見積依頼',to:'調達部',status:'依頼中',requester:'高橋 美咲',created:'2026-10-05',
+    lines:[{no:'RQ-0001261-1',item:'主軸ユニット',detail:'2軸',q:2,target:1200000,ans:null},{no:'RQ-0001261-2',item:'制御盤',detail:'',q:2,target:1500000,ans:null}],approvals:[]},
+  {id:'R008',no:'RQ-0001249',name:'油圧シリンダー 原価見積依頼（長尺ヘッド）',pj:'P012',type:'原価見積依頼',to:'製造部',status:'依頼中',requester:'伊藤 大輔',created:'2026-10-01',
+    lines:[{no:'RQ-0001249-1',item:'長尺ホーニングヘッド',detail:'L1,200',q:1,target:2200000,ans:null},{no:'RQ-0001249-2',item:'振れ止め装置',detail:'',q:1,target:900000,ans:null}],approvals:[]}
+);
+DB.cases.push(
+  {id:'CS04',no:'00001027',subject:'試作加工で面粗度が規格外',pj:'P010',acc:'A012',type:'不具合',priority:'高',status:'対応中',opened:'2026-10-02',owner:'松本 翔',cause:'',measure:'',desc:'仕上げ面粗度 Rz1.6 の要求に対し Rz2.3。'},
+  {id:'CS05',no:'00001015',subject:'仕様変更：インデックステーブル 4分割→6分割',pj:'P011',acc:'A014',type:'変更',priority:'中',status:'クローズ',opened:'2026-06-10',owner:'木村 拓也',
+    cause:'顧客ラインのタクト短縮要求',measure:'インデックスを6分割へ変更。設計変更通知を発行し、追加請求で対応',desc:'設計着手前に顧客より分割数変更の依頼。',kb:'KB06'},
+  {id:'CS06',no:'00001022',subject:'納入後 ワーク投入時の位置ずれアラーム',pj:'P011',acc:'A014',type:'不具合',priority:'中',status:'クローズ',opened:'2026-09-25',owner:'木村 拓也',
+    cause:'投入シュートの傾斜角不足',measure:'シュート角度を5°→8°に変更し、在席センサー位置を調整',desc:'納入後、1日数回ワーク位置ずれアラームが発生。',kb:'KB05'}
+);
+DB.knowledge.push(
+  {id:'KB05',title:'ワーク投入シュートの位置ずれ対策',cat:'トラブル事例',views:18,updated:'2026-09-29',
+    body:{現象:'ワーク投入時に位置ずれアラームが発生する。',原因:'投入シュートの傾斜角不足でワークが停止位置に届かない。',対策:'シュート角度を5°→8°に変更し、在席センサー位置を調整。',再発防止:'ヒアリングシートL4 シュート／コンベヤ（A-144）で傾斜・長さ・高さを確認する。'}},
+  {id:'KB06',title:'インデックステーブル分割数変更時の確認事項',cat:'原因と対策',views:12,updated:'2026-06-20',
+    body:{現象:'設計着手前に分割数の変更依頼。',対策:'タクト・治具数・制御プログラムをセットで見直し、追加請求の要否を判断する。',再発防止:'ヒアリングシートL4 インデックステーブル（A-339）で分割数とタクト要求を同時に確認する。'}},
+  {id:'KB07',title:'中国向け案件：CCC認証と表示言語の確認手順',cat:'作業手順',views:34,updated:'2026-08-28',
+    body:{目的:'中国向け案件で規格・言語の確認漏れを防ぐ。',手順:'①海外規格要求（A-221）を確認 ②対象規格（A-181）にCCCを設定 ③表示言語・銘板・取扱説明書の言語（A-200〜A-205）を確認',注意:'取扱説明書の翻訳は納期に影響するため早期に手配する。'}},
+  {id:'KB08',title:'既知の不具合：油温コントローラー通信エラー',cat:'既知の不具合',views:9,updated:'2026-07-30',
+    body:{現象:'起動直後に油温コントローラーとの通信エラーが出ることがある。',回避策:'制御盤の電源投入順序を「油温コントローラー → 本体」にする。',恒久対策:'起動シーケンスに待ち時間を追加（2026年下期機種から）。'}}
+);
+const HS_DOMESTIC_DONE = {'A-004':'長野県○○市 本社工場','A-005':'藤井 隆之 / fujii@example.com','A-003':'日本','A-007':['老朽更新'],'A-010':'22000000','A-008':'PR11','A-009':'1','A-011':'2027-03-31',
+  'A-301':'新規','A-302':'正式','A-303':'既納先','A-304':'（既納機 機番）',
+  'A-013':'釜軸','A-043':'1',works:[{part:'KM-SH-01'}],'A-016':'SCM415','A-017':'浸炭焼入れ HRC58-62','A-225':'12','A-226':'35','A-227':'10','A-228':'20','A-229':'有','A-028':'基準面指示図_rev1.pdf','A-033':'把持禁止部位指示図_rev1.pdf',
+  qm:[{name:'真円度',st:'あり',pre:'0.005',target:'0.002',method:'真円度測定機',n:'5'},{name:'円筒度',st:'あり',pre:'0.008',target:'0.003',method:'真円度測定機',n:'5'},{name:'真直度',st:'なし'},{name:'端面振れ',st:'なし'},{name:'直角度',st:'なし'},{name:'表面粗さ',st:'あり',target:'Ra 0.2',method:'粗さ計',n:'5'}],
+  'A-059':'要求なし','A-314':'1','A-312':'選択1','A-066':'なし','A-072':'なし','A-233':'油性','A-235':'No','A-108':'要求なし','A-130':'20','A-131':'2026-10-20','A-231':'標準','A-316':'テスト加工実績あり',
+  'A-137':'半自動機(MR/MS系)','A-328':'別置き式','A-328f':'ペーパーフィルター','A-328w':'不要','A-330':'ボックスファン（標準）','A-331':'選択1','A-333':'30種（標準）',
+  'A-166':'AC200V 3相','A-167':'50Hz','A-169':'0.5','A-185':'日進標準色'};
+DB.hearings.push(
+  {id:'H003',no:'SF-2026-00888',name:'PT. Nusantara Engine エンジンブロック 自動ホーニングセル',opp:'O016',acc:'A010',status:'回答中',updated:'2026-10-03',
+    ans:{'A-004':'Karawang, Indonesia（Plant 1）','A-005':'Budi Santoso / budi@example.com','A-003':'東南アジア','A-007':['能力増強','自動化'],'A-010':'60000000','A-008':'PR04','A-009':'1','A-011':'2027-06-30',
+      'A-301':'新規','A-302':'概略','A-303':'新規先','A-013':'エンジンブロック（3気筒）','A-043':'1',works:[{part:'EB-3C-01'}],'A-016':'FC230',qm:QM_DEFAULT.map(n=>({name:n})),'A-137':'セル機','A-140':'Yes'}},
+  {id:'H004',no:'SF-2026-00891',name:'かもめ精工 釜軸穴 半自動ホーニング盤',opp:'O018',acc:'A016',status:'完了',updated:'2026-09-30',ans:HS_DOMESTIC_DONE}
+);
+DB.notifs.unshift(
+  {t:'追加請求「シリンダーライナー ライン連結部 仕様追加」の承認依頼が届いています',tm:'2026/10/06 10:12',link:'#/request/R005',unread:true},
+  {t:'案件「モーター軸受穴 半自動ホーニング盤」の見込粗利率が目標を下回りました（要対応）',tm:'2026/10/07 08:00',link:'#/project/P010',unread:true},
+  {t:'ケース「試作加工で面粗度が規格外」が起票されました',tm:'2026/10/02 15:40',link:'#/case/CS04',unread:false}
+);
+
 /* =========================================================
    ユーザー・活動・見積・取込履歴（追加データ）
    ========================================================= */
@@ -1145,7 +1281,15 @@ DB.users = [
   {id:'U06',name:'木村 拓也',dept:'技術部',title:'技術担当（案件PM）',email:'kimura@example.com',phone:'内線 3102'},
   {id:'U04',name:'中村 恵',dept:'企画部',title:'企画担当',email:'nakamura@example.com',phone:'内線 1101'},
   {id:'U07',name:'吉田 さやか',dept:'調達部',title:'調達担当',email:'yoshida@example.com',phone:'内線 4101'},
-  {id:'U08',name:'斎藤 誠',dept:'製造部',title:'製造リーダー',email:'saito@example.com',phone:'内線 5101'}
+  {id:'U08',name:'斎藤 誠',dept:'製造部',title:'製造リーダー',email:'saito@example.com',phone:'内線 5101'},
+  {id:'U09',name:'高橋 美咲',dept:'営業部',title:'営業担当',email:'takahashi@example.com',phone:'内線 2103'},
+  {id:'U10',name:'伊藤 大輔',dept:'営業部',title:'営業担当（海外）',email:'ito@example.com',phone:'内線 2104'},
+  {id:'U11',name:'松本 翔',dept:'技術部',title:'技術担当（案件PM）',email:'matsumoto@example.com',phone:'内線 3103'},
+  {id:'U12',name:'井上 亜希',dept:'技術部',title:'設計担当',email:'inoue@example.com',phone:'内線 3104'},
+  {id:'U13',name:'石井 隆',dept:'技術部',title:'技術部長',email:'ishii@example.com',phone:'内線 3100'},
+  {id:'U14',name:'森田 浩',dept:'企画部',title:'企画部長',email:'morita@example.com',phone:'内線 1100'},
+  {id:'U15',name:'山口 直子',dept:'調達部',title:'調達担当',email:'yamaguchi@example.com',phone:'内線 4102'},
+  {id:'U16',name:'清水 健太',dept:'製造部',title:'製造担当',email:'shimizu@example.com',phone:'内線 5102'}
 ];
 const ME = {kikaku:'U04',eigyo:'U01',gijutsu:'U03'};
 const meName = () => byId(DB.users,ME[ROLE]).name;
@@ -1167,12 +1311,31 @@ DB.activities = [
   {id:'AC15',type:'行動',subject:'引き合い対応（電話）',date:'2026-10-05',what:['opp','O010'],who:'C009',owner:'小林 直樹',status:'完了',memo:'図面を後日受領予定。'},
   {id:'AC16',type:'行動',subject:'増産計画ヒアリング',date:'2026-10-20',what:['opp','O008'],who:'C006',owner:'山田 太郎',status:'予定',memo:''},
   {id:'AC17',type:'ToDo',subject:'原価見積の回答（ロボット搬送ユニット）',date:'2026-10-09',what:['project','P003'],owner:'斎藤 誠',status:'完了',memo:''},
-  {id:'AC18',type:'行動',subject:'年次訪問（既納機の稼働状況確認）',date:'2026-09-18',what:['account','A001'],who:'C001',owner:'山田 太郎',status:'完了',memo:'第二工場での更新ニーズあり。'}
+  {id:'AC18',type:'行動',subject:'年次訪問（既納機の稼働状況確認）',date:'2026-09-18',what:['account','A001'],who:'C001',owner:'山田 太郎',status:'完了',memo:'第二工場での更新ニーズあり。'},
+  {id:'AC19',type:'行動',subject:'ライン連結部 仕様打合せ',date:'2026-10-05',what:['project','P008'],who:'C010',owner:'松本 翔',status:'完了',memo:'連結コンベアの追加要望。追加請求で対応する方針。'},
+  {id:'AC20',type:'ToDo',subject:'追加請求（ライン連結部）の承認フォロー',date:'2026-10-09',what:['project','P008'],owner:'小林 直樹',status:'未着手',memo:''},
+  {id:'AC21',type:'行動',subject:'組立立会い（顧客来社）',date:'2026-10-22',what:['project','P008'],who:'C010',owner:'松本 翔',status:'予定',memo:''},
+  {id:'AC22',type:'行動',subject:'DR1 設計審査',date:'2026-10-09',what:['project','P009'],owner:'木村 拓也',status:'予定',memo:'井上 亜希（設計）同席。'},
+  {id:'AC23',type:'ToDo',subject:'治具・ツール見積回答の確認',date:'2026-10-08',what:['project','P009'],who:'C012',owner:'山田 太郎',status:'未着手',memo:''},
+  {id:'AC24',type:'行動',subject:'面粗度不良の原因調査',date:'2026-10-03',what:['case','CS04'],who:'C013',owner:'松本 翔',status:'完了',memo:'砥石番手の見直しが必要。'},
+  {id:'AC25',type:'ToDo',subject:'採算見直し（見込粗利率の低下）',date:'2026-10-12',what:['project','P010'],owner:'中村 恵',status:'未着手',memo:'購入品コスト増の要因分析。'},
+  {id:'AC26',type:'ToDo',subject:'調達品見積の回答',date:'2026-10-14',what:['project','P010'],owner:'山口 直子',status:'未着手',memo:''},
+  {id:'AC27',type:'行動',subject:'納入後フォロー訪問',date:'2026-10-02',what:['project','P011'],who:'C015',owner:'小林 直樹',status:'完了',memo:'位置ずれ対策後、安定稼働を確認。'},
+  {id:'AC28',type:'行動',subject:'試作加工 キックオフ（Web会議）',date:'2026-09-30',what:['project','P012'],who:'C014',owner:'伊藤 大輔',status:'完了',memo:'英語・中国語での資料準備を依頼された。'},
+  {id:'AC29',type:'ToDo',subject:'CCC認証の要否確認',date:'2026-10-16',what:['project','P012'],owner:'佐藤 健',status:'未着手',memo:'ナレッジ「中国向け案件：CCC認証と表示言語の確認手順」を参照。'},
+  {id:'AC30',type:'行動',subject:'現地調査（インドネシア工場）',date:'2026-10-27',what:['opp','O016'],who:'C011',owner:'伊藤 大輔',status:'予定',memo:''},
+  {id:'AC31',type:'ToDo',subject:'ヒアリングシートL2以降の回答依頼',date:'2026-10-10',what:['opp','O016'],who:'C011',owner:'伊藤 大輔',status:'未着手',memo:''},
+  {id:'AC32',type:'行動',subject:'価格交渉',date:'2026-10-06',what:['opp','O017'],who:'C016',owner:'山田 太郎',status:'完了',memo:'ツール2式込みで最終提示。'},
+  {id:'AC33',type:'ToDo',subject:'見積提出後のフォロー',date:'2026-10-13',what:['opp','O018'],who:'C017',owner:'高橋 美咲',status:'未着手',memo:''},
+  {id:'AC34',type:'行動',subject:'2号機増設の情報交換',date:'2026-10-19',what:['opp','O019'],who:'C007',owner:'小林 直樹',status:'予定',memo:''},
+  {id:'AC35',type:'ToDo',subject:'保守契約書の送付',date:'2026-10-09',what:['opp','O020'],who:'C003',owner:'山田 太郎',status:'未着手',memo:''},
+  {id:'AC36',type:'行動',subject:'新製品紹介（展示会フォロー）',date:'2026-09-29',what:['account','A012'],who:'C013',owner:'高橋 美咲',status:'完了',memo:''}
 ];
 DB.quotes = DB.opps.map(o=>({id:'Q'+o.id.slice(1),no:'QT-2026-'+o.id.slice(1).padStart(4,'0'),opp:o.id,status:o.stage>=5?'承認済':o.stage>=3?'提出済':'作成中',date:o.stage>=3?'2026-09-'+String(10+(+o.id.slice(1))).padStart(2,'0'):'2026-10-08',valid:'2026-12-31'}));
-DB.batches = ['02','03','04','05','06','07','08'].map((d,i)=>({id:'B0'+(i+1),dt:`2026/10/${d} 02:00`,file:`item_master_202610${d}.csv`,status:i===2?'一部エラー':'成功',
-  ins:i===0?1:0,upd:i===6?9:[3,2,4,1,2,5][i]||0,err:i===2?1:0,errMsg:i===2?'TL-STONE：標準価格が数値ではありません（"12,000円"）':'',
-  prods:i===6?DB.products.map(p=>p.id):DB.products.slice(i,i+([3,2,4,1,2,5][i]||1)).map(p=>p.id)}));
+DB.batches = ['09/25','09/26','09/27','09/28','09/29','09/30','10/01','10/02','10/03','10/04','10/05','10/06','10/07','10/08'].map((d,i)=>{const n=[2,3,1,4,2,3,9,3,2,4,1,2,5,18][i];
+  return {id:'B'+String(i+1).padStart(2,'0'),dt:`2026/${d} 02:00`,file:`item_master_2026${d.replace('/','')}.csv`,status:(i===4||i===9)?'一部エラー':'成功',ins:i===6?9:0,upd:i===6?0:n,err:(i===4||i===9)?1:0,
+    errMsg:i===4?'TL-TOOL：商品コードが重複しています':i===9?'TL-STONE：標準価格が数値ではありません（"12,000円"）':'',
+    prods:i===13?DB.products.map(p=>p.id):i===6?DB.products.slice(9).map(p=>p.id):Array.from({length:n},(_,k)=>DB.products[(i*3+k)%DB.products.length].id)};});
 DB.projects.forEach(p=>{p.hist=[{dt:fmtD(p.start)+' 09:00',f:'作成',from:'',to:'商談受注フローにより自動作成',by:'自動化フロー'}];
   if(p.stage>0) p.hist.unshift({dt:'2026/09/'+(10+p.stage)+' 17:20',f:'ステージ',from:STAGES[p.stage-1],to:STAGES[p.stage],by:p.owner});});
 DB.knowledge.forEach(k=>k.votes=Math.round(k.views/6));
