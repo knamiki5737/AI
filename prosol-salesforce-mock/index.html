@@ -2343,7 +2343,7 @@ Object.assign(byId(DB.hearings,'H002').ans,{
   'A-209':'選択1','A-210':'3','A-215':'不要'});
 
 /* ---------- ⑤ ナレッジ：カテゴリを p7 の3分類に（REQ-5-02）、原価追加の再発防止記事（REQ-5-03） ---------- */
-['KB04','KB08'].forEach(id=>{const k=byId(DB.knowledge,id); if(k) k.cat='トラブル事例';});
+['KB04','KB08'].forEach(id=>{const k=byId(DB.knowledge,id); if(k){ k.cat='トラブル事例'; k.title=k.title.replace(/^既知の不具合：/,''); }});
 DB.knowledge.push(
   {id:'KB21',title:'受注後のランクセレクト段数変更で追加工数が発生した事例と、ヒアリング時の確認ポイント',cat:'原因と対策',views:21,votes:6,status:'公開済',updated:'2026-10-05',
     body:{現象:'自動ホーニングセル（モーターハウジング加工）の受注後に、ランクセレクトの段数を3ランクから5ランクへ変更する追加要求があり、設計・計測装置の変更で追加工数と部品費が発生した。',
