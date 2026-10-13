@@ -289,6 +289,28 @@ a.tab{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 /* ===== WP2 BEGIN ===== */
 /* ===== WP2 END ===== */
 /* ===== WP3 BEGIN ===== */
+.tk-tiles .kpi.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
+.tk-over{color:var(--red);font-weight:700}
+.tbl tr.tk-up td{background:#fff1ef}
+.tbl td.tk-max{background:#feded8;color:#8e030f;font-weight:700}
+.tbl.tk-rep{min-width:860px}
+.tbl.tk-rep th.tk-ph{text-align:center;border-left:1px solid var(--border)}
+.tbl tr.tk-subtot td{background:#fafaf9;font-weight:700}
+.tk-alert{display:flex;gap:6px 10px;align-items:center;flex-wrap:wrap;background:#fff1ef;border:1px solid #f4b6ae;border-left:4px solid var(--red);border-radius:4px;padding:8px 12px;margin-bottom:12px;color:#8e030f;font-size:12.5px}
+.tk-alert span{flex:1 1 260px;min-width:0}
+.tk-alert .tk-alert-btns{flex:0 0 auto;display:flex;gap:6px;flex-wrap:wrap}
+.tk-hint{font-size:12px;color:var(--text-mute);white-space:normal;align-self:center}
+.tk-imp{display:flex;flex-wrap:wrap;gap:6px}
+.tk-lab{font-size:12px;color:var(--text-weak);margin-bottom:3px}
+.form1 .tk-chk{display:flex;flex-wrap:wrap;gap:6px 16px}
+.form1 .tk-chk label{flex-direction:row;align-items:center;gap:4px;color:var(--text);font-size:13px}
+.form1 .tk-chk input{width:auto}
+.tk-2col,.tk-line{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tk-line{grid-template-columns:2fr 2fr 1fr 1.5fr;border:1px solid var(--border-light);border-radius:4px;padding:6px}
+.tk-full{width:100%}
+.tk-lv .top>div{min-width:0;max-width:100%}
+.tk-sel{border:1px solid var(--border);border-radius:4px;padding:5px 8px;background:#fff;font-size:13px}
+@media(max-width:700px){.tk-line{grid-template-columns:1fr 1fr}.tk-2col{grid-template-columns:1fr}}
 /* ===== WP3 END ===== */
 </style>
 </head>
@@ -710,34 +732,12 @@ function gantt(p){
   <div class="g-row"><div class="g-name"><b>納期</b></div><div class="g-track"><div class="g-bar" style="left:${pos(p.due)-0.5}%;width:1%;background:#000" title="${fmtD(p.due)}"></div></div></div></div>`;
 }
 /* @owner WP3 */
-function addKousu(id){
-  modal('工数を追加',`<div class="fields" style="grid-template-columns:1fr">
-    <label>工程区分<select id="kSub" class="role-select" style="width:100%">${SUBS.map(s=>`<option value="${s.k}">${s.label}</option>`).join('')}</select></label>
-    <label class="mt8">工程名<input id="kName" class="role-select" style="width:100%" value="追加調整"></label>
-    <div class="flex mt8"><label>予定工数(h)<input id="kPlan" type="number" class="role-select" value="10"></label><label>実績工数(h)<input id="kAct" type="number" class="role-select" value="16"></label></div>
-    <label class="mt8">コメント<input id="kCm" class="role-select" style="width:100%" value="現地調整の追加対応"></label></div>`,
-    ()=>{DB.kousu.push({pj:id,sub:$('#kSub').value,name:$('#kName').value,plan:+$('#kPlan').value,act:+$('#kAct').value,cm:$('#kCm').value});
-      toast('工数を登録しました。案件の工数合計・見込原価・粗利ランプを再計算しました');});
-}
+function addKousu(id,sub){ tkAddKousu(id,sub); }   // 実装は WP3 ブロック（原価UPの判定・通知を含む）
 /* @owner WP3 */
-function pjReq(p){
-  const rs=DB.requests.filter(r=>r.pj===p.id);
-  return `<div class="flex mb8"><span class="muted">各部門への原価見積依頼や追加請求の承認をチケットとして管理します</span><span style="margin-left:auto"><button class="btn" onclick="newRequest('${p.id}')">新規依頼</button></span></div>
-  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>依頼番号</th><th>件名</th><th>種別</th><th>依頼先</th><th>状況</th><th>依頼日</th></tr></thead><tbody>
-  ${rs.map(r=>`<tr><td><a href="#/request/${r.id}">${r.no}</a></td><td>${esc(r.name)}</td><td>${r.type}</td><td>${r.to}</td><td>${stPill(r.status)}</td><td>${fmtD(r.created)}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">依頼はありません</td></tr>'}
-  </tbody></table></div>`;
-}
+function pjReq(p){ return tkPjReq(p); }   // 実装は WP3 ブロック
 function stPill(s){const m={'承認済':'g','回答済':'g','承認待ち':'y','依頼中':'b','却下':'r','クローズ':'g','対応中':'y','新規':'b',...EXT.pill};return `<span class="pill ${m[s]||''}">${s}</span>`}
 /* @owner WP3 */
-function pjCost(p,c){
-  const labor=Math.max(c.plan,c.act)*RATE;
-  return `<div class="fields">
-    ${fld('受注額（商談より）',yen(p.amount))}${fld('追加請求（承認済）',yen(c.addRev))}
-    ${fld('予算原価',yen(p.budget))}${fld('見込原価',yen(c.costForecast))}
-    ${fld('　うち仕入・外注（調達管理）',yen(p.purchase))}${fld('　うち社内工数（工数管理 × 単価）',yen(labor)+` <span class="small muted">${Math.max(c.plan,c.act)}h × ${yen(RATE)}</span>`)}
-    ${fld('見込粗利',yen(c.revenue-c.costForecast))}${fld('見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`)}
-  </div><div class="note mt12">集約ロジック（案）：見込原価 ＝ 仕入・外注 ＋ max(予定工数, 実績工数) × 工数単価。工数単価・目標粗利率・ランプの閾値は本モックでの仮置きです。要件レビューで確定します。</div>`;
-}
+function pjCost(p,c){ return tkPjCost(p,c); }   // 実装は WP3 ブロック（工程別の原価予実）
 const fld=(l,v,spec)=>`<div class="field"><div class="l">${l}${spec?`<span class="spec-tag">${spec}</span>`:''}</div><div class="v">${v}</div></div>`;
 /* ---------- 子レコード（階層構造：大計画→中計画） ---------- */
 /* @owner WP2 */
@@ -1176,37 +1176,11 @@ function hsSummary(h){
    依頼（原価見積依頼・追加請求の承認）
    ========================================================= */
 /* @owner WP3 */
-function approve(id,ok){
-  const r=byId(DB.requests,id); const pend=r.approvals.find(x=>x.st==='未承認');
-  pend.st=ok?'承認済み':'却下'; pend.date=nowStr();
-  r.status=ok?'承認済':'却下';
-  DB.notifs.unshift({t:`追加請求「${r.name}」が${ok?'承認':'却下'}されました`,tm:nowStr(),link:'#/request/'+id,unread:true});
-  toast(ok?'承認しました。案件の受注額に追加請求額を加算し、粗利を再計算しました':'却下しました。申請者へ通知しました'); route();
-}
+function approve(id,ok){ tkApprove(id,ok); }   // 実装は WP3 ブロック
 /* @owner WP3 */
-function answerReq(id){
-  const r=byId(DB.requests,id);
-  modal('原価見積の回答',`<table class="tbl"><thead><tr><th>品目</th><th class="num">ターゲット</th><th>回答単価</th></tr></thead><tbody>
-    ${r.lines.map((l,i)=>`<tr><td>${esc(l.item)}</td><td class="num">${yen(l.target)}</td><td><input id="ans${i}" type="number" class="role-select" value="${Math.round(l.target*1.05)}"></td></tr>`).join('')}</tbody></table>`,
-    ()=>{r.lines.forEach((l,i)=>l.ans=+$('#ans'+i).value);r.status='回答済';
-      DB.notifs.unshift({t:`原価見積依頼「${r.name}」に回答がありました`,tm:nowStr(),link:'#/request/'+id,unread:true});toast('回答を登録し、依頼者へ通知しました');});
-}
+function answerReq(id){ tkAnswer(id); }   // 実装は WP3 ブロック
 /* @owner WP3 */
-function newRequest(pid){
-  const p=byId(DB.projects,pid);
-  modal('新規依頼',`<div class="fields" style="grid-template-columns:1fr">
-    <label>種別<select id="rType" class="role-select" style="width:100%"><option>原価見積依頼</option><option>追加請求</option></select></label>
-    <label class="mt8">依頼先<select id="rTo" class="role-select" style="width:100%"><option>製造部</option><option>調達部</option><option>設計部</option><option>営業部</option></select></label>
-    <label class="mt8">件名<input id="rName" class="role-select" style="width:100%" value="${esc(p.name.replace(/【.*】/,''))} 追加部品 見積依頼"></label>
-    <label class="mt8">品目<input id="rItem" class="role-select" style="width:100%" value="治具一式"></label>
-    <label class="mt8">ターゲット単価<input id="rTgt" type="number" class="role-select" style="width:100%" value="500000"></label></div>`,
-    ()=>{const id='R'+(100+DB.requests.length);const type=$('#rType').value;const no='RQ-00012'+(60+DB.requests.length);
-      DB.requests.push({id,no,name:$('#rName').value,pj:pid,type,to:$('#rTo').value,status:type==='追加請求'?'承認待ち':'依頼中',requester:USERS[ROLE].name.replace(/（.*/,''),created:'2026-10-08',
-        lines:[{no:no+'-1',item:$('#rItem').value,detail:'',q:1,target:+$('#rTgt').value,ans:type==='追加請求'?+$('#rTgt').value:null}],
-        approvals:type==='追加請求'?[{step:'承認申請が提出されました',date:nowStr(),st:'申請済み',who:USERS[ROLE].name.replace(/（.*/,'')},{step:'部長承認',date:nowStr(),st:'未承認',who:'武田 修（営業部長）'}]:[]});
-      DB.notifs.unshift({t:`新しい依頼「${$('#rName').value}」が届きました（${$('#rTo').value}）`,tm:nowStr(),link:'#/request/'+id,unread:true});
-      setTimeout(()=>go('#/request/'+id),0);toast('依頼を起票し、依頼先へ通知しました');});
-}
+function newRequest(pid,parent){ tkNewCostReq(pid,parent); }   // 原価見積依頼の起票（実装は WP3 ブロック）
 
 /* =========================================================
    変更・問題情報管理（ケース）→ ナレッジ化
@@ -1228,30 +1202,7 @@ function closeCase(id){
    原価予実（Tableau連携イメージ）
    ========================================================= */
 /* @owner WP3 */
-function pgCosts(){
-  const all=DB.projects.map(p=>({p,c:pjCalc(p)}));
-  const depts=SUBS.map(s=>{const ks=DB.kousu.filter(k=>k.sub===s.k);return {s,plan:ks.reduce((a,k)=>a+k.plan,0),act:ks.reduce((a,k)=>a+k.act,0)}});
-  const mx=Math.max(...depts.map(d=>Math.max(d.plan,d.act)));
-  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📊</span><div><div class="obj-label">ダッシュボード</div><h1>原価予実管理（Tableau連携イメージ）</h1></div>
-    <div class="actions"><select class="role-select"><option>2026年度 上期〜下期</option></select></div></div></div>
-  <div class="note mb8">本番では Salesforce の案件・工数・仕入データと基幹システムの実績データを Tableau で統合し可視化します。本画面はレイアウトイメージです（数値はデモデータから算出）。</div>
-  <div class="grid4">
-    <div class="card kpi"><div class="l">受注額合計</div><div class="v">${man(all.reduce((a,x)=>a+x.c.revenue,0))}</div></div>
-    <div class="card kpi"><div class="l">予算原価合計</div><div class="v">${man(all.reduce((a,x)=>a+x.p.budget,0))}</div></div>
-    <div class="card kpi"><div class="l">見込原価合計</div><div class="v">${man(all.reduce((a,x)=>a+x.c.costForecast,0))}</div></div>
-    <div class="card kpi"><div class="l">予実差異</div><div class="v" style="color:var(--red)">${man(all.reduce((a,x)=>a+x.c.costForecast-x.p.budget,0))}</div><div class="s">見込原価 − 予算原価</div></div>
-  </div>
-  <div class="grid2"><div class="card"><div class="card-h">案件別 損益</div><div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>案件</th><th class="num">受注額</th><th class="num">予算原価</th><th class="num">見込原価</th><th class="num">差異</th><th class="num">見込粗利率</th></tr></thead><tbody>
-    ${all.map(({p,c})=>`<tr><td><a href="#/project/${p.id}">${esc(p.name)}</a></td><td class="num">${man(c.revenue)}</td><td class="num">${man(p.budget)}</td><td class="num">${man(c.costForecast)}</td>
-      <td class="num" style="color:${c.costForecast>p.budget?'var(--red)':''}">${man(c.costForecast-p.budget)}</td><td class="num"><span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span></td></tr>`).join('')}
-    </tbody></table></div></div>
-    <div class="card"><div class="card-h">部門別 工数予実（h）</div><div class="card-b">
-      <div class="legend"><span><i style="background:#c9c7c5"></i>予定</span><span><i style="background:#0176d3"></i>実績</span></div>
-      <div class="bar-chart">${depts.map(d=>`<div class="row" style="grid-template-columns:90px 1fr 70px"><div>${d.s.label.replace('管理','')}</div><div class="bars"><div class="b1" style="width:${d.plan/mx*100}%;background:#c9c7c5"></div><div class="b2" style="width:${d.act/mx*100}%;background:${d.act>d.plan?'#ea001e':'#0176d3'}"></div></div><div class="right">${d.act}/${d.plan}</div></div>`).join('')}</div>
-      <div class="small muted mt8">差異要因（工数超過コメント上位）</div>
-      ${DB.kousu.filter(k=>k.act>k.plan&&k.cm).sort((a,b)=>(b.act-b.plan)-(a.act-a.plan)).slice(0,4).map(k=>`<div class="small">・${esc(k.cm)}（+${k.act-k.plan}h）</div>`).join('')}
-    </div></div></div>`;
-}
+function pgCosts(){ return tkPgCosts(); }   // 実装は WP3 ブロック
 
 /* =========================================================
    オブジェクト構成（参照用）
@@ -2007,45 +1958,13 @@ function newOpp(accId){
    依頼
    ========================================================= */
 /* @owner WP3 */
-function pgRequests(){
-  const V={all:['すべての依頼',r=>true],open:['未完了（承認待ち・依頼中）',r=>r.status==='承認待ち'||r.status==='依頼中'],mine:['自分が依頼したもの',r=>r.requester===meName()],
-    approve:['営業部長の承認待ち',r=>r.status==='承認待ち'],cost:['原価見積依頼',r=>r.type==='原価見積依頼'],add:['追加請求',r=>r.type==='追加請求']};
-  const rows=lvApply('requests',V,DB.requests);
-  return listPage({icon:'i-req',em:'✉',label:'依頼',sel:lvSel('requests',V),count:rows.length,
-    table:tbl(['依頼番号','件名','種別','案件','依頼先','状況','依頼者','依頼日'],rows.map(r=>tr([`<a href="#/request/${r.id}">${r.no}</a>`,`<a href="#/request/${r.id}">${esc(r.name)}</a>`,r.type,`<a href="#/project/${r.pj}">${byId(DB.projects,r.pj).no}</a>`,r.to,stPill(r.status),ul(r.requester),fmtD(r.created)])))});
-}
+function pgRequests(){ return tkPgRequests(); }   // 実装は WP3 ブロック
 /* @owner WP3 */
-function pgRequest(id){
-  const r=byId(DB.requests,id); if(!r) return notFound();
-  const p=byId(DB.projects,r.pj);
-  const tgt=r.lines.reduce((a,l)=>a+l.target*l.q,0), ans=r.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0);
-  const steps=r.type==='追加請求'?['申請前','承認待ち',r.status==='却下'?'却下':'承認済']:['依頼中','回答済','完了'];
-  const cur=r.type==='追加請求'?(r.status==='承認済'||r.status==='却下'?2:r.status==='承認待ち'?1:0):(r.status==='回答済'?1:r.status==='完了'?2:0);
-  const canApprove=r.status==='承認待ち'&&ROLE!=='gijutsu';
-  const others=DB.requests.filter(x=>x.pj===r.pj&&x.id!==id);
-  return recHeader({icon:'i-req',em:'✉',label:'依頼｜'+r.no,title:esc(r.name),
-    actions:`${r.type==='原価見積依頼'&&r.status==='依頼中'?`<button class="btn brand" onclick="answerReq('${r.id}')">回答を入力</button>`:''}${r.type==='原価見積依頼'&&r.status==='回答済'?`<button class="btn" onclick="finishReq('${r.id}')">見積に反映して完了</button>`:''}
-      ${canApprove?`<div class="btn-group"><button class="btn success" onclick="approve('${r.id}',true)">承認</button><button class="btn danger" onclick="approve('${r.id}',false)">却下</button></div>`:''}
-      ${r.status==='承認待ち'&&ROLE==='gijutsu'?`<span class="pill y">承認者：営業部長（企画部／営業部ロールで承認できます）</span>`:''}`,
-    hl:[['種別',r.type],['状況',stPill(r.status)],['案件',pl(p.id)],['依頼先',r.to],['ターゲット合計',yen(tgt)],['回答合計',ans?yen(ans):'—'],['依頼者',ul(r.requester)]]})
-  +`<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?(s==='却下'?'rej':'cur'):''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
-  <div class="grid2"><div>
-  ${relCard('i-req','✉',r.type==='追加請求'?'追加請求明細':'1．'+r.to+'へ見積依頼',r.lines.length,tbl(['明細No','品目','品目詳細','#数量','#ターゲット単価','#回答単価','#差異'],
-    r.lines.map((l,i)=>tr([`<a onclick="lineModal('${r.id}',${i})">${l.no}</a>`,esc(l.item),esc(l.detail),[l.q.toFixed(2)],[yen(l.target)],[l.ans==null?'<span class="muted">回答待ち</span>':yen(l.ans)],[`<span style="color:${l.ans>l.target?'var(--red)':''}">${l.ans==null?'':(l.ans-l.target>0?'+':'')+(l.ans-l.target).toLocaleString()}</span>`]]))))}
-  ${r.type==='追加請求'?relCard('i-appr','✔','承認履歴',r.approvals.length,tbl(['ステップ名','日付','状況','割り当て先'],[...r.approvals].reverse().map(x=>tr([x.step,x.date,stPill(x.st.replace('済み','済')),ul(x.who)])))+'<div class="small muted mt8">承認されると、追加請求額が案件の受注額に加算され、粗利が再計算されます。</div>',
-    canApprove?`<div class="btn-group"><button class="btn" onclick="approve('${r.id}',true)">承認</button><button class="btn" onclick="approve('${r.id}',false)">却下</button></div>`:''):''}
-  </div><div>${hk('request','side',r)}
-    ${relCard('i-project','📁','案件',1,`${pl(p.id)}<div class="small muted">${STAGES[p.stage]}｜納期 ${fmtD(p.due)}｜技術担当 ${esc(p.owner)}</div>`)}
-    ${relCard('i-req','✉','同じ案件の他の依頼',others.length,others.map(x=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/request/${x.id}">${esc(x.name)}</a><div class="small muted">${x.type}｜${x.status}</div></div></div>`).join('')||'<div class="muted">なし</div>')}
-  </div></div>`;
-}
+function pgRequest(id){ return tkPgRequest(id); }   // 実装は WP3 ブロック
 /* @owner WP3 */
-function lineModal(rid,i){
-  const r=byId(DB.requests,rid), l=r.lines[i];
-  modal('明細：'+l.no,`<div class="fields" style="grid-template-columns:1fr 1fr">${fld('品目',esc(l.item))}${fld('品目詳細',esc(l.detail)||'—')}${fld('数量',l.q)}${fld('ターゲット単価',yen(l.target))}${fld('回答単価',l.ans==null?'回答待ち':yen(l.ans))}${fld('差異',l.ans==null?'—':yen(l.ans-l.target))}${fld('依頼',esc(r.name))}${fld('依頼先',r.to)}</div>`);
-}
+function lineModal(rid,i){ tkLineModal(rid,i); }   // 実装は WP3 ブロック
 /* @owner WP3 */
-function finishReq(id){const r=byId(DB.requests,id);r.status='完了';toast('原価見積を機案見積管理へ反映し、依頼を完了しました');route();}
+function finishReq(id){ tkFinish(id); }   // 実装は WP3 ブロック
 
 /* =========================================================
    ケース・ナレッジ
@@ -2187,6 +2106,547 @@ document.addEventListener('click',e=>{if(UI.notifOpen&&!e.target.closest('.notif
 /* ===================================================================
    ===== WP3 BEGIN =====  ③ 追加要求のチケット管理／④ 原価予実管理
    =================================================================== */
+/* ---------- ③④ 共通：定数・ヘルパー ---------- */
+const TK_DEPTS = ['営業部','技術部','企画部','調達部','製造部'];
+const TK_CATS = ['仕様検討','技術計算','原価見積','図面・資料作成','その他'];   // 依頼区分（仮置き：DECISIONS DC-09／CQ-08）
+const TK_FLOW = ['起票中','受付待ち','対応中','完了'];                       // ③のフェーズ（DC-08）
+const TK_PH = ['起票中','受付待ち','対応中'];                                // 滞在時間の集計対象
+const isTicket = r => ['追加要求','部門対応依頼','原価見積依頼'].includes(r.type);
+const tkOpen = r => ['受付待ち','対応中'].includes(r.status)||(r.type==='追加請求'&&r.status==='承認待ち');
+const tkCat = r => r.cat||(r.type==='原価見積依頼'?'原価見積':'その他');
+const tkNowIso = () => '2026-10-08T'+new Date().toTimeString().slice(0,5);
+const tkFmt = s => s?s.replace('T',' ').replace(/-/g,'/'):'—';
+const tkRole = d => ({'営業部':'eigyo','技術部':'gijutsu','企画部':'kikaku'})[d]||null;
+const tkImpDept = k => (IMPACT_DEPTS.find(x=>x.k===k)||{}).dept;
+const tkUid = n => (userBy(n)||{}).id;
+const tkShort = p => p.name.replace(/【.*?】/,'');
+const tkSgn = n => (n>0?'+':n<0?'−':'')+yen(Math.abs(n));
+const tkSgnM = n => (n>0?'+':n<0?'−':'')+man(Math.abs(n));
+function tkNewId(){ let n=101; while(byId(DB.requests,'R'+n)) n++; return 'R'+n; }
+function tkNewNo(){ const mx=Math.max(...DB.requests.map(r=>+String(r.no).replace(/\D/g,'')||0)); return 'RQ-'+String(mx+1).padStart(7,'0'); }
+/* 部署宛ての通知先。依頼者本人には出さない（本人の部署は本人以外のユーザー宛てに展開） */
+function tkTo(depts,exclName){
+  const me=tkUid(exclName), myDept=me&&byId(DB.users,me).dept, users=[], ds=[];
+  [...new Set(depts.filter(Boolean))].forEach(d=>{ if(d===myDept) users.push(...DB.users.filter(u=>u.dept===d&&u.id!==me).map(u=>u.id)); else ds.push(d); });
+  return {users,depts:ds};
+}
+/* フェーズ滞在時間（h）。現在のフェーズは現在時刻までの経過 */
+function tkStays(r){
+  const log=r.log||[], now=new Date(tkNowIso()), st={};
+  log.forEach((e,i)=>{ if(e.st==='完了') return; const a=new Date(e.at), b=log[i+1]?new Date(log[i+1].at):now; st[e.st]=(st[e.st]||0)+Math.max(0,(b-a)/3600000); });
+  return st;
+}
+function tkMed(v){ if(!v.length) return null; const s=[...v].sort((a,b)=>a-b), m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+function tkDue(r){ if(!r.due) return '—'; const late=daysTo(r.due)<0&&!['完了','承認済','却下'].includes(r.status);
+  return late?`<span class="tk-over" title="完了希望日を過ぎています">${fmtD(r.due)}（超過）</span>`:fmtD(r.due); }
+/* 追加請求の状況から親（追加要求）の請求状況を決める */
+function tkSyncBill(par){ if(!par||!par.cost) return; const cs=DB.requests.filter(x=>x.parent===par.id&&x.type==='追加請求');
+  par.cost.bill=cs.some(x=>x.status==='承認済')?'承認済':cs.some(x=>x.status==='承認待ち')?'追加請求申請中':'未請求'; }
+/* 一覧の並び：親（追加要求）の直後に子を並べる */
+function tkSort(rs){
+  const gk=r=>{const p=r.parent&&byId(DB.requests,r.parent);return (p||r).created+'|'+(p||r).id;};
+  return [...rs].sort((a,b)=>gk(b).localeCompare(gk(a))||(!!a.parent-!!b.parent)||String(a.created).localeCompare(String(b.created))||a.id.localeCompare(b.id));
+}
+function tkNameCell(r){ const p=r.parent&&byId(DB.requests,r.parent);
+  return p?`<span class="muted">└</span> <a href="#/request/${r.id}">${esc(r.name)}</a><div class="small muted">親：<a href="#/request/${p.id}">${p.no}</a></div>`:`<a href="#/request/${r.id}">${esc(r.name)}</a>`; }
+function tkRow(r,withPj){
+  const p=byId(DB.projects,r.pj)||{};
+  return tr([`<a href="#/request/${r.id}">${r.no}</a>`,r.type==='追加請求'?'—':tkCat(r),tkNameCell(r),r.type,...(withPj?[`<a href="#/project/${r.pj}">${p.no||'—'}</a>`]:[]),stPill(r.status),r.to,r.assignee?ul(r.assignee):'—',fmtD(r.created),tkDue(r)]);
+}
+const TK_HEADS = pj => ['依頼番号','依頼区分','件名（チケット名）','種別',...(pj?['案件']:[]),'状況','依頼先','担当者','依頼日','完了希望日'];
+
+/* ---------- ③④ データ：既存の依頼の付け替え＋追加サンプル（R010〜R019、すべて架空） ---------- */
+(function(){
+  const L=(...a)=>a.map(([st,at])=>({st,at}));
+  const set=(id,o)=>Object.assign(byId(DB.requests,id),o);
+  // 既存の原価見積依頼：フェーズを 起票→受付→対応→完了 に移行（D-01）
+  set('R001',{status:'完了',parent:'R010',cat:'原価見積',created:'2026-10-02',due:'2026-10-07',assignee:'小野 誠',
+    log:L(['起票中','2026-10-02T09:00'],['受付待ち','2026-10-02T09:15'],['対応中','2026-10-02T13:30'],['完了','2026-10-05T16:00'])});
+  set('R003',{status:'受付待ち',cat:'原価見積',due:'2026-10-09',assignee:'',
+    log:L(['起票中','2026-10-05T09:40'],['受付待ち','2026-10-05T10:20'])});
+  set('R006',{status:'完了',cat:'原価見積',due:'2026-09-30',assignee:'小野 誠',
+    log:L(['起票中','2026-09-24T10:00'],['受付待ち','2026-09-24T10:15'],['対応中','2026-09-25T14:00'],['完了','2026-09-30T16:30'])});
+  set('R007',{status:'対応中',cat:'原価見積',due:'2026-10-14',assignee:'山口 直子',
+    log:L(['起票中','2026-10-05T11:00'],['受付待ち','2026-10-05T11:10'],['対応中','2026-10-06T09:30'])});
+  set('R008',{status:'対応中',cat:'原価見積',due:'2026-10-07',assignee:'清水 健太',
+    log:L(['起票中','2026-10-01T15:00'],['受付待ち','2026-10-01T15:20'],['対応中','2026-10-05T10:00'])});
+  // 既存の追加請求：親の追加要求に紐づけ、添付（ダミー）を付与
+  set('R002',{parent:'R010',files:[{n:'ランクセレクト5ランク化_打合せメモ.pdf',dt:'2026/10/01',by:'小林 直樹'},{n:'追加請求_算出根拠.xlsx',dt:'2026/10/02',by:'佐藤 健'}]});
+  set('R005',{parent:'R012',files:[{n:'ライン連結部_追加仕様書.pdf',dt:'2026/10/06',by:'松本 翔'}]});
+  set('R004',{parent:'R014',files:[{n:'ハンド再設計_変更内容.pdf',dt:'2026/09/02',by:'佐藤 健'},{n:'追加請求_算出根拠.xlsx',dt:'2026/09/02',by:'佐藤 健'}]});
+  const T=(o)=>DB.requests.push(Object.assign({lines:[],approvals:[],assignee:'',parent:null},o));
+  T({id:'R010',no:'RQ-0001245',name:'ランクセレクト 3ランク→5ランクへの変更',pj:'P003',type:'追加要求',cat:'仕様検討',to:'技術部',impact:['加工技術','設計','調達'],
+    status:'対応中',requester:'小林 直樹',assignee:'佐藤 健',created:'2026-10-01',due:'2026-10-16',
+    desc:'お客様（10/01 現地打合せ）より、ランクセレクトを3ランクから5ランクへ変更したいとのご要望。加工条件・設計・購入品への影響と追加費用の要否を確認する。',
+    cost:{est:1690000,need:'要',bill:'追加請求申請中'},
+    log:L(['起票中','2026-10-01T16:30'],['受付待ち','2026-10-01T16:50'],['対応中','2026-10-02T09:00'])});
+  T({id:'R011',no:'RQ-0001243',name:'ランクセレクト5ランク化 設計影響の確認',pj:'P003',type:'部門対応依頼',parent:'R010',cat:'技術計算',to:'技術部',
+    status:'完了',requester:'小林 直樹',assignee:'井上 亜希',created:'2026-10-01',due:'2026-10-05',
+    desc:'選別ランク数の変更に伴う、シュート・NG排出部の設計変更範囲と追加設計工数を確認してください。',
+    log:L(['起票中','2026-10-01T16:40'],['受付待ち','2026-10-01T16:50'],['対応中','2026-10-02T10:00'],['完了','2026-10-02T15:00'])});
+  T({id:'R012',no:'RQ-0001256',name:'ライン連結部の仕様追加',pj:'P008',type:'追加要求',cat:'仕様検討',to:'技術部',impact:['設計','製造','営業','企画'],
+    status:'対応中',requester:'松本 翔',assignee:'井上 亜希',created:'2026-10-05',due:'2026-10-20',
+    desc:'お客様（10/05 仕様打合せ）より、連結コンベアを追加してラインを延長したいとのご要望。設計・組立工程・納期への影響と追加費用を確認する。',
+    cost:{est:3040000,need:'要',bill:'追加請求申請中'},
+    log:L(['起票中','2026-10-05T15:00'],['受付待ち','2026-10-05T15:30'],['対応中','2026-10-05T17:00'])});
+  T({id:'R013',no:'RQ-0001259',name:'ライン連結部 組立工程への影響確認',pj:'P008',type:'部門対応依頼',parent:'R012',cat:'仕様検討',to:'製造部',
+    status:'受付待ち',requester:'松本 翔',created:'2026-10-06',due:'2026-10-07',
+    desc:'連結コンベア追加に伴う組立工数・組立スペース・日程への影響をご確認ください。',
+    log:L(['起票中','2026-10-06T11:00'],['受付待ち','2026-10-06T11:10'])});
+  T({id:'R014',no:'RQ-0001229',name:'ロボットハンド再設計（ワーク形状変更）',pj:'P005',type:'追加要求',cat:'仕様検討',to:'技術部',impact:['設計','調達','営業','企画'],
+    status:'完了',requester:'山田 太郎',assignee:'佐藤 健',created:'2026-08-28',due:'2026-09-04',
+    desc:'お客様のワーク形状変更に伴い、ロボットハンドの再設計が必要。設計・購入品・採算への影響と追加費用を確認する。',
+    cost:{est:600000,need:'要',bill:'承認済'},
+    log:L(['起票中','2026-08-28T10:00'],['受付待ち','2026-08-28T10:30'],['対応中','2026-08-28T15:00'],['完了','2026-09-03T17:00'])});
+  T({id:'R015',no:'RQ-0001260',name:'ライン連結部 追加仕様の納期影響をお客様と調整',pj:'P008',type:'部門対応依頼',parent:'R012',cat:'その他',to:'営業部',
+    status:'対応中',requester:'松本 翔',assignee:'小林 直樹',created:'2026-10-05',due:'2026-10-13',
+    desc:'追加仕様により組立完了が遅れる可能性があります。お客様と納期・立会い日程の調整をお願いします。',
+    log:L(['起票中','2026-10-05T17:10'],['受付待ち','2026-10-05T17:20'],['対応中','2026-10-06T09:00'])});
+  T({id:'R016',no:'RQ-0001230',name:'ハンド材料・購入品の手配可否確認',pj:'P005',type:'部門対応依頼',parent:'R014',cat:'その他',to:'調達部',
+    status:'完了',requester:'佐藤 健',assignee:'野口 さやか',created:'2026-08-28',due:'2026-09-01',
+    desc:'再設計後のハンド材料・購入品について、納期内の手配可否をご確認ください。',
+    log:L(['起票中','2026-08-28T15:10'],['受付待ち','2026-08-28T15:20'],['対応中','2026-08-31T09:00'],['完了','2026-09-01T12:00'])});
+  T({id:'R017',no:'RQ-0001231',name:'ハンド再設計に伴う採算への影響確認',pj:'P005',type:'部門対応依頼',parent:'R014',cat:'その他',to:'企画部',
+    status:'完了',requester:'佐藤 健',assignee:'森田 浩',created:'2026-08-28',due:'2026-09-02',
+    desc:'再設計の追加工数・購入品費用による採算（見込粗利率）への影響をご確認ください。',
+    log:L(['起票中','2026-08-28T15:15'],['受付待ち','2026-08-28T15:25'],['対応中','2026-08-29T10:00'],['完了','2026-08-31T16:00'])});
+  T({id:'R018',no:'RQ-0001257',name:'ライン連結部 追加分の採算確認',pj:'P008',type:'部門対応依頼',parent:'R012',cat:'その他',to:'企画部',
+    status:'受付待ち',requester:'松本 翔',created:'2026-10-06',due:'2026-10-14',
+    desc:'追加仕様分の原価見込みと追加請求額から、案件の採算への影響をご確認ください。',
+    log:L(['起票中','2026-10-06T14:00'],['受付待ち','2026-10-06T14:10'])});
+  T({id:'R019',no:'RQ-0001233',name:'追加費用のご説明資料の作成',pj:'P005',type:'部門対応依頼',parent:'R014',cat:'図面・資料作成',to:'営業部',
+    status:'完了',requester:'佐藤 健',assignee:'山田 太郎',created:'2026-09-01',due:'2026-09-02',
+    desc:'お客様へ追加費用をご説明するための資料（変更内容・費用内訳）を作成してください。',
+    log:L(['起票中','2026-09-01T09:00'],['受付待ち','2026-09-01T09:10'],['対応中','2026-09-01T13:00'],['完了','2026-09-02T11:00'])});
+  ['R010','R012','R014'].forEach(id=>tkSyncBill(byId(DB.requests,id)));
+  // 仕入実績（デモ値。基幹連携は予定）：入荷済・発注済は予定に近い値、未手配は小さい値。P010 は予定超過の例
+  const PA={P002:5200000,P003:1200000,P004:21300000,P005:17450000,P007:11480000,P008:59700000,P009:6000000,P010:36400000,P011:21900000,P012:800000};
+  DB.projects.forEach(p=>{ if(p.purchaseAct==null) p.purchaseAct=PA[p.id]||0; });
+  // 通知（サンプル）
+  DB.notifs.push(
+    {t:'【原価UP】案件「EV向けモーターハウジング 自動ホーニングセル」の加工管理で実績原価が予定原価を超えました（+¥80,000）。追加請求の要否を確認してください',tm:'2026/09/10 17:40',link:'#/project/P003',unread:false,to:{users:['U02','U03'],depts:['企画部']}},
+    {t:'【対応依頼】「ライン連結部 追加分の採算確認」が届きました（依頼先：企画部）',tm:'2026/10/06 14:10',link:'#/request/R018',unread:true,to:{depts:['企画部']}});
+})();
+
+/* ---------- ④ 工程別の原価予実（DC-12） ---------- */
+function procCost(p){
+  return SUBS.map(s=>{
+    const ks=DB.kousu.filter(k=>k.pj===p.id&&k.sub===s.k);
+    const ph=ks.reduce((a,k)=>a+k.plan,0), ah=ks.reduce((a,k)=>a+k.act,0);
+    const pp=s.k==='chou'?(p.purchase||0):0, pa=s.k==='chou'?(p.purchaseAct||0):0;
+    const plan=ph*RATE+pp, act=ah*RATE+pa;
+    return {s,sub:s.k,ph,ah,pp,pa,plan,act,diff:act-plan,over:act>plan};
+  });
+}
+function tkGapTxt(g){ return g.items.map(x=>`${SUBS.find(s=>s.k===x.sub).label}（+${yen(x.act-x.plan)}）`).join('、'); }
+function tkCostSt(x){ return !x.plan&&!x.act?'<span class="small muted">未計上</span>':x.over?'<span class="pill r">原価UP</span>':'<span class="pill g">予定内</span>'; }
+const TK_COST_NOTE = `工数単価（${yen(RATE)}/h）・判定条件（実績原価＞予定原価、閾値0%）は仮置きです（要確認：CQ-10・CQ-11）。基幹実績との Tableau 連携は予定です（ステップ2）。本画面は Salesforce 内の工数・仕入から算出しています。`;
+/* 原価UPの判定と通知（工数追加・原価見積の回答登録のとき。新たに超過した工程があるときだけ通知） */
+function tkCostAlert(p,before){
+  const g=EXT.fn.costGap(p), nw=g.items.filter(x=>!before.includes(x.sub)); if(!nw.length) return '';
+  const txt=tkGapTxt({items:nw});
+  notify(`【原価UP】案件「${tkShort(p)}」の${txt}で実績原価が予定原価を超えました。追加請求の要否を確認してください`,'#/project/'+p.id,
+    {users:[tkUid(p.sales),tkUid(p.owner)].filter(Boolean),depts:['企画部']});
+  return txt;
+}
+const tkGapSubs = p => EXT.fn.costGap(p).items.map(x=>x.sub);
+
+function tkPjCost(p,c){
+  const rows=procCost(p), g=EXT.fn.costGap(p), S=k=>rows.reduce((a,x)=>a+x[k],0);
+  const labor=Math.max(c.plan,c.act)*RATE, tp=S('plan'), ta=S('act');
+  return `<div class="flex mb8"><b>工程別の原価予実</b>${stepBadge(2)}<span style="margin-left:auto">${g.over?`<button class="btn brand" onclick="EXT.fn.newAddClaim('${p.id}','${g.items[0].sub}')">追加請求を起票</button>`:''}</span></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>工程</th><th class="num">予定工数</th><th class="num">実績工数</th><th class="num">仕入（予定）</th><th class="num">仕入（実績）</th><th class="num">予定原価</th><th class="num">実績原価</th><th class="num">差異</th><th>状態</th></tr></thead><tbody>
+  ${rows.map(x=>`<tr class="${x.over?'tk-up':''}"><td><span class="obj-icon sm ${x.s.icon}">${x.s.em}</span> <a href="#/sub/${p.id}/${x.sub}">${x.s.label}</a></td><td class="num">${x.ph}h</td><td class="num">${x.ah}h</td>
+    <td class="num">${x.sub==='chou'?yen(x.pp):'—'}</td><td class="num">${x.sub==='chou'?yen(x.pa):'—'}</td><td class="num">${yen(x.plan)}</td><td class="num">${yen(x.act)}</td>
+    <td class="num ${x.over?'tk-over':''}">${tkSgn(x.diff)}</td><td>${tkCostSt(x)}</td></tr>`).join('')}
+  </tbody><tfoot><tr><td>合計</td><td class="num">${S('ph')}h</td><td class="num">${S('ah')}h</td><td class="num">${yen(S('pp'))}</td><td class="num">${yen(S('pa'))}</td><td class="num">${yen(tp)}</td><td class="num">${yen(ta)}</td><td class="num">${tkSgn(ta-tp)}</td><td>${g.over?`<span class="pill r">原価UP ${g.over}工程</span>`:''}</td></tr></tfoot></table></div>
+  <div class="note mt8">予定原価 ＝ 予定工数 × 工数単価（＋調達は仕入予定額）、実績原価 ＝ 実績工数 × 工数単価（＋調達は仕入実績額）。<br>${TK_COST_NOTE}</div>
+  <div class="section-title">案件全体の採算（集約）</div>
+  <div class="fields">
+    ${fld('受注額（商談より）',yen(p.amount))}${fld('追加請求（承認済）',yen(c.addRev))}
+    ${fld('予算原価',yen(p.budget))}${fld('見込原価',yen(c.costForecast))}
+    ${fld('　うち仕入・外注（調達管理）',yen(p.purchase))}${fld('　うち社内工数（工数管理 × 単価）',yen(labor)+` <span class="small muted">${Math.max(c.plan,c.act)}h × ${yen(RATE)}</span>`)}
+    ${fld('見込粗利',yen(c.revenue-c.costForecast))}${fld('見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`)}
+  </div><div class="note mt12">集約ロジック（案）：見込原価 ＝ 仕入・外注 ＋ max(予定工数, 実績工数) × 工数単価。承認済みの追加請求額は受注額に加算します（集約方法は要確認：CQ-14）。工数単価・目標粗利率・ランプの閾値は本モックでの仮置きです。</div>`;
+}
+
+function tkAddKousu(id,sub){
+  modal('工数を追加',`<div class="fields" style="grid-template-columns:1fr">
+    <label>工程区分<select id="kSub" class="role-select tk-full">${SUBS.map(s=>`<option value="${s.k}" ${s.k===sub?'selected':''}>${s.label}</option>`).join('')}</select></label>
+    <label class="mt8">工程名<input id="kName" class="role-select tk-full" value="追加調整"></label>
+    <div class="flex mt8"><label>予定工数(h)<input id="kPlan" type="number" class="role-select" value="10"></label><label>実績工数(h)<input id="kAct" type="number" class="role-select" value="16"></label></div>
+    <label class="mt8">コメント<input id="kCm" class="role-select tk-full" value="現地調整の追加対応"></label>
+    <div class="small muted mt8">保存すると工程の実績原価を再計算し、新たに予定原価を超えた工程があれば営業担当・技術担当・企画部へ通知します（判定条件は仮置き：CQ-11）。</div></div>`,
+    ()=>{const p=byId(DB.projects,id), before=tkGapSubs(p);
+      DB.kousu.push({pj:id,sub:$('#kSub').value,name:$('#kName').value,plan:+$('#kPlan').value,act:+$('#kAct').value,cm:$('#kCm').value});
+      const up=tkCostAlert(p,before);
+      toast(up?`工数を登録しました。${up}で原価UPが発生したため、営業担当・技術担当・企画部へ通知しました`:'工数を登録しました。案件の工数合計・実績原価・見込原価・粗利ランプを再計算しました');});
+}
+
+/* ---------- ④ 原価予実ダッシュボード ---------- */
+function tkPgCosts(){
+  const all=DB.projects.map(p=>{const rows=procCost(p);return {p,c:pjCalc(p),rows,plan:rows.reduce((a,x)=>a+x.plan,0),act:rows.reduce((a,x)=>a+x.act,0),over:rows.filter(x=>x.over)};});
+  const tp=all.reduce((a,x)=>a+x.plan,0), ta=all.reduce((a,x)=>a+x.act,0), up=all.filter(x=>x.over.length);
+  const bySub=SUBS.map(s=>{const xs=all.map(a=>a.rows.find(r=>r.sub===s.k));return {s,plan:xs.reduce((a,x)=>a+x.plan,0),act:xs.reduce((a,x)=>a+x.act,0),n:xs.filter(x=>x.over).length};});
+  const depts=SUBS.map(s=>{const ks=DB.kousu.filter(k=>k.sub===s.k);return {s,plan:ks.reduce((a,k)=>a+k.plan,0),act:ks.reduce((a,k)=>a+k.act,0)}});
+  const mx=Math.max(...depts.map(d=>Math.max(d.plan,d.act)));
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📊</span><div><div class="obj-label">ダッシュボード</div><h1>原価予実管理 ${stepBadge(2)}</h1></div>
+    <div class="actions"><select class="role-select"><option>2026年度 上期〜下期</option></select></div></div></div>
+  <div class="note mb8">基幹実績との Tableau 連携は予定です（ステップ2）。本画面は Salesforce 内の工数・仕入から算出しています。工数単価（${yen(RATE)}/h）・原価UPの判定条件（実績原価＞予定原価、閾値0%）は仮置きです（要確認：CQ-10・CQ-11）。</div>
+  <div class="grid4">
+    <div class="card kpi"><div class="l">予定原価合計</div><div class="v">${man(tp)}</div><div class="s">全案件・全工程</div></div>
+    <div class="card kpi"><div class="l">実績原価合計</div><div class="v">${man(ta)}</div><div class="s">工数実績 × 単価 ＋ 仕入実績</div></div>
+    <div class="card kpi"><div class="l">差異（実績 − 予定）</div><div class="v">${tkSgnM(ta-tp)}</div><div class="s">進行中の工程は実績が予定より小さくなります</div></div>
+    <div class="card kpi"><div class="l">原価UP中の案件</div><div class="v" style="color:var(--red)">${up.length}<span class="small"> 件</span></div><div class="s">原価UPの工程 ${up.reduce((a,x)=>a+x.over.length,0)} 件</div></div>
+  </div>
+  <div class="grid2"><div>
+    <div class="card"><div class="card-h">工程別 原価予実（全案件合計）</div><div class="card-b tbl-wrap">${tbl(['工程','#予定原価','#実績原価','#差異','#原価UPの案件'],
+      bySub.map(x=>`<tr class="${x.act>x.plan?'tk-up':''}"><td><span class="obj-icon sm ${x.s.icon}">${x.s.em}</span> ${x.s.label}</td><td class="num">${man(x.plan)}</td><td class="num">${man(x.act)}</td><td class="num ${x.act>x.plan?'tk-over':''}">${tkSgnM(x.act-x.plan)}</td><td class="num">${x.n?`<span class="tk-over">${x.n} 件</span>`:'0 件'}</td></tr>`))}</div></div>
+    <div class="card"><div class="card-h">案件別 原価予実</div><div class="card-b tbl-wrap">${tbl(['案件','#予定原価','#実績原価','#差異','#原価UPの工程','#見込粗利率'],
+      all.map(({p,c,plan,act,over})=>tr([pl(p.id),[man(plan)],[man(act)],[`<span class="${act>plan?'tk-over':''}">${tkSgnM(act-plan)}</span>`],[over.length?`<span class="pill r">${over.length} 工程</span>`:'0'],[`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`]])))}</div></div>
+  </div><div>
+    <div class="card"><div class="card-h"><span class="obj-icon sm i-report">⚠</span>原価UP中の案件 (${up.length})</div><div class="card-b">
+      ${up.map(({p,over})=>`<div class="feed-item"><div style="min-width:0"><a href="#/project/${p.id}">${esc(p.name)}</a>
+        <div class="small"><span class="tk-over">${over.map(x=>`${x.s.label}（${tkSgn(x.diff)}）`).join('、')}</span></div>
+        <div class="small muted">営業担当 ${esc(p.sales)}｜技術担当 ${esc(p.owner)}</div>
+        <button class="btn mt8" onclick="EXT.fn.newAddClaim('${p.id}','${over[0].sub}')">追加請求を起票</button></div></div>`).join('')||'<div class="muted">なし</div>'}
+    </div></div>
+    <div class="card"><div class="card-h">部門別 工数予実（h）</div><div class="card-b">
+      <div class="legend"><span><i style="background:#c9c7c5"></i>予定</span><span><i style="background:#0176d3"></i>実績</span></div>
+      <div class="bar-chart">${depts.map(d=>`<div class="row" style="grid-template-columns:90px 1fr 70px"><div>${d.s.label.replace('管理','')}</div><div class="bars"><div class="b1" style="width:${d.plan/mx*100}%;background:#c9c7c5"></div><div class="b2" style="width:${d.act/mx*100}%;background:${d.act>d.plan?'#ea001e':'#0176d3'}"></div></div><div class="right">${d.act}/${d.plan}</div></div>`).join('')}</div>
+      <div class="small muted mt8">差異要因（工数超過コメント上位）</div>
+      ${DB.kousu.filter(k=>k.act>k.plan&&k.cm).sort((a,b)=>(b.act-b.plan)-(a.act-a.plan)).slice(0,4).map(k=>`<div class="small">・${esc(k.cm)}（+${k.act-k.plan}h）</div>`).join('')}
+    </div></div>
+  </div></div>`;
+}
+
+/* ---------- ③ チケット一覧 ---------- */
+function tkPgRequests(){
+  const md=myUser().dept||'';
+  const V={all:['すべての依頼（チケット）',r=>true],
+    mine:['自分が依頼した（受付待ち・対応中）',r=>r.requester===meName()&&tkOpen(r)],
+    mydept:[`自部門が依頼した（受付待ち・対応中）`,r=>(userBy(r.requester)||{}).dept===md&&tkOpen(r)],
+    todept:[`自部門が依頼された（受付待ち・対応中）`,r=>r.to===md&&tkOpen(r)],
+    open:['未完了（受付待ち・対応中・承認待ち）',tkOpen],
+    req:['追加要求',r=>r.type==='追加要求'],cost:['原価見積依頼',r=>r.type==='原価見積依頼'],add:['追加請求',r=>r.type==='追加請求'],
+    approve:['営業部長の承認待ち',r=>r.status==='承認待ち']};
+  if(!V[UI.lv.requests]) UI.lv.requests='all';
+  const rows=tkSort(lvApply('requests',V,DB.requests)), cur=UI.lv.requests;
+  const tiles=[['mine','自分が依頼した'],['mydept',`自部門（${md}）が依頼した`],['todept',`自部門（${md}）が依頼された`]];
+  return `<div class="page-h tk-lv"><div class="top"><span class="obj-icon i-req">✉</span><div><div class="obj-label">依頼（チケット）</div><h1>${lvSel('requests',V)}</h1></div>
+    <div class="actions"><a class="btn" href="#/ticketreport">📊 チケット処理時間レポート</a><button class="btn brand" onclick="EXT.fn.newTicket()">追加要求チケットを起票</button></div></div>
+    <div class="small muted mt8">${rows.length} 個の項目 ・ 完了希望日を過ぎた未完了のチケットは赤字で表示します</div></div>
+  <div class="grid3 tk-tiles">${tiles.map(([k,l])=>`<div class="card kpi click ${cur===k?'on':''}" onclick="UI.lv.requests='${k}';route()"><div class="l">${l}</div><div class="v">${DB.requests.filter(V[k][1]).length}<span class="small"> 件</span></div><div class="s">受付待ち・対応中（追加請求は承認待ち）　›</div></div>`).join('')}</div>
+  <div class="card"><div class="card-b tbl-wrap" style="padding-top:12px">${tbl(TK_HEADS(true),rows.map(r=>tkRow(r,true)))}</div></div>`;
+}
+
+/* ---------- ③④ チケット詳細 ---------- */
+function tkCan(r){ const role=tkRole(r.to); return role?{ok:ROLE===role,proxy:false}:{ok:true,proxy:true}; }
+function tkActions(r){
+  const can=tkCan(r), id=r.id, hint=`<span class="tk-hint">受付・対応は依頼先（${r.to}）のロールで行います</span>`;
+  if(r.status==='起票中') return `<button class="btn brand" onclick="tkSubmit('${id}')">依頼する</button>`;
+  if(r.status==='受付待ち') return can.ok?`<button class="btn brand" onclick="tkAccept('${id}')">${can.proxy?'代理で受付（デモ）':'受け付ける'}</button>`:hint;
+  if(r.status==='対応中'){ if(!can.ok) return hint; const px=can.proxy?'（代理・デモ）':'';
+    if(r.type==='原価見積依頼') return r.lines.length&&r.lines.every(l=>l.ans!=null)
+      ?`<button class="btn" onclick="answerReq('${id}')">回答を修正${px}</button><button class="btn brand" onclick="finishReq('${id}')">対応完了（見積に反映）${px}</button>`
+      :`<button class="btn brand" onclick="answerReq('${id}')">回答を入力${px}</button>`;
+    return `<button class="btn brand" onclick="tkDone('${id}')">対応完了${px}</button>`; }
+  return '';
+}
+function tkLog(r,st){ r.status=st; (r.log=r.log||[]).push({st,at:tkNowIso()}); }
+function tkSubmit(id){ const r=byId(DB.requests,id); tkLog(r,'受付待ち');
+  notify(`【対応依頼】「${r.name}」が届きました（依頼先：${r.to}）`,'#/request/'+id,tkTo([r.to],r.requester)); toast(`${r.to}へ依頼し、通知しました`); route(); }
+function tkAccept(id){ const r=byId(DB.requests,id), can=tkCan(r);
+  r.assignee=can.proxy?((DB.users.find(u=>u.dept===r.to)||{}).name||meName()):meName(); tkLog(r,'対応中');
+  toast(can.proxy?`デモ用に ${r.to} の担当者（${r.assignee}）として受け付けました`:`受け付けました（担当者：${r.assignee}）`); route(); }
+function tkDone(id){ const r=byId(DB.requests,id); tkLog(r,'完了'); const u=tkUid(r.requester);
+  if(u) notify(`チケット「${r.name}」の対応が完了しました（${r.to}）`,'#/request/'+id,{users:[u]});
+  toast('対応完了にし、依頼者へ通知しました'); route(); }
+function tkFinish(id){ const r=byId(DB.requests,id); tkLog(r,'完了'); const u=tkUid(r.requester);
+  if(u) notify(`原価見積依頼「${r.name}」の対応が完了しました（${r.to}）`,'#/request/'+id,{users:[u]});
+  toast('原価見積を機案見積管理へ反映し、依頼を完了しました。依頼者へ通知しました'); route(); }
+function tkAnswer(id){
+  const r=byId(DB.requests,id);
+  modal('原価見積の回答',`<div class="tbl-wrap"><table class="tbl"><thead><tr><th>品目</th><th class="num">ターゲット単価</th><th>回答単価</th></tr></thead><tbody>
+    ${r.lines.map((l,i)=>`<tr><td>${esc(l.item)}</td><td class="num">${yen(l.target)}</td><td><input id="ans${i}" type="number" class="role-select" value="${l.ans!=null?l.ans:Math.round(l.target*1.05)}"></td></tr>`).join('')}</tbody></table></div>
+    <div class="small muted mt8">回答を登録すると依頼者へ通知します。対応が終わったら「対応完了（見積に反映）」で完了にします。</div>`,
+    ()=>{const p=byId(DB.projects,r.pj), before=tkGapSubs(p);
+      r.lines.forEach((l,i)=>l.ans=+$('#ans'+i).value);
+      const u=tkUid(r.requester); if(u) notify(`原価見積依頼「${r.name}」に回答がありました`,'#/request/'+id,{users:[u]});
+      const up=tkCostAlert(p,before);
+      toast('回答を登録し、依頼者へ通知しました'+(up?`。${up}で原価UPが発生したため関係者へ通知しました`:''));});
+}
+function tkStayCard(r){
+  const log=r.log||[], st=tkStays(r), live=r.status!=='完了'?r.status:null;
+  const rows=log.map((e,i)=>{ if(e.st==='完了') return `<tr><td>${stPill('完了')}</td><td>${tkFmt(e.at)}</td><td>—</td><td class="num">—</td></tr>`;
+    const nx=log[i+1], h=Math.max(0,((nx?new Date(nx.at):new Date(tkNowIso()))-new Date(e.at))/3600000);
+    return `<tr><td>${stPill(e.st)}</td><td>${tkFmt(e.at)}</td><td>${nx?tkFmt(nx.at):'<span class="pill b">経過中</span>'}</td><td class="num">${h.toFixed(1)} h</td></tr>`; }).join('');
+  return `<div class="card"><div class="card-h"><span class="obj-icon sm i-report">⏱</span>フェーズ滞在時間</div><div class="card-b">
+    <div class="flex mb8">${TK_PH.map(s=>`<span class="pill ${s===live?'b':''}">${s} ${st[s]!=null?st[s].toFixed(1)+'h':'—'}${s===live?'（経過中）':''}</span>`).join('')}</div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>フェーズ</th><th>開始</th><th>終了</th><th class="num">滞在時間</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="small muted mt8">フェーズの開始から次のフェーズまでの時間です（経過中のフェーズは現在までの時間）。<a href="#/ticketreport">部門・依頼区分ごとの集計（レポート）</a></div></div></div>`;
+}
+function tkSideCards(r,p){
+  const par=r.parent&&byId(DB.requests,r.parent), others=DB.requests.filter(x=>x.pj===r.pj&&x.id!==r.id);
+  return `${hk('request','side',r)}
+    ${par?relCard('i-req','✉','親チケット（追加要求）',1,`<a href="#/request/${par.id}">${par.no} ${esc(par.name)}</a><div class="small muted">${stPill(par.status)} 依頼先 ${par.to}</div>`):''}
+    ${relCard('i-project','📁','案件',1,`${pl(p.id)}<div class="small muted">${STAGES[p.stage]}｜納期 ${fmtD(p.due)}｜技術担当 ${esc(p.owner)}｜営業担当 ${esc(p.sales)}</div>`)}
+    ${relCard('i-req','✉','同じ案件の他の依頼（チケット）',others.length,others.map(x=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/request/${x.id}">${esc(x.name)}</a><div class="small muted">${x.type}｜${x.status}</div></div></div>`).join('')||'<div class="muted">なし</div>')}`;
+}
+function tkPgRequest(id){
+  const r=byId(DB.requests,id); if(!r) return notFound();
+  const p=byId(DB.projects,r.pj);
+  return r.type==='追加請求'?tkClaimPage(r,p):tkTicketPage(r,p);
+}
+function tkTicketPage(r,p){
+  const id=r.id, cur=Math.max(0,TK_FLOW.indexOf(r.status)), done=r.status==='完了';
+  const tgt=r.lines.reduce((a,l)=>a+l.target*l.q,0), ans=r.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0);
+  const hl=[['種別',r.type],['依頼区分',`${tkCat(r)} <span class="tent kari">仮</span>`],['状況',stPill(r.status)],['案件',pl(p.id)],['依頼先',r.to],['担当者',r.assignee?ul(r.assignee):'—（受付時に設定）'],['完了希望日',tkDue(r)],['依頼者',ul(r.requester)]];
+  if(r.type==='原価見積依頼') hl.push(['ターゲット合計',yen(tgt)],['回答合計',ans?yen(ans):'—']);
+  let left='';
+  if(r.type==='追加要求'){
+    const kids=DB.requests.filter(x=>x.parent===id), deptKids=kids.filter(x=>x.type!=='追加請求'), claims=kids.filter(x=>x.type==='追加請求');
+    const imp=r.impact||[], impD=[...new Set(imp.map(tkImpDept))];
+    left+=`<div class="card"><div class="card-h">要求内容</div><div class="card-b"><div class="fields" style="grid-template-columns:1fr">${fld('要求内容',esc(r.desc||'—'))}
+      ${fld('影響範囲',`<div class="tk-imp">${IMPACT_DEPTS.map(x=>`<span class="pill ${imp.includes(x.k)?'b':''}">${imp.includes(x.k)?'☑':'☐'} ${x.k}</span>`).join('')}</div>`)}
+      ${fld('通知先（起票時）',[...new Set([r.to,...impD])].join('・')+' <span class="small muted">（影響範囲の部門と依頼先。加工技術・設計は技術部として扱う仮置き：CQ-19）</span>')}</div></div></div>`;
+    left+=relCard('i-req','✉','部門ごとの対応',deptKids.length,
+      `<div class="flex mb8"><button class="btn" onclick="tkNewDeptReq('${id}')">部門へ対応依頼を起票</button><button class="btn" onclick="newRequest('${r.pj}','${id}')">原価見積依頼を起票</button></div>
+      <div class="small mb8">影響範囲の部門：${impD.map(d=>{const n=deptKids.filter(k=>k.to===d).length;return `${d} ${n?n+' 件':'<span class="muted">未依頼</span>'}`;}).join('／')}</div>`
+      +tbl(['種別','依頼区分','件名（チケット名）','依頼先','状況','担当者','完了希望日'],deptKids.map(k=>tr([k.type,tkCat(k),`<a href="#/request/${k.id}">${esc(k.name)}</a>`,k.to,stPill(k.status),k.assignee?ul(k.assignee):'—',tkDue(k)]))));
+    const c=r.cost||{est:0,need:'未定',bill:'未請求'};
+    left+=`<div class="card"><div class="card-h"><span class="obj-icon sm i-appr">¥</span>追加費用<span class="right"><button class="btn brand" onclick="EXT.fn.newAddClaim('${r.pj}',null,'${id}')">追加請求を起票</button></span></div><div class="card-b">
+      <div class="fields">${fld('見込額',yen(c.est))}${fld('請求要否',c.need)}${fld('請求状況',c.need==='不要'?'—（請求不要）':stPill(c.bill))}
+      ${fld('追加請求',claims.map(x=>`<div><a href="#/request/${x.id}">${x.no}</a> ${stPill(x.status)} ${yen(x.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0))}</div>`).join('')||'<span class="muted">まだありません</span>')}</div>
+      <div class="small muted mt8">「追加請求を起票」で④の追加請求（承認：営業部長）を作成します。承認されると請求状況が「承認済」になります。</div></div></div>`;
+  } else if(r.type==='原価見積依頼'){
+    left+=relCard('i-req','✉','1．'+r.to+'へ見積依頼',r.lines.length,tbl(['明細No','品目','品目詳細','#数量','#ターゲット単価','#回答単価','#差異'],
+      r.lines.map((l,i)=>tr([`<a onclick="lineModal('${id}',${i})">${l.no}</a>`,esc(l.item),esc(l.detail),[l.q.toFixed(2)],[yen(l.target)],[l.ans==null?'<span class="muted">回答待ち</span>':yen(l.ans)],[`<span style="color:${l.ans>l.target?'var(--red)':''}">${l.ans==null?'':(l.ans-l.target>0?'+':'')+(l.ans-l.target).toLocaleString()}</span>`]]))));
+  } else {
+    left+=`<div class="card"><div class="card-h">依頼内容</div><div class="card-b"><div class="fields" style="grid-template-columns:1fr">${fld('依頼内容',esc(r.desc||'—'))}</div></div></div>`;
+  }
+  left+=tkStayCard(r);
+  return recHeader({icon:'i-req',em:'✉',label:'依頼（チケット）｜'+r.no,title:esc(r.name),actions:tkActions(r),hl})
+  +`<div class="path"><ol>${['起票','受付','対応','完了'].map((s,i)=>`<li class="${i<cur||done?'done':i===cur?'cur':''}" title="${TK_FLOW[i]}">${i<cur||done?'✓ ':''}${s}</li>`).join('')}</ol></div>
+  <div class="grid2"><div>${left}</div><div>${tkSideCards(r,p)}</div></div>`;
+}
+function tkClaimPage(r,p){
+  const id=r.id, cost=r.lines.reduce((a,l)=>a+l.target*l.q,0), amt=r.lines.reduce((a,l)=>a+(l.ans||0)*l.q,0), gm=amt?(amt-cost)/amt*100:0;
+  const steps=['申請前','承認待ち',r.status==='却下'?'却下':'承認済'];
+  const cur=r.status==='承認済'||r.status==='却下'?2:r.status==='承認待ち'?1:0;
+  const canApprove=r.status==='承認待ち'&&ROLE!=='gijutsu';
+  const q=DB.quotes.find(x=>x.opp===p.opp), files=r.files||[], sub=r.sub&&SUBS.find(s=>s.k===r.sub);
+  const actions=`${r.status==='申請前'?`<button class="btn brand" onclick="tkApply('${id}')">承認申請</button>`:''}${r.status==='却下'?`<button class="btn brand" onclick="tkApply('${id}')">再申請</button>`:''}
+    ${canApprove?`<div class="btn-group"><button class="btn success" onclick="approve('${id}',true)">承認</button><button class="btn danger" onclick="approve('${id}',false)">却下</button></div>`:''}
+    ${r.status==='承認待ち'&&ROLE==='gijutsu'?`<span class="tk-hint">承認者：営業部長（企画部／営業部ロールで承認できます）</span>`:''}
+    <button class="btn" ${r.status==='承認済'&&q?`onclick="go('#/quote/${q.id}')"`:'disabled title="承認済みになると押せます"'}>客先見積</button>`;
+  return recHeader({icon:'i-req',em:'✉',label:'依頼（チケット）｜追加請求｜'+r.no,title:esc(r.name),actions,
+    hl:[['一連番号',r.no],['状況',stPill(r.status)],['単位原価合計',yen(cost)],['明細金額合計',yen(amt)],['粗利率（%）',gm.toFixed(2)+'%'],['商談',ol(p.opp)],['案件',pl(p.id)],...(sub?[['工程',sub.label]]:[])]})
+  +`<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?(s==='却下'?'rej':'cur'):''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
+  <div class="grid2"><div>
+  ${relCard('i-req','✉','追加請求明細',r.lines.length,tbl(['明細No','品目','品目詳細','#数量','#原価','#請求金額','#差異（請求−原価）'],
+    r.lines.map((l,i)=>tr([`<a onclick="lineModal('${id}',${i})">${l.no}</a>`,esc(l.item),esc(l.detail),[l.q.toFixed(2)],[yen(l.target)],[yen(l.ans)],[tkSgn((l.ans||0)-l.target)]]))))}
+  ${relCard('i-appr','✔','承認履歴',r.approvals.length,(r.approvals.length?tbl(['ステップ名','日付','状況','割り当て先'],[...r.approvals].reverse().map(x=>tr([x.step,x.date,stPill(x.st.replace('済み','済')),ul(x.who)]))):'<div class="muted">まだ承認申請されていません。「承認申請」で営業部長へ承認を依頼します。</div>')
+    +'<div class="small muted mt8">承認済みの追加請求額は案件の受注額に加算され、粗利が再計算されます（集約方法は要確認：CQ-14）。承認者は営業部長の1段です（仮置き：CQ-12）。</div><div class="small muted">「客先見積」は承認済みのときに押せ、関連商談の見積を開きます（追加請求用の見積の作成方法は要確認：CQ-13）。</div>',
+    canApprove?`<div class="btn-group"><button class="btn" onclick="approve('${id}',true)">承認</button><button class="btn" onclick="approve('${id}',false)">却下</button></div>`:'')}
+  </div><div>
+  ${relCard('i-know','📎','メモ＆添付ファイル',files.length,files.length?tbl(['ファイル名','更新日','作成者'],files.map(f=>tr([`📄 ${esc(f.n)}`,f.dt,ul(f.by)]))):'<div class="muted">ファイルはありません</div>')}
+  ${tkSideCards(r,p)}</div></div>`;
+}
+function tkLineModal(rid,i){
+  const r=byId(DB.requests,rid), l=r.lines[i], cl=r.type==='追加請求';
+  modal('明細：'+l.no,`<div class="fields" style="grid-template-columns:1fr 1fr">${fld('品目',esc(l.item))}${fld('品目詳細',esc(l.detail)||'—')}${fld('数量',l.q)}
+    ${fld(cl?'原価':'ターゲット単価',yen(l.target))}${fld(cl?'請求金額':'回答単価',l.ans==null?'回答待ち':yen(l.ans))}${fld('差異',l.ans==null?'—':yen(l.ans-l.target))}${fld('依頼',esc(r.name))}${fld('依頼先',r.to)}</div>`);
+}
+function tkApply(id){
+  const r=byId(DB.requests,id), re=r.status==='却下', t=nowStr();
+  r.status='承認待ち';
+  r.approvals.push({step:'承認申請が提出されました',date:t,st:'申請済み',who:meName()},{step:'部長承認',date:t,st:'未承認',who:'武田 修（営業部長）'});
+  tkSyncBill(r.parent&&byId(DB.requests,r.parent));
+  notify(`追加請求「${r.name}」の承認依頼が届いています${re?'（再申請）':''}`,'#/request/'+id,{users:['U05']});
+  toast(`${re?'再申請':'承認申請'}しました。営業部長（武田 修）へ承認依頼を通知しました`); route();
+}
+function tkApprove(id,ok){
+  const r=byId(DB.requests,id), pend=r.approvals.find(x=>x.st==='未承認'); if(!pend) return;
+  pend.st=ok?'承認済み':'却下'; pend.date=nowStr(); r.status=ok?'承認済':'却下';
+  tkSyncBill(r.parent&&byId(DB.requests,r.parent));
+  const u=tkUid(r.requester);
+  notify(`追加請求「${r.name}」が${ok?'承認':'却下'}されました`,'#/request/'+id,u?{users:[u]}:undefined);
+  toast(ok?'承認しました。案件の受注額に追加請求額を加算し、粗利を再計算しました。申請者へ通知しました':'却下しました。申請者へ通知しました'); route();
+}
+
+/* ---------- ③④ 起票モーダル ---------- */
+function tkPjField(pid){
+  if(pid){const p=byId(DB.projects,pid);return `<label>案件<select id="tkPj" disabled><option value="${pid}">${esc(p.name)}</option></select></label>`;}
+  return `<label>案件（受注済みの案件から選択）<select id="tkPj">${DB.projects.map(p=>`<option value="${p.id}" ${p.id==='P003'?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>`;
+}
+const tkOpts = (arr,def) => arr.map(o=>`<option ${o===def?'selected':''}>${o}</option>`).join('');
+function tkNewTicket(pid){
+  modal('追加要求チケットを起票',`<div class="form1">
+    ${tkPjField(pid)}
+    <label>件名（チケット名）<input id="tkName" value="計測データ出力機能の追加（お客様要望）"></label>
+    <label>要求内容<textarea id="tkDesc" rows="3">お客様より、加工後の計測データをライン管理システムへ出力したいとのご要望がありました。各部門で影響範囲・対応可否と追加費用の要否をご確認ください。</textarea></label>
+    <label>依頼区分 <span class="tent kari">（仮）</span><select id="tkCat">${tkOpts(TK_CATS,'仕様検討')}</select></label>
+    <div><div class="tk-lab">影響範囲（複数選択）</div><div class="tk-chk">${IMPACT_DEPTS.map(x=>`<label><input type="checkbox" name="tkImp" value="${x.k}" ${['加工技術','設計'].includes(x.k)?'checked':''}> ${x.k}</label>`).join('')}</div>
+      <div class="small muted">選んだ部門と依頼先へ、起票時に通知します（加工技術・設計は技術部として扱う仮置き：CQ-19）。</div></div>
+    <label>依頼先（主担当部署）<select id="tkTo">${tkOpts(TK_DEPTS,'技術部')}</select></label>
+    <label>完了希望日<input id="tkDue" type="date" value="2026-10-16"></label>
+    <div class="tk-2col"><label>追加費用の見込額（円）<input id="tkEst" type="number" value="500000"></label><label>請求要否<select id="tkNeed">${tkOpts(['未定','要','不要'],'未定')}</select></label></div>
+    <div class="small muted">依頼区分の選択肢は仮置きです（要確認：CQ-08）。「依頼する」で「受付待ち」として起票します。</div></div>`,
+    ()=>{const pj=$('#tkPj').value, p=byId(DB.projects,pj), imp=[...document.querySelectorAll('input[name=tkImp]:checked')].map(x=>x.value), to=$('#tkTo').value, t=tkNowIso();
+      const id=tkNewId(), name=$('#tkName').value||'（件名未入力）';
+      DB.requests.push({id,no:tkNewNo(),name,pj,type:'追加要求',parent:null,cat:$('#tkCat').value,to,impact:imp,status:'受付待ち',requester:meName(),assignee:'',created:'2026-10-08',due:$('#tkDue').value,
+        desc:$('#tkDesc').value,cost:{est:+$('#tkEst').value||0,need:$('#tkNeed').value,bill:'未請求'},log:[{st:'起票中',at:t},{st:'受付待ち',at:t}],lines:[],approvals:[]});
+      const ds=[to,...imp.map(tkImpDept)];
+      notify(`【追加要求】「${name}」が起票されました（案件：${tkShort(p)}／依頼先：${to}／影響範囲：${imp.join('・')||'なし'}）`,'#/request/'+id,tkTo(ds,meName()));
+      setTimeout(()=>go('#/request/'+id),0); toast(`追加要求チケットを起票し、${[...new Set(ds)].join('・')}へ通知しました`);},'依頼する');
+}
+function tkNewDeptReq(parentId){
+  const par=byId(DB.requests,parentId), ds=[...new Set((par.impact||[]).map(tkImpDept))], opts=ds.length?ds:TK_DEPTS;
+  const def=opts.find(d=>!DB.requests.some(x=>x.parent===parentId&&x.to===d&&x.type!=='追加請求'))||opts[0];
+  modal('部門へ対応依頼を起票',`<div class="form1">
+    <div class="small muted">親チケット：${par.no} ${esc(par.name)}</div>
+    <label>依頼先（影響範囲の部門から選択）<select id="tdTo">${tkOpts(opts,def)}</select></label>
+    <label>依頼区分 <span class="tent kari">（仮）</span><select id="tdCat">${tkOpts(TK_CATS,'仕様検討')}</select></label>
+    <label>件名（チケット名）<input id="tdName" value="${esc(par.name)}：影響の確認"></label>
+    <label>依頼内容<textarea id="tdDesc" rows="3">追加要求の内容について、貴部門への影響（対応可否・工数・費用）をご確認ください。</textarea></label>
+    <label>完了希望日<input id="tdDue" type="date" value="${par.due||'2026-10-16'}"></label></div>`,
+    ()=>{const id=tkNewId(), to=$('#tdTo').value, t=tkNowIso(), name=$('#tdName').value||'（件名未入力）';
+      DB.requests.push({id,no:tkNewNo(),name,pj:par.pj,type:'部門対応依頼',parent:parentId,cat:$('#tdCat').value,to,status:'受付待ち',requester:meName(),assignee:'',created:'2026-10-08',due:$('#tdDue').value,
+        desc:$('#tdDesc').value,log:[{st:'起票中',at:t},{st:'受付待ち',at:t}],lines:[],approvals:[]});
+      notify(`【対応依頼】「${name}」が届きました（依頼先：${to}）`,'#/request/'+id,tkTo([to],meName()));
+      toast(`${to}へ対応依頼を起票し、通知しました`);},'依頼する');
+}
+function tkLineInputs(px,rows){
+  return rows.map((r,i)=>`<div class="tk-line">${r.map(([lab,k,v,type])=>`<label>${lab}<input id="${px}${k}${i}" ${type?`type="${type}"`:''} value="${esc(v)}"></label>`).join('')}</div>`).join('');
+}
+function tkNewCostReq(pid,parent){
+  const par=parent&&byId(DB.requests,parent); pid=pid||(par&&par.pj); const p=pid&&byId(DB.projects,pid);
+  modal('原価見積依頼を起票',`<div class="form1">
+    ${tkPjField(pid)}
+    ${par?`<div class="small muted">親チケット：${par.no} ${esc(par.name)}</div>`:''}
+    <label>依頼先<select id="rTo">${tkOpts(['製造部','調達部','技術部'],'製造部')}</select></label>
+    <label>件名（チケット名）<input id="rName" value="${p?esc(tkShort(p))+' ':''}追加部品 原価見積依頼"></label>
+    <label>完了希望日<input id="rDue" type="date" value="2026-10-15"></label>
+    <div class="tk-lab">明細（2行目は品目が空欄なら登録しません）</div>
+    ${tkLineInputs('rl',[[['品目','i','治具一式'],['品目詳細','d','追加仕様対応'],['数量','q','1','number'],['ターゲット単価','t','500000','number']],[['品目','i',''],['品目詳細','d',''],['数量','q','1','number'],['ターゲット単価','t','0','number']]])}
+    <div class="small muted">「依頼する」で「受付待ち」として起票し、依頼先へ通知します。</div></div>`,
+    ()=>{const id=tkNewId(), no=tkNewNo(), to=$('#rTo').value, t=tkNowIso(), name=$('#rName').value||'（件名未入力）';
+      const lines=[0,1].filter(i=>$('#rli'+i).value.trim()).map((i,n)=>({no:no+'-'+(n+1),item:$('#rli'+i).value,detail:$('#rld'+i).value,q:+$('#rlq'+i).value||1,target:+$('#rlt'+i).value||0,ans:null}));
+      DB.requests.push({id,no,name,pj:$('#tkPj').value,type:'原価見積依頼',parent:par?par.id:null,cat:'原価見積',to,status:'受付待ち',requester:meName(),assignee:'',created:'2026-10-08',due:$('#rDue').value,
+        lines,approvals:[],log:[{st:'起票中',at:t},{st:'受付待ち',at:t}]});
+      notify(`【原価見積依頼】「${name}」が届きました（依頼先：${to}）`,'#/request/'+id,tkTo([to],meName()));
+      setTimeout(()=>go('#/request/'+id),0); toast(`原価見積依頼を起票し、${to}へ通知しました`);},'依頼する');
+}
+function tkNewAddClaim(pid,sub,parent){
+  const p=byId(DB.projects,pid); if(!p){ go('#/projects'); return; }
+  const parents=DB.requests.filter(r=>r.pj===pid&&r.type==='追加要求');
+  const defPar=parent||(parents.find(r=>r.status!=='完了')||{}).id||'';
+  const s=sub&&SUBS.find(x=>x.k===sub), gap=s&&EXT.fn.costGap(p).items.find(x=>x.sub===sub);
+  const c0=gap?gap.act-gap.plan:300000, a0=Math.round(c0*1.25/1000)*1000;
+  modal('追加請求を起票',`<div class="form1">
+    <label>案件<select id="acPj" disabled><option>${esc(p.name)}</option></select></label>
+    <label>親の追加要求（任意）<select id="acPar"><option value="">（なし）</option>${parents.map(r=>`<option value="${r.id}" ${r.id===defPar?'selected':''}>${r.no} ${esc(r.name)}</option>`).join('')}</select></label>
+    <label>工程<select id="acSub"><option value="">（指定なし）</option>${SUBS.map(x=>`<option value="${x.k}" ${x.k===sub?'selected':''}>${x.label}</option>`).join('')}</select></label>
+    <label>件名<input id="acName" value="${esc(tkShort(p))} 追加請求（${s?s.label.replace('管理',''):'仕様追加'}）"></label>
+    <div class="tk-lab">明細（原価・請求金額。2行目は品目が空欄なら登録しません）</div>
+    ${tkLineInputs('al',[[['品目','i',s?s.label.replace('管理','')+'の追加対応':'追加仕様対応'],['原価','t',String(c0),'number'],['請求金額','a',String(a0),'number'],['数量','q','1','number']],[['品目','i',''],['原価','t','0','number'],['請求金額','a','0','number'],['数量','q','1','number']]])}
+    <div class="small muted">保存すると「申請前」で作成します。内容を確認して「承認申請」してください（承認者：営業部長、仮置き：CQ-12）。</div></div>`,
+    ()=>{const id=tkNewId(), no=tkNewNo();
+      const lines=[0,1].filter(i=>$('#ali'+i).value.trim()).map((i,n)=>({no:no+'-'+(n+1),item:$('#ali'+i).value,detail:'',q:+$('#alq'+i).value||1,target:+$('#alt'+i).value||0,ans:+$('#ala'+i).value||0}));
+      DB.requests.push({id,no,name:$('#acName').value||'（件名未入力）',pj:pid,type:'追加請求',parent:$('#acPar').value||null,sub:$('#acSub').value||null,to:'営業部',status:'申請前',
+        requester:meName(),assignee:'',created:'2026-10-08',lines,approvals:[],files:[]});
+      setTimeout(()=>go('#/request/'+id),0); toast('追加請求を「申請前」で作成しました。内容を確認して「承認申請」してください');});
+}
+function tkPjReq(p){
+  const rs=tkSort(DB.requests.filter(r=>r.pj===p.id));
+  return `<div class="flex mb8"><span class="muted">お客様からの追加要求、各部門への対応依頼・原価見積依頼、追加請求の承認をチケットとして管理します</span>
+    <span class="flex" style="margin-left:auto"><button class="btn" onclick="EXT.fn.newTicket('${p.id}')">追加要求チケットを起票</button><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="EXT.fn.newAddClaim('${p.id}')">追加請求</button></span></div>
+  <div class="tbl-wrap">${tbl(TK_HEADS(false),rs.map(r=>tkRow(r,false)),'依頼はありません')}</div>`;
+}
+
+/* ---------- ③ レポート：部門・依頼区分・ステータス毎のチケット処理時間 ---------- */
+function tkPgReport(){
+  const f=UI.trDept||'すべて', T=DB.requests.filter(isTicket);
+  const agg=list=>TK_PH.map(ph=>{const v=list.map(r=>tkStays(r)[ph]).filter(x=>x!=null);return {avg:v.length?v.reduce((a,b)=>a+b,0)/v.length:null,med:tkMed(v),n:v.length};});
+  const lines=[];
+  TK_DEPTS.filter(d=>f==='すべて'||d===f).forEach(d=>{const ds=T.filter(r=>r.to===d); if(!ds.length) return;
+    TK_CATS.filter(c=>ds.some(r=>tkCat(r)===c)).forEach((c,i)=>lines.push({k:'cat',d:i?'':d,c,a:agg(ds.filter(r=>tkCat(r)===c))}));
+    lines.push({k:'sub',d:'',c:d+' 小計',a:agg(ds)});});
+  if(f==='すべて') lines.push({k:'sub',d:'',c:'総計',a:agg(T)});
+  const cats=lines.filter(l=>l.k==='cat'), mx=TK_PH.map((_,j)=>({avg:Math.max(0,...cats.map(l=>l.a[j].avg||0)),med:Math.max(0,...cats.map(l=>l.a[j].med||0))}));
+  const cell=(l,j,k)=>{const v=l.a[j][k];return `<td class="num ${l.k==='cat'&&v>0&&v===mx[j][k]?'tk-max':''}">${v==null?'—':v.toFixed(1)}</td>`;};
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📊</span><div><div class="obj-label"><a href="#/requests">依頼（チケット）</a>｜レポート</div><h1>部門・依頼区分・ステータス毎のチケット処理時間（平均値・中央値）</h1></div>
+    <div class="actions"><label class="small muted">依頼先部門 <select class="tk-sel" onchange="UI.trDept=this.value;route()">${['すべて',...TK_DEPTS].map(d=>`<option ${d===f?'selected':''}>${d}</option>`).join('')}</select></label></div></div>
+    <div class="small mt8">依頼先部門で自部門に絞り込んでご利用ください。</div>
+    <div class="small muted">対象：追加要求・部門対応依頼・原価見積依頼（追加請求は承認の管理のため対象外）。単位：時間（h）。対応中・受付待ちのチケットは現在までの経過時間で集計しています。依頼区分は仮置きです（要確認：CQ-08）。</div></div>
+  <div class="card"><div class="card-h">チケット処理時間<span class="right legend"><span><i style="background:#feded8;border:1px solid #f4b6ae"></i>各列で最大の値（ボトルネック）</span></span></div>
+  <div class="card-b tbl-wrap"><table class="tbl tk-rep"><thead>
+    <tr><th rowspan="2">依頼先部門</th><th rowspan="2">依頼区分</th>${TK_PH.map(s=>`<th colspan="3" class="tk-ph">${s}</th>`).join('')}</tr>
+    <tr>${TK_PH.map(()=>'<th class="num">平均(h)</th><th class="num">中央値(h)</th><th class="num">件数</th>').join('')}</tr></thead><tbody>
+    ${lines.map(l=>`<tr class="${l.k==='sub'?'tk-subtot':''}"><td>${l.d?`<b>${l.d}</b>`:''}</td><td>${l.c}</td>${TK_PH.map((_,j)=>cell(l,j,'avg')+cell(l,j,'med')+`<td class="num">${l.a[j].n}</td>`).join('')}</tr>`).join('')||'<tr><td colspan="11" class="muted">該当するチケットはありません</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+/* ---------- EXT への登録 ---------- */
+Object.assign(EXT.pill,{'起票中':'','受付待ち':'y','対応中':'b','完了':'g','申請前':'','追加請求申請中':'y','未請求':''});
+EXT.fn.newTicket = pid => tkNewTicket(pid);
+EXT.fn.newAddClaim = (pid,sub,parent) => tkNewAddClaim(pid,sub,parent);
+EXT.fn.costGap = p => { const items=procCost(p).filter(x=>x.over).map(x=>({sub:x.sub,plan:x.plan,act:x.act})); return {over:items.length,items}; };
+EXT.fn.reqPending = () => DB.requests.filter(tkOpen);
+EXT.routes.ticketreport = () => tkPgReport();
+EXT.navKeys.ticketreport = 'requests';
+EXT.launch.push(['ticketreport','チケット処理時間レポート','i-report','⏱']);
+extRec('project').actions.push(p=>`<button class="btn" onclick="EXT.fn.newTicket('${p.id}')">追加要求チケットを起票</button>`);
+extRec('project').top.push(p=>{ const g=EXT.fn.costGap(p); if(!g.over) return '';
+  return `<div class="tk-alert"><b>⚠ 原価UP</b><span>${tkGapTxt(g)}で実績原価が予定原価を超えています。発生時に営業担当（${esc(p.sales)}）・技術担当（${esc(p.owner)}）・企画部へ通知しています（判定条件は仮置き：CQ-11）。</span>
+    <span class="tk-alert-btns"><button class="btn" onclick="UI.pjTab['${p.id}']='cost';route()">原価予実を見る</button><button class="btn brand" onclick="EXT.fn.newAddClaim('${p.id}','${g.items[0].sub}')">追加請求を起票</button></span></div>`; });
+extRec('sub').main.push((p,k)=>{ const x=procCost(p).find(y=>y.sub===k); if(!x) return '';
+  return `<div class="card"><div class="card-h"><span class="obj-icon sm i-report">¥</span>この工程の原価予実 ${stepBadge(2)}<span class="right">${tkCostSt(x)}</span></div><div class="card-b">
+    <div class="fields">${fld('予定原価',yen(x.plan))}${fld('実績原価',yen(x.act))}${fld('差異（実績 − 予定）',`<span class="${x.over?'tk-over':''}">${tkSgn(x.diff)}</span>`)}
+    ${fld('内訳（実績／予定）',`工数 ${x.ah}h／${x.ph}h × ${yen(RATE)}${k==='chou'?`、仕入 ${yen(x.pa)}／${yen(x.pp)}`:''}`)}</div>
+    <div class="small muted mt8">工数単価・原価UPの判定条件（実績原価＞予定原価）は仮置きです（要確認：CQ-10・CQ-11）。</div></div></div>`; });
+
+/* ---------- 要件レビュー画面への登録 ---------- */
+EXT.review.push({
+  topic:'③', page:'p12', step:1,
+  title:'顧客からの追加要求のチケット管理',
+  issue:'受注後に発生したお客様からの追加要求について、影響範囲の特定や費用請求がタイムリーかつ計画的に行えない',
+  measure:'追加要求のチケットを発行し、関係者へ即時通知、必要なプロセスを実施できる仕組みをつくる',
+  reqs:[['REQ-3-01','受注後の案件から追加要求チケットを起票','必須'],['REQ-3-02','起票時に依頼先・影響範囲の部門へ通知','必須'],['REQ-3-03','影響範囲（6部門）を複数選択して記録','必須'],
+    ['REQ-3-04','影響部門ごとの対応（子チケット）を1か所で見る','必須'],['REQ-3-05','追加費用（見込額・請求要否・請求状況）を持ち④の追加請求につなぐ','必須'],
+    ['REQ-3-06','フェーズ 起票→受付→対応→完了','必須'],['REQ-3-07','自分が依頼したチケット一覧','必須'],['REQ-3-08','自部門が依頼されたチケット一覧','必須'],['REQ-3-09','自部門が依頼したチケット一覧','推奨'],
+    ['REQ-3-10','未完了件数のタイル（依頼した／自部門が依頼した／依頼された）','推奨'],['REQ-3-11','一覧の列（依頼区分・チケット名・案件・状況・依頼先・担当者・依頼日・完了希望日）','推奨'],
+    ['REQ-3-12','依頼区分（値は仮置き）','レビューで確認'],['REQ-3-13','チケットごとのフェーズ滞在時間','必須'],['REQ-3-14','部門×依頼区分×ステータスの処理時間レポート（平均・中央値）','必須'],
+    ['REQ-3-15','レポートの部門フィルタ','推奨'],['REQ-3-16','完了希望日の超過を赤字で区別','推奨'],['REQ-3-17','呼称「依頼（チケット）」','レビューで確認']],
+  links:[{label:'チケット一覧',h:'#/requests',role:'eigyo'},{label:'追加要求の例（R010）',h:'#/request/R010',role:'eigyo'},{label:'処理時間レポート',h:'#/ticketreport',role:'gijutsu'}],
+  demo:[{text:'営業ロールで P003 を開き「追加要求チケットを起票」（影響範囲：加工技術・設計・調達）',h:'#/project/P003',role:'eigyo'},
+    {text:'技術部ロールで通知を確認し、チケットを「受け付ける」',h:'#/requests',role:'gijutsu'},
+    {text:'追加要求 R010 の「部門ごとの対応」と「部門へ対応依頼を起票」',h:'#/request/R010',role:'gijutsu'},
+    {text:'一覧の件数タイル（自分が依頼した／自部門が依頼した／依頼された）をロール切替で比較',h:'#/requests',role:'eigyo'},
+    {text:'チケット詳細のフェーズ滞在時間（R003：受付待ちが長い例）',h:'#/request/R003',role:'kikaku'},
+    {text:'処理時間レポート：部門フィルタとボトルネックの強調',h:'#/ticketreport',role:'gijutsu'},
+    {text:'R010 の「追加費用」カードから④の追加請求（R002）へ',h:'#/request/R010',role:'eigyo'}],
+  cq:['CQ-07','CQ-08','CQ-09','CQ-19']
+});
+EXT.review.push({
+  topic:'④', page:'p13', step:2,
+  title:'原価予実管理',
+  issue:'受注後の原価の予定を把握できず、原価UPの際に営業が追加請求の必要性を認識できない',
+  measure:'各工程の予定原価に対する実績原価を可視化し、原価UPのタイミングでアラートを発報して関係者が即時に認知できる仕組みをつくる',
+  reqs:[['REQ-4-01','工程別の予定原価・実績原価・差異','必須'],['REQ-4-02','原価＝工数×単価（仮置き）＋仕入の内訳','必須'],['REQ-4-03','受注済み案件に工程別の予定原価','必須'],
+    ['REQ-4-04','実績＞予定の工程に原価UPアラート（条件は仮置き）','必須'],['REQ-4-05','原価UP発生時に営業担当・技術担当・企画部へ通知','必須'],['REQ-4-06','アラートから追加請求の起票へ','必須'],
+    ['REQ-4-07','部門宛ての原価見積依頼（明細）','必須'],['REQ-4-08','追加請求のヘッダー（一連番号・原価合計・金額合計・粗利率・商談）','推奨'],
+    ['REQ-4-09','追加請求の承認 申請前→承認待ち→承認済（却下・再申請）','必須'],['REQ-4-10','承認履歴','推奨'],['REQ-4-11','承認済みの追加請求から「客先見積」へ','レビューで確認'],
+    ['REQ-4-12','メモ＆添付ファイル','推奨'],['REQ-4-13','Tableau 連携は予定と明記','必須'],['REQ-4-14','承認済み追加請求を受注額・粗利に集約','レビューで確認'],['REQ-4-15','原価予実ダッシュボード（全ロール）','必須']],
+  links:[{label:'原価予実ダッシュボード',h:'#/costs',role:'kikaku'},{label:'P003（原価UPの例）',h:'#/project/P003',role:'eigyo'},{label:'追加請求の例（R002）',h:'#/request/R002',role:'kikaku'}],
+  demo:[{text:'技術部ロールで P002 の工数管理に「予定10h・実績40h（加工）」を追加 → 原価UP通知',h:'#/project/P002',role:'gijutsu'},
+    {text:'営業ロールで通知から案件を開き、原価UPの帯・原価予実タブ（工程別）を確認',h:'#/project/P002',role:'eigyo'},
+    {text:'「追加請求を起票」→「承認申請」',h:'#/project/P003',role:'eigyo'},
+    {text:'企画ロール（営業部長として）で R002 を承認 → 親チケット R010 の請求状況・P003 の受注額と粗利が変わる',h:'#/request/R002',role:'kikaku'},
+    {text:'原価予実ダッシュボード（ステップ2、Tableau 連携は予定）',h:'#/costs',role:'kikaku'}],
+  cq:['CQ-10','CQ-11','CQ-12','CQ-13','CQ-14']
+});
 
 /* ===== WP3 END ===== */
 
