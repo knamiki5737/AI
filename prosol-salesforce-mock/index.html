@@ -687,7 +687,7 @@ const DB = {
   notifs:[
     {t:'追加請求「ホーニングセル ランクセレクト仕様変更」の承認依頼が届いています',tm:'2026/10/02 15:48',link:'#/request/R002',unread:true},
     {t:'案件「コンプレッサー部品 ホーニング自動機」の納期まで22日です（製造：組立中）',tm:'2026/10/08 08:00',link:'#/project/P005',unread:true},
-    {t:'商品マスタ取込バッチが正常終了しました（更新 9件）',tm:'2026/10/08 02:00',link:'#/products',unread:false}
+    {t:'商品マスタ取込バッチが正常終了しました（更新 18件）',tm:'2026/10/08 02:00',link:'#/batch/B14',unread:false}
   ]
 };
 
@@ -1600,7 +1600,7 @@ DB.quotes = DB.opps.map(o=>{const date=o.stage>=5?addDays(o.close,-21):o.stage>=
 DB.batches = ['09/25','09/26','09/27','09/28','09/29','09/30','10/01','10/02','10/03','10/04','10/05','10/06','10/07','10/08'].map((d,i)=>{const n=[2,3,1,4,2,3,9,3,2,4,1,2,5,18][i];
   return {id:'B'+String(i+1).padStart(2,'0'),dt:`2026/${d} 02:00`,file:`item_master_2026${d.replace('/','')}.csv`,status:(i===4||i===9)?'一部エラー':'成功',ins:i===6?9:0,upd:i===6?0:n,err:(i===4||i===9)?1:0,
     errMsg:i===4?'TL-TOOL：商品コードが重複しています':i===9?'TL-STONE：標準価格が数値ではありません（"12,000円"）':'',
-    prods:i===13?DB.products.map(p=>p.id):i===6?DB.products.slice(9).map(p=>p.id):Array.from({length:n},(_,k)=>DB.products[(i*3+k)%DB.products.length].id)};});
+    prods:i===13?DB.products.map(p=>p.id):i===6?DB.products.slice(9).map(p=>p.id):Array.from({length:n},(_,k)=>DB.products[i<6?(i*3+k)%9:(i*3+k)%DB.products.length].id)};});
 DB.projects.forEach(p=>{p.hist=[{dt:fmtD(p.start)+' 09:00',f:'作成',from:'',to:'商談受注フローにより自動作成',by:'自動化フロー'}];
   if(p.stage>0){const sd=new Date(p.start),span=Math.min(TODAY-sd,new Date(p.due)-sd);sd.setTime(sd.getTime()+span*Math.min(0.9,p.stage/6));p.hist.unshift({dt:fmtD(sd.toISOString().slice(0,10))+' 17:20',f:'ステージ',from:STAGES[p.stage-1],to:STAGES[p.stage],by:p.owner});}});
 DB.knowledge.forEach(k=>{k.votes=Math.round(k.views/6);k.status='公開済';});
