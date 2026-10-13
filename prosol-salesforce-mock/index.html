@@ -274,6 +274,22 @@ a.tab{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .qdoc-h{text-align:center;font-size:22px;letter-spacing:8px;margin-bottom:16px;border-bottom:2px solid #333;padding-bottom:8px}
 .qdoc-to{font-size:16px;border-bottom:1px solid #333;margin-bottom:6px;padding-bottom:2px}
 .qdoc-total{font-size:16px;font-weight:700;margin:16px 0;border-bottom:2px solid #333;display:inline-block;padding-bottom:2px}
+/* ===== SCAFFOLD（PL） ===== */
+.step-badge{display:inline-block;font-size:11px;border-radius:10px;padding:1px 8px;border:1px solid #c9c7c5;color:#444;background:#fff;white-space:nowrap;vertical-align:middle}
+.step-badge.s1{border-color:#3ba755;color:#2e844a;background:#ebf7e6}
+.step-badge.s2{border-color:#dd7a01;color:#a96404;background:#fef1e3}
+.notif-scope{display:flex;gap:6px;padding:6px 12px;border-bottom:1px solid var(--border);font-size:12px}
+.notif-scope a{cursor:pointer;padding:1px 8px;border-radius:10px;border:1px solid var(--border);color:var(--text)}
+.notif-scope a.on{background:var(--brand-light);border-color:var(--brand);color:var(--brand-dark)}
+.notif-to{margin-left:8px;color:var(--text-weak)}
+#extHeader:empty{display:none}
+/* ===== SCAFFOLD END ===== */
+/* ===== WP1 BEGIN ===== */
+/* ===== WP1 END ===== */
+/* ===== WP2 BEGIN ===== */
+/* ===== WP2 END ===== */
+/* ===== WP3 BEGIN ===== */
+/* ===== WP3 END ===== */
 </style>
 </head>
 <body>
@@ -286,6 +302,7 @@ a.tab{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
   <button class="icon-btn" title="戻る" onclick="goBack()" id="backBtn">←</button><a class="logo" href="#/home"><div class="mark">P</div><span>日進ProSOL</span></a>
   <div class="g-search"><input id="gsearch" placeholder="案件・商談・取引先・ナレッジを検索..." onkeydown="if(event.key==='Enter')globalSearch(this.value)"></div>
   <div class="g-tools">
+    <span id="extHeader"></span>
     <label class="small muted">ロール</label>
     <select class="role-select" id="roleSel" onchange="setRole(this.value)">
       <option value="kikaku">企画部</option>
@@ -313,7 +330,7 @@ const RATE = 8000;          // 社内工数単価（円/h）※デモ用の仮�
 const MARGIN_TARGET = 25;   // 目標粗利率（%）※デモ用の仮置き
 
 const USERS = {
-  kikaku:{name:'中村 恵（企画部）',initial:'中'},
+  kikaku:{name:'前田 恵（企画部）',initial:'前'},
   eigyo:{name:'山田 太郎（営業部）',initial:'山'},
   gijutsu:{name:'佐藤 健（技術部）',initial:'佐'}
 };
@@ -431,27 +448,27 @@ const DB = {
   ],
   /* 依頼：各部門への原価見積依頼 ／ 追加請求の承認 */
   requests:[
-    {id:'R001',no:'RQ-0001246',name:'ホーニングセル 原価見積依頼',pj:'P003',type:'原価見積依頼',to:'製造部',status:'回答済',requester:'小林 直樹',created:'2026-09-10',
-      lines:[{no:'RQ-0001246-1',item:'ロボット搬送ユニット',detail:'6軸ロボット＋ハンド',q:1,target:4200000,ans:4450000},
-             {no:'RQ-0001246-2',item:'ホーニングヘッド',detail:'φ80〜φ120対応',q:2,target:1800000,ans:1750000},
-             {no:'RQ-0001246-3',item:'安全柵・カバー',detail:'CE準拠',q:1,target:900000,ans:1080000},
-             {no:'RQ-0001246-4',item:'制御盤',detail:'海外電源仕様',q:1,target:2600000,ans:2700000}],
+    {id:'R001',no:'RQ-0001173',name:'ホーニングセル 原価見積依頼',pj:'P003',type:'原価見積依頼',to:'製造部',status:'回答済',requester:'小林 直樹',created:'2026-09-10',
+      lines:[{no:'RQ-0001173-1',item:'ロボット搬送ユニット',detail:'6軸ロボット＋ハンド',q:1,target:4200000,ans:4450000},
+             {no:'RQ-0001173-2',item:'ホーニングヘッド',detail:'φ80〜φ120対応',q:2,target:1800000,ans:1750000},
+             {no:'RQ-0001173-3',item:'安全柵・カバー',detail:'CE準拠',q:1,target:900000,ans:1080000},
+             {no:'RQ-0001173-4',item:'制御盤',detail:'海外電源仕様',q:1,target:2600000,ans:2700000}],
       approvals:[]},
     {id:'R002',no:'RQ-0001251',name:'ホーニングセル 追加請求（ランクセレクト仕様変更）',pj:'P003',type:'追加請求',to:'営業部',status:'承認待ち',requester:'佐藤 健',created:'2026-10-02',
       lines:[{no:'RQ-0001251-1',item:'ランクセレクト 3ランク→5ランク',detail:'顧客要望による仕様変更',q:1,target:1200000,ans:1450000},
              {no:'RQ-0001251-2',item:'追加設計工数',detail:'40h',q:1,target:240000,ans:240000}],
-      approvals:[{step:'承認申請が提出されました',date:'2026/10/02 16:26',st:'申請済み',who:'佐藤 健'},
-                 {step:'部長承認',date:'2026/10/02 16:26',st:'未承認',who:'田中 三郎（営業部長）'}]},
+      approvals:[{step:'承認申請が提出されました',date:'2026/10/02 15:48',st:'申請済み',who:'佐藤 健'},
+                 {step:'部長承認',date:'2026/10/02 15:48',st:'未承認',who:'武田 修（営業部長）'}]},
     {id:'R003',no:'RQ-0001238',name:'バルブボディ 調達品 原価見積依頼',pj:'P004',type:'原価見積依頼',to:'調達部',status:'依頼中',requester:'小林 直樹',created:'2026-10-05',
       lines:[{no:'RQ-0001238-1',item:'主軸ユニット',detail:'4軸',q:4,target:650000,ans:null},
              {no:'RQ-0001238-2',item:'クーラント装置',detail:'',q:1,target:800000,ans:null}],
       approvals:[]},
     {id:'R004',no:'RQ-0001232',name:'コンプレッサー部品 追加請求（ハンド再設計）',pj:'P005',type:'追加請求',to:'営業部',status:'承認済',requester:'佐藤 健',created:'2026-09-02',
       lines:[{no:'RQ-0001232-1',item:'ロボットハンド再設計',detail:'ワーク形状変更対応',q:1,target:600000,ans:600000}],
-      approvals:[{step:'承認申請が提出されました',date:'2026/09/02 16:26',st:'申請済み',who:'佐藤 健'},
-                 {step:'部長承認',date:'2026/09/02 18:10',st:'却下',who:'田中 三郎（営業部長）'},
+      approvals:[{step:'承認申請が提出されました',date:'2026/09/02 14:05',st:'申請済み',who:'佐藤 健'},
+                 {step:'部長承認',date:'2026/09/02 18:10',st:'却下',who:'武田 修（営業部長）'},
                  {step:'承認申請が提出されました',date:'2026/09/03 09:12',st:'申請済み',who:'佐藤 健'},
-                 {step:'部長承認',date:'2026/09/03 13:40',st:'承認済み',who:'田中 三郎（営業部長）'}]}
+                 {step:'部長承認',date:'2026/09/03 13:40',st:'承認済み',who:'武田 修（営業部長）'}]}
   ],
   cases:[
     {id:'CS01',no:'00001024',subject:'納入後 エアゲージの測定値がばらつく',pj:'P007',acc:'A006',type:'不具合',priority:'高',status:'対応中',opened:'2026-10-03',owner:'佐藤 健',
@@ -491,7 +508,7 @@ const DB = {
         'A-200':['英語','タイ語'],'A-202':['英語'],'A-203':'英語','A-204':'英語','A-205':['英語']}}
   ],
   notifs:[
-    {t:'追加請求「ホーニングセル ランクセレクト仕様変更」の承認依頼が届いています',tm:'2026/10/02 16:26',link:'#/request/R002',unread:true},
+    {t:'追加請求「ホーニングセル ランクセレクト仕様変更」の承認依頼が届いています',tm:'2026/10/02 15:48',link:'#/request/R002',unread:true},
     {t:'案件「コンプレッサー部品 ホーニング自動機」の納期まで22日です（製造：組立中）',tm:'2026/10/08 08:00',link:'#/project/P005',unread:true},
     {t:'商品マスタ取込バッチが正常終了しました（更新 9件）',tm:'2026/10/08 02:00',link:'#/products',unread:false}
   ]
@@ -501,7 +518,60 @@ const DB = {
    状態・ユーティリティ
    ========================================================= */
 let ROLE = 'kikaku';
-const UI = {pjTab:{}, hsLayer:1, hsFocus:null, notifOpen:false};
+const UI = {pjTab:{}, hsLayer:1, hsFocus:null, notifOpen:false, notifAll:false};
+
+/* =========================================================
+   [SCAFFOLD] 並行開発用の拡張ポイント（レジストリ／フック）
+   - 各WPは原則として末尾の「WPn BEGIN〜END」ブロック内で EXT に登録する
+   - ここ（SCAFFOLD）のコードは統括（PL）以外は変更しない
+   ========================================================= */
+const EXT = {
+  routes:{},        // {page: (id,sub)=>html}   新しいページキーのみ追加可（既存キーの上書き禁止）
+  navKeys:{},       // {page: 'ナビのキー'}      レコードページ→アクティブにするタブ
+  nav:[],           // [{k,label,roles:[...],after:'既存キー'}]  アプリナビ（タブ）への追加
+  launch:[],        // [[key,label,iconClass,emoji]]  アプリケーションランチャーへの追加
+  recordPages:[],   // ['page']  「最近参照したレコード」の対象に加えるページキー
+  search:[],        // [(q,m)=>[[種別,表示名,href,iconClass,emoji],...]]  グローバル検索の結果追加
+  after:[],         // [(page,id,sub)=>void]  描画直後の処理（イベントの結び付けなど）
+  header:[],        // [()=>html]  グローバルヘッダー右側（#extHeader）への差し込み
+  home:{kpi:[],left:[],right:[]}, // [()=>html]  ホームへのカード差し込み
+  rec:{},           // extRec(kind).actions/hl/tabs/top/main/side  レコードページの差し込み口
+  pill:{},          // {状況値:'g'|'y'|'r'|'b'}  stPill の色の追加
+  on:{},            // イベント購読（onEvt/emit）
+  review:[],        // 要件レビュー画面へ各WPが登録する情報（形式は WP1.md 参照）
+  /* WP間で呼び合う関数の窓口。既定値は「未実装時の安全な動作」。担当WPが自分のブロックで上書きする */
+  fn:{
+    kbPreview:id=>go('#/kb/'+id),          // WP1：ナレッジ記事をモーダルでプレビュー
+    feed:(kind,id)=>'',                     // WP2：Chatterフィード（kind:'opp'|'project'|'case'）のHTML
+    specChange:pid=>newCase(pid),           // WP2：「仕様変更を起票」モーダル
+    newTicket:pid=>newRequest(pid),         // WP3：追加要求チケットの起票
+    newAddClaim:(pid,sub)=>newRequest(pid), // WP3：追加請求の起票（sub=子レコードのキー）
+    delayFlag:p=>false                      // WP2：遅延フラグの判定
+  }
+};
+function extRec(kind){ return EXT.rec[kind] || (EXT.rec[kind]={actions:[],hl:[],tabs:[],top:[],main:[],side:[]}); }
+function hk(kind,slot,...a){ const r=EXT.rec[kind]; if(!r||!r[slot]) return '';
+  return r[slot].map(f=>{try{return f(...a)||'';}catch(e){console.error('[hook '+kind+'.'+slot+']',e);return '';}}).join(''); }
+function hkArr(kind,slot,...a){ const r=EXT.rec[kind]; if(!r||!r[slot]) return [];
+  return r[slot].flatMap(f=>{try{return f(...a)||[];}catch(e){console.error('[hook '+kind+'.'+slot+']',e);return [];}}); }
+function hkList(list,...a){ return (list||[]).map(f=>{try{return f(...a)||'';}catch(e){console.error('[hook]',e);return '';}}).join(''); }
+function onEvt(ev,f){ (EXT.on[ev]=EXT.on[ev]||[]).push(f); }
+function emit(ev,p){ (EXT.on[ev]||[]).forEach(f=>{try{f(p);}catch(e){console.error('[event '+ev+']',e);}}); }
+/* 影響範囲（p15 画面の6部門）と、モックの部署（DB.users.dept）・ロールの対応。③⑥で共用。
+   加工技術・設計はモック上「技術部」に含めている（仮置き・レビューで確認：DECISIONS D-11） */
+const IMPACT_DEPTS = [
+  {k:'営業',dept:'営業部',role:'eigyo'},{k:'加工技術',dept:'技術部',role:'gijutsu'},{k:'設計',dept:'技術部',role:'gijutsu'},
+  {k:'調達',dept:'調達部',role:null},{k:'製造',dept:'製造部',role:null},{k:'企画',dept:'企画部',role:'kikaku'}];
+/* 通知（宛先付き）。to 省略時は全員宛て。to:{users:['U01'],depts:['営業部']} */
+function notify(t,link,to){ const n={t,tm:nowStr(),link:link||'#/home',unread:true}; if(to) n.to=to; DB.notifs.unshift(n); renderNotifCount(); return n; }
+const myUser = () => byId(DB.users,ME[ROLE])||{};
+function isForMe(n){ if(!n.to) return true; const u=myUser(); return (n.to.users||[]).includes(u.id)||(n.to.depts||[]).includes(u.dept); }
+function toLabel(to){ if(!to) return ''; return [...(to.depts||[]),...(to.users||[]).map(id=>(byId(DB.users,id)||{}).name||id)].join('・'); }
+/* デモ導線：ロールを切り替えてから画面を開く（要件レビュー画面などから使用） */
+function applyRoleUi(){ $('#roleSel').value=ROLE; $('#avatar').textContent=USERS[ROLE].initial; $('#avatar').title=USERS[ROLE].name; $('#avatar').href='#/user/'+ME[ROLE]; }
+function goAs(h,role){ if(role&&role!==ROLE){ ROLE=role; applyRoleUi(); toast(`ロールを「${$('#roleSel').selectedOptions[0].text}」に切り替えました`,'info'); } go(h); }
+/* p7 の運用開始ステップ区分のバッジ */
+function stepBadge(step){ return step===2?'<span class="step-badge s2" title="p7：運用開始のステップ区分">ステップ2から運用</span>':step===1?'<span class="step-badge s1" title="p7：運用開始のステップ区分">ステップ1で完全運用</span>':'<span class="step-badge" title="p7：運用開始のステップ区分">共通</span>'; }
 const $ = s => document.querySelector(s);
 const yen = n => n==null?'—':'¥'+Math.round(n).toLocaleString('ja-JP');
 const man = n => (Math.round(n/10000)).toLocaleString('ja-JP')+'万円';
@@ -520,6 +590,7 @@ const SUBS = [
 ];
 
 /* ---------- 集約ロジック（進捗・粗利・納期） ---------- */
+/* @owner WP3 */
 function pjCalc(p){
   const ks = DB.kousu.filter(k=>k.pj===p.id);
   const plan = ks.reduce((a,k)=>a+k.plan,0), act = ks.reduce((a,k)=>a+k.act,0);
@@ -539,6 +610,7 @@ function pjCalc(p){
   const overHours = ks.filter(k=>k.act>k.plan).length;
   return {plan,act,costForecast,revenue,addRev,margin,days,planPct,actPct,progLamp,marginLamp,dueLamp,overHours};
 }
+/* @owner WP3 */
 function extraCost(p){ return 0; }
 function lamps(c){ return `<span class="lamps" title="進捗／粗利／納期"><span class="lamp ${c.progLamp}"></span><span class="lamp ${c.marginLamp}"></span><span class="lamp ${c.dueLamp}"></span></span>`; }
 const LAMP_TXT = {g:'順調',y:'注意',r:'要対応'};
@@ -547,7 +619,7 @@ const LAMP_TXT = {g:'順調',y:'注意',r:'要対応'};
    ロール別ナビゲーション
    ========================================================= */
 function setRole(r){
-  ROLE=r; $('#avatar').textContent=USERS[r].initial; $('#avatar').title=USERS[r].name; $('#avatar').href='#/user/'+ME[r];
+  ROLE=r; applyRoleUi();
   toast(`ロールを「${$('#roleSel').selectedOptions[0].text}」に切り替えました（タブ・ページレイアウト・項目表示が変わります）`,'info');
   route();
 }
@@ -586,6 +658,7 @@ function barChart(rows){
 /* =========================================================
    案件 一覧（カンバン：案件横断＝各部門の業務俯瞰）
    ========================================================= */
+/* @owner WP2 */
 function bindKanban(){
   document.querySelectorAll('.k-card').forEach(c=>c.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',c.dataset.id)));
   document.querySelectorAll('.k-col-b').forEach(col=>{
@@ -601,17 +674,20 @@ function bindKanban(){
 /* =========================================================
    案件 詳細（部門横断＝1案件の業務俯瞰）
    ========================================================= */
+/* @owner WP2 */
 let pathSel = null;
 function pathHtml(steps,cur,fn,label){
   return `<div class="path"><ol>${steps.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}" onclick="${fn}${i})" title="${s}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol>
     <button class="btn brand" onclick="${fn}${Math.min(cur+1,steps.length-1)},true)">${label}</button></div>`;
 }
+/* @owner WP2 */
 function setPjStage(id,i,next){
   const p=byId(DB.projects,id); if(p.stage===i&&!next) return;
   p.hist.unshift({dt:nowStr(),f:'ステージ',from:STAGES[p.stage],to:STAGES[i],by:meName()});
   p.stage=i; toast(`ステージを「${STAGES[i]}」に更新しました。技術担当・営業担当へ通知しました（自動化フロー）`);
   DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[i]}」になりました`,tm:nowStr(),link:'#/project/'+id,unread:true}); route();
 }
+/* @owner WP2 */
 function pjSched(p){
   return SUBS.map(s=>{const d=p[s.k];const ds=['d1','d2','d3','d4'].slice(0,s.cols.length);
     return `<div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm ${s.icon}">${s.em}</span><a href="#/sub/${p.id}/${s.k}">${s.label} (1)</a></div>
@@ -619,6 +695,7 @@ function pjSched(p){
     <tbody><tr><td><span class="pill ${d.phase==='完了'||d.phase==='出図済'||d.phase==='入荷済'?'g':d.phase==='未着手'?'':'b'}">${d.phase}</span></td>${ds.map(k=>`<td style="color:${d.phase!=='完了'&&d.phase!=='出図済'&&d.phase!=='入荷済'&&daysTo(d[k])<0?'var(--red)':''}">${fmtD(d[k])}</td>`).join('')}</tr></tbody></table></div></div>`}).join('')
   + `<div class="card" style="box-shadow:none"><div class="card-h">大計画（工程ガント）<span class="right small muted">赤線＝本日</span></div><div class="card-b">${gantt(p)}</div></div>`;
 }
+/* @owner WP2 */
 function gantt(p){
   const s=new Date(p.start), e=new Date(p.due); s.setDate(1); const span=e-s+86400000*10;
   const pos=d=>((new Date(d)-s)/span*100);
@@ -630,6 +707,7 @@ function gantt(p){
     ${TODAY>=s&&TODAY<=e?`<div class="g-today" style="left:${pos(TODAY)}%"></div>`:''}</div></div>`}).join('')}
   <div class="g-row"><div class="g-name"><b>納期</b></div><div class="g-track"><div class="g-bar" style="left:${pos(p.due)-0.5}%;width:1%;background:#000" title="${fmtD(p.due)}"></div></div></div></div>`;
 }
+/* @owner WP3 */
 function addKousu(id){
   modal('工数を追加',`<div class="fields" style="grid-template-columns:1fr">
     <label>工程区分<select id="kSub" class="role-select" style="width:100%">${SUBS.map(s=>`<option value="${s.k}">${s.label}</option>`).join('')}</select></label>
@@ -639,6 +717,7 @@ function addKousu(id){
     ()=>{DB.kousu.push({pj:id,sub:$('#kSub').value,name:$('#kName').value,plan:+$('#kPlan').value,act:+$('#kAct').value,cm:$('#kCm').value});
       toast('工数を登録しました。案件の工数合計・見込原価・粗利ランプを再計算しました');});
 }
+/* @owner WP3 */
 function pjReq(p){
   const rs=DB.requests.filter(r=>r.pj===p.id);
   return `<div class="flex mb8"><span class="muted">各部門への原価見積依頼や追加請求の承認をチケットとして管理します</span><span style="margin-left:auto"><button class="btn" onclick="newRequest('${p.id}')">新規依頼</button></span></div>
@@ -646,7 +725,8 @@ function pjReq(p){
   ${rs.map(r=>`<tr><td><a href="#/request/${r.id}">${r.no}</a></td><td>${esc(r.name)}</td><td>${r.type}</td><td>${r.to}</td><td>${stPill(r.status)}</td><td>${fmtD(r.created)}</td></tr>`).join('')||'<tr><td colspan="6" class="muted">依頼はありません</td></tr>'}
   </tbody></table></div>`;
 }
-function stPill(s){const m={'承認済':'g','回答済':'g','承認待ち':'y','依頼中':'b','却下':'r','クローズ':'g','対応中':'y','新規':'b'};return `<span class="pill ${m[s]||''}">${s}</span>`}
+function stPill(s){const m={'承認済':'g','回答済':'g','承認待ち':'y','依頼中':'b','却下':'r','クローズ':'g','対応中':'y','新規':'b',...EXT.pill};return `<span class="pill ${m[s]||''}">${s}</span>`}
+/* @owner WP3 */
 function pjCost(p,c){
   const labor=Math.max(c.plan,c.act)*RATE;
   return `<div class="fields">
@@ -658,17 +738,20 @@ function pjCost(p,c){
 }
 const fld=(l,v,spec)=>`<div class="field"><div class="l">${l}${spec?`<span class="spec-tag">${spec}</span>`:''}</div><div class="v">${v}</div></div>`;
 /* ---------- 子レコード（階層構造：大計画→中計画） ---------- */
+/* @owner WP2 */
 function setSubPhase(pid,k,i){const p=byId(DB.projects,pid),s=SUBS.find(x=>x.k===k);p.hist.unshift({dt:nowStr(),f:s.label+'：フェーズ',from:p[k].phase,to:s.phases[Math.min(i,s.phases.length-1)],by:meName()});p[k].phase=s.phases[Math.min(i,s.phases.length-1)];toast(`${s.label}のフェーズを「${p[k].phase}」に更新しました`);route();}
 
 /* =========================================================
    商談
    ========================================================= */
+/* @owner WP2 */
 function setOppStage(id,i){
   const o=byId(DB.opps,id); if(o.stage>=5){toast('受注済みの商談です','info');return;}
   o.stage=i; o.prob=[10,20,40,60,80,100][i];
   if(i===5){ runWonFlow(o); return; }
   toast(`フェーズを「${OPP_STAGES[i]}」に更新しました`); route();
 }
+/* @owner WP2 */
 function runWonFlow(o){
   const n=DB.projects.length+10; const pid='P'+String(100+n);
   const add=(d,days)=>{const x=new Date(d);x.setDate(x.getDate()+days);return x.toISOString().slice(0,10)};
@@ -873,7 +956,9 @@ const MERGED = [
 const QM_DEFAULT = ['真円度','円筒度','真直度','端面振れ','直角度','表面粗さ'];
 const QM_UNIT = {'真円度':'mm','円筒度':'mm','真直度':'mm','端面振れ':'mm','直角度':'mm','表面粗さ':'Ra/Rz'};
 
+/* @owner WP1 */
 const visibleQs = a => QS.filter(q=>!q.show||q.show(a));
+/* @owner WP1 */
 function answered(q,a){
   const v=a[q.id];
   if(q.type==='auto') return true;
@@ -882,7 +967,9 @@ function answered(q,a){
   if(q.type==='quality') return (a.qm||[]).length>0 && a.qm.every(r=>r.st==='なし'||(r.st==='あり'&&r.target&&(a['A-108']!=='要求あり'||r.cpk)));
   return v!==undefined && v!==null && String(v).trim()!=='';
 }
+/* @owner WP1 */
 function layerProg(a,L){const qs=visibleQs(a).filter(q=>q.L===L&&q.req);return [qs.filter(q=>answered(q,a)).length,qs.length];}
+/* @owner WP1 */
 function autoVal(q,h){
   const o=byId(DB.opps,h.opp)||{};
   if(q.id==='A-001') return h.no;
@@ -891,7 +978,9 @@ function autoVal(q,h){
   if(q.id==='A-183'){const m=byId(DB.products,h.ans['A-008']);return m?(m.family==='自動機・セル機'?'全面カバー（セル標準）':'前面スライドカバー（標準）')+' ※機種から自動決定':'（対象設備／機種を選択すると自動決定）';}
 }
 
+/* @owner WP1 */
 const HS_VIEWS={all:['すべてのヒアリングシート',h=>true],open:['回答中',h=>h.status!=='完了'],done:['完了',h=>h.status==='完了'],mine:['自分の商談のシート',h=>(byId(DB.opps,h.opp)||{}).owner===meName()]};
+/* @owner WP1 */
 function pgHearings(){
   return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート</div><h1>${lvSel('hearings',HS_VIEWS)}</h1></div>
     <div class="actions"><button class="btn brand" onclick="newHearing()">新規</button></div></div></div>
@@ -902,6 +991,7 @@ function pgHearings(){
   </tbody></table></div></div>
   <div class="note">項目・データ型・必須条件・分岐は「次世代営業ヒアリング データ項目定義書 V1.0」（全141項目）に準拠しています。</div>`;
 }
+/* @owner WP1 */
 function newHearing(oppId){
   if(!oppId){
     const cand=DB.opps.filter(o=>o.stage<5&&!DB.hearings.find(h=>h.opp===o.id));
@@ -915,6 +1005,7 @@ function newHearing(oppId){
   o.hearing=id; DB.hearings.unshift({id,no:'SF-2026-00'+(900+DB.hearings.length),name:`${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans:{'A-003':'日本',qm:QM_DEFAULT.map(n=>({name:n}))}});
   UI.hsLayer=1; UI.hsFocus=null; go('#/hearing/'+id); toast('ヒアリングシートを作成し、商談に紐付けました');
 }
+/* @owner WP1 */
 function pgHearing(id){
   const h=byId(DB.hearings,id); if(!h) return notFound();
   const a=h.ans, L=UI.hsLayer, qs=visibleQs(a).filter(q=>q.L===L);
@@ -937,10 +1028,12 @@ function pgHearing(id){
     <div>
       <div class="card"><div class="card-h">💡 項目定義（なぜ聞くか）</div><div class="card-b" id="whyPanel">${whyPanel(UI.hsFocus)}</div></div>
       <div class="card"><div class="card-h">分岐ロジックの状態</div><div class="card-b small">${branchState(a)}</div></div>
+      ${hk('hearing','side',h)}
       <div class="card"><div class="card-h">関連ナレッジ</div><div class="card-b small">${isOverseas(a)?`<div><a href="#/kb/KB02">📖 海外向け案件：電源電圧・周波数の確認手順</a></div>`:''}<div><a href="#/kb/KB01">📖 主軸芯ずれの原因と対策（ベース平面度）</a></div><div><a href="#/kb/KB03">📖 研削油タンク容量変更時の確認ポイント</a></div></div></div>
     </div>
   </div>`;
 }
+/* @owner WP1 */
 function tags(q){
   const d=DEF[q.p||q.id]||{};
   return `<span class="spec-tag">${q.p?q.p+' 子':q.id==='QM'?'A-237〜A-300':q.id==='X-INL'?'定義書外':q.id}</span>`+
@@ -948,6 +1041,7 @@ function tags(q){
     (q.tent==='ph'?'<span class="tent ph">選択肢未確定</span>':q.tent==='kari'?'<span class="tent kari">選択肢（仮）</span>':'')+
     (!q.req&&/条件付き/.test(d.rq||'')?`<span class="cond">${esc(d.rq)}</span>`:'');
 }
+/* @owner WP1 */
 function qHtml(q,a,h){
   const hid=h.id, k=q.id, v=a[k]??'';
   const on=`onchange="hsSet('${hid}','${k}',this.value)"`;
@@ -974,6 +1068,7 @@ function qHtml(q,a,h){
   return `<div class="q ${q.p?'child':''} ${UI.hsNew&&UI.hsNew.includes(k)?'new':''} ${UI.hsFocus===k?'focus':''}" onclick="hsFocus('${k}')">
     <div class="ql">${q.req?'<span class="req">*</span>':''}${esc(q.q)}${tags(q)}<a class="why-btn" onclick="event.stopPropagation();hsFocus('${k}')">定義を見る</a></div>${input}${warn}</div>`;
 }
+/* @owner WP1 */
 function rowsHtml(a,hid){
   const n=Math.min(+a['A-043']||0,10); const w=a.works||[];
   return `<div class="flex" style="flex-wrap:nowrap"><input type="number" min="0" max="10" value="${esc(a['A-043']??'')}" onchange="hsSet('${hid}','A-043',this.value)"><span class="muted" style="white-space:nowrap">種類</span></div>
@@ -981,6 +1076,7 @@ function rowsHtml(a,hid){
   ${Array.from({length:n},(_,i)=>`<tr><td>${i+1}</td><td><input value="${esc((w[i]||{}).part||'')}" onchange="hsRow('${hid}',${i},'part',this.value)" placeholder="例：DH-25871-A"></td><td><input value="${esc((w[i]||{}).memo||'')}" onchange="hsRow('${hid}',${i},'memo',this.value)"></td></tr>`).join('')}
   </tbody></table><div class="small muted">種類数に応じて明細行が増減します（定義書 備考）</div>`:''}`;
 }
+/* @owner WP1 */
 function qmHtml(a,hid){
   const cap=a['A-108']==='要求あり'; const rows=a.qm||[];
   return `<div class="small muted mb8">品質特性ごとに「前加工精度 → 要求加工精度 → 測定方法 → ${cap?'工程能力 → ':''}測定数」を一連で管理します。要求なしも明示してください。${cap?'':'<br>工程能力要求（L3 A-108）が「要求あり」になると Cp／Cpk 列が展開されます。'}</div>
@@ -991,6 +1087,7 @@ function qmHtml(a,hid){
     <td>${f('pre')}</td><td>${f('target',r.name==='表面粗さ'?'Ra 0.8':'0.005')}</td><td>${f('method')}</td>${cap?`<td>${f('cp','1.33')}</td><td>${f('cpk','1.33')}</td><td>${f('pp')}</td>`:''}<td>${f('n')}</td></tr>`}).join('')}
   </tbody></table></div><button class="btn mt8" onclick="hsQAdd('${hid}')">＋ その他の品質特性を追加（A-293）</button>`;
 }
+/* @owner WP1 */
 function whyPanel(k){
   const q=QS.find(x=>x.id===k);
   if(!q) return '<div class="muted small">項目をクリックすると、定義書の「定義・入力ルール・記入例・議事録での決定事項」を表示します。経験の浅い営業でも、何をなぜ聞くのかを確認しながら入力できます。</div>';
@@ -1004,7 +1101,9 @@ function whyPanel(k){
     ${row('API名（Salesforce・定義書記載）',d.api)}
     ${q.tent==='ph'?'<div class="note mt8">定義書の選択肢が「選択1／選択2／その他」のため未確定です。要件レビューで確定します。</div>':q.tent==='kari'?'<div class="note mt8">選択肢は項目名・関連項目の条件から仮置きしています。要件レビューで確定します。</div>':''}`;
 }
+/* @owner WP1 */
 function hsFocus(k){UI.hsFocus=k;const w=$('#whyPanel');if(w)w.innerHTML=whyPanel(k);document.querySelectorAll('.q').forEach(e=>e.classList.remove('focus'));}
+/* @owner WP1 */
 function hsApply(h,mut){
   const before=visibleQs(h.ans).map(q=>q.id);
   mut(h.ans); h.updated='2026-10-08';
@@ -1024,11 +1123,17 @@ function hsApply(h,mut){
   else if(removed.length) toast(`分岐：不要になった ${removed.length} 項目を非表示にしました`,'info');
   const y=window.scrollY; route(); window.scrollTo(0,y); setTimeout(()=>{UI.hsNew=null},50);
 }
+/* @owner WP1 */
 function hsSet(hid,k,v){UI.hsFocus=k;hsApply(byId(DB.hearings,hid),a=>{a[k]=v;});}
+/* @owner WP1 */
 function hsToggle(hid,k,o){UI.hsFocus=k;hsApply(byId(DB.hearings,hid),a=>{const s=new Set(a[k]||[]);s.has(o)?s.delete(o):s.add(o);a[k]=[...s];});}
+/* @owner WP1 */
 function hsRow(hid,i,f,v){UI.hsFocus='A-043';hsApply(byId(DB.hearings,hid),a=>{a.works=a.works||[];a.works[i]=a.works[i]||{};a.works[i][f]=v;});}
+/* @owner WP1 */
 function hsQ(hid,i,f,v){UI.hsFocus='QM';hsApply(byId(DB.hearings,hid),a=>{a.qm[i][f]=v;});}
+/* @owner WP1 */
 function hsQAdd(hid){UI.hsFocus='QM';hsApply(byId(DB.hearings,hid),a=>{a.qm.push({name:'',st:'あり'});});}
+/* @owner WP1 */
 function branchState(a){
   const rules=[
     ['A-003 納入先国＝海外',isOverseas(a),'海外規格要求・言語（L5）を表示'],
@@ -1048,6 +1153,7 @@ function branchState(a){
     ['A-215 予備品＝要',a['A-215']==='要','予備品一覧／数量を表示']];
   return rules.map(r=>`<div class="flex" style="padding:3px 0;flex-wrap:nowrap;align-items:flex-start"><span class="pill ${r[1]?'g':''}">${r[1]?'ON':'OFF'}</span><div><b>${r[0]}</b><div class="muted">${r[2]}</div></div></div>`).join('');
 }
+/* @owner WP1 */
 function hsComplete(id){
   const h=byId(DB.hearings,id); let D=0,T=0; const miss=[];
   LAYERS.forEach(x=>{const[d,t]=layerProg(h.ans,x.n);D+=d;T+=t;if(d<t)miss.push(`L${x.n}（残${t-d}）`)});
@@ -1057,6 +1163,7 @@ function hsComplete(id){
   DB.notifs.unshift({t:`ヒアリングシート「${h.name}」が完了しました（加工技術部：起案書作成へ）`,tm:nowStr(),link:'#/hearing/'+id,unread:true});
   toast('ヒアリングシートを完了し、商談へ連携・加工技術部へ通知しました'); route();
 }
+/* @owner WP1 */
 function hsSummary(h){
   const a=h.ans, m=byId(DB.products,a['A-008']);
   const items=[['対象設備／機種',m?m.code+' '+m.name:''],['設備形態',a['A-137']],['数量',a['A-009']?a['A-009']+' 台':''],['予算',a['A-010']?man(+a['A-010']):''],['希望納期',a['A-011']?fmtD(a['A-011']):''],['納入先国',a['A-003']],['加工品名',a['A-013']],['材質',a['A-016']]];
@@ -1066,6 +1173,7 @@ function hsSummary(h){
 /* =========================================================
    依頼（原価見積依頼・追加請求の承認）
    ========================================================= */
+/* @owner WP3 */
 function approve(id,ok){
   const r=byId(DB.requests,id); const pend=r.approvals.find(x=>x.st==='未承認');
   pend.st=ok?'承認済み':'却下'; pend.date=nowStr();
@@ -1073,6 +1181,7 @@ function approve(id,ok){
   DB.notifs.unshift({t:`追加請求「${r.name}」が${ok?'承認':'却下'}されました`,tm:nowStr(),link:'#/request/'+id,unread:true});
   toast(ok?'承認しました。案件の受注額に追加請求額を加算し、粗利を再計算しました':'却下しました。申請者へ通知しました'); route();
 }
+/* @owner WP3 */
 function answerReq(id){
   const r=byId(DB.requests,id);
   modal('原価見積の回答',`<table class="tbl"><thead><tr><th>品目</th><th class="num">ターゲット</th><th>回答単価</th></tr></thead><tbody>
@@ -1080,6 +1189,7 @@ function answerReq(id){
     ()=>{r.lines.forEach((l,i)=>l.ans=+$('#ans'+i).value);r.status='回答済';
       DB.notifs.unshift({t:`原価見積依頼「${r.name}」に回答がありました`,tm:nowStr(),link:'#/request/'+id,unread:true});toast('回答を登録し、依頼者へ通知しました');});
 }
+/* @owner WP3 */
 function newRequest(pid){
   const p=byId(DB.projects,pid);
   modal('新規依頼',`<div class="fields" style="grid-template-columns:1fr">
@@ -1091,7 +1201,7 @@ function newRequest(pid){
     ()=>{const id='R'+(100+DB.requests.length);const type=$('#rType').value;const no='RQ-00012'+(60+DB.requests.length);
       DB.requests.push({id,no,name:$('#rName').value,pj:pid,type,to:$('#rTo').value,status:type==='追加請求'?'承認待ち':'依頼中',requester:USERS[ROLE].name.replace(/（.*/,''),created:'2026-10-08',
         lines:[{no:no+'-1',item:$('#rItem').value,detail:'',q:1,target:+$('#rTgt').value,ans:type==='追加請求'?+$('#rTgt').value:null}],
-        approvals:type==='追加請求'?[{step:'承認申請が提出されました',date:nowStr(),st:'申請済み',who:USERS[ROLE].name.replace(/（.*/,'')},{step:'部長承認',date:nowStr(),st:'未承認',who:'田中 三郎（営業部長）'}]:[]});
+        approvals:type==='追加請求'?[{step:'承認申請が提出されました',date:nowStr(),st:'申請済み',who:USERS[ROLE].name.replace(/（.*/,'')},{step:'部長承認',date:nowStr(),st:'未承認',who:'武田 修（営業部長）'}]:[]});
       DB.notifs.unshift({t:`新しい依頼「${$('#rName').value}」が届きました（${$('#rTo').value}）`,tm:nowStr(),link:'#/request/'+id,unread:true});
       setTimeout(()=>go('#/request/'+id),0);toast('依頼を起票し、依頼先へ通知しました');});
 }
@@ -1099,6 +1209,7 @@ function newRequest(pid){
 /* =========================================================
    変更・問題情報管理（ケース）→ ナレッジ化
    ========================================================= */
+/* @owner WP2 */
 function closeCase(id){
   const c=byId(DB.cases,id); c.cause=$('#cCause').value; c.measure=$('#cMeasure').value;
   const kid='KB'+String(DB.knowledge.length+1).padStart(2,'0');
@@ -1114,6 +1225,7 @@ function closeCase(id){
 /* =========================================================
    原価予実（Tableau連携イメージ）
    ========================================================= */
+/* @owner WP3 */
 function pgCosts(){
   const all=DB.projects.map(p=>({p,c:pjCalc(p)}));
   const depts=SUBS.map(s=>{const ks=DB.kousu.filter(k=>k.sub===s.k);return {s,plan:ks.reduce((a,k)=>a+k.plan,0),act:ks.reduce((a,k)=>a+k.act,0)}});
@@ -1159,7 +1271,7 @@ DB.contacts.push(
   {id:'C010',acc:'A009',name:'小川 真一',title:'生産技術部 係長',email:'ogawa@example.com'},
   {id:'C011',acc:'A010',name:'Budi Santoso',title:'Plant Manager',email:'budi@example.com'},
   {id:'C012',acc:'A011',name:'中島 加奈',title:'設備課',email:'nakajima@example.com'},
-  {id:'C013',acc:'A012',name:'原田 浩',title:'製造技術部 課長',email:'harada@example.com'},
+  {id:'C013',acc:'A012',name:'竹内 修一',title:'製造技術部 課長',email:'takeuchi@example.com'},
   {id:'C014',acc:'A013',name:'Li Wei',title:'Engineering Manager',email:'liwei@example.com'},
   {id:'C015',acc:'A014',name:'岡本 誠司',title:'生産技術課',email:'okamoto@example.com'},
   {id:'C016',acc:'A015',name:'村上 由美',title:'製造部',email:'murakami@example.com'},
@@ -1236,7 +1348,7 @@ DB.kousu.push(
 DB.requests.push(
   {id:'R005',no:'RQ-0001258',name:'シリンダーライナー 追加請求（ライン連結部 仕様追加）',pj:'P008',type:'追加請求',to:'営業部',status:'承認待ち',requester:'松本 翔',created:'2026-10-06',
     lines:[{no:'RQ-0001258-1',item:'連結コンベア追加',detail:'顧客要望によるライン延長',q:1,target:2800000,ans:2800000},{no:'RQ-0001258-2',item:'追加設計工数',detail:'30h',q:1,target:240000,ans:240000}],
-    approvals:[{step:'承認申請が提出されました',date:'2026/10/06 10:12',st:'申請済み',who:'松本 翔'},{step:'部長承認',date:'2026/10/06 10:12',st:'未承認',who:'田中 三郎（営業部長）'}]},
+    approvals:[{step:'承認申請が提出されました',date:'2026/10/06 10:12',st:'申請済み',who:'松本 翔'},{step:'部長承認',date:'2026/10/06 10:12',st:'未承認',who:'武田 修（営業部長）'}]},
   {id:'R006',no:'RQ-0001255',name:'ポンプケーシング 原価見積依頼（治具・ツール）',pj:'P009',type:'原価見積依頼',to:'製造部',status:'回答済',requester:'山田 太郎',created:'2026-09-24',
     lines:[{no:'RQ-0001255-1',item:'専用治具',detail:'ポンプケーシング用',q:2,target:850000,ans:900000},{no:'RQ-0001255-2',item:'ホーニングツール',detail:'φ60',q:4,target:380000,ans:360000}],approvals:[]},
   {id:'R007',no:'RQ-0001261',name:'軸受穴 調達品 原価見積依頼',pj:'P010',type:'原価見積依頼',to:'調達部',status:'依頼中',requester:'高橋 美咲',created:'2026-10-05',
@@ -1286,12 +1398,12 @@ DB.notifs.unshift(
 DB.users = [
   {id:'U01',name:'山田 太郎',dept:'営業部',title:'営業担当',email:'yamada@example.com',phone:'内線 2101'},
   {id:'U02',name:'小林 直樹',dept:'営業部',title:'営業担当（海外）',email:'kobayashi@example.com',phone:'内線 2102'},
-  {id:'U05',name:'田中 三郎',dept:'営業部',title:'営業部長',email:'tanaka@example.com',phone:'内線 2100'},
+  {id:'U05',name:'武田 修',dept:'営業部',title:'営業部長',email:'takeda@example.com',phone:'内線 2100'},
   {id:'U03',name:'佐藤 健',dept:'技術部',title:'技術担当（案件PM）',email:'sato@example.com',phone:'内線 3101'},
   {id:'U06',name:'木村 拓也',dept:'技術部',title:'技術担当（案件PM）',email:'kimura@example.com',phone:'内線 3102'},
-  {id:'U04',name:'中村 恵',dept:'企画部',title:'企画担当',email:'nakamura@example.com',phone:'内線 1101'},
-  {id:'U07',name:'吉田 さやか',dept:'調達部',title:'調達担当',email:'yoshida@example.com',phone:'内線 4101'},
-  {id:'U08',name:'斎藤 誠',dept:'製造部',title:'製造リーダー',email:'saito@example.com',phone:'内線 5101'},
+  {id:'U04',name:'前田 恵',dept:'企画部',title:'企画担当',email:'maeda@example.com',phone:'内線 1101'},
+  {id:'U07',name:'野口 さやか',dept:'調達部',title:'調達担当',email:'noguchi@example.com',phone:'内線 4101'},
+  {id:'U08',name:'小野 誠',dept:'製造部',title:'製造リーダー',email:'ono@example.com',phone:'内線 5101'},
   {id:'U09',name:'高橋 美咲',dept:'営業部',title:'営業担当',email:'takahashi@example.com',phone:'内線 2103'},
   {id:'U10',name:'伊藤 大輔',dept:'営業部',title:'営業担当（海外）',email:'ito@example.com',phone:'内線 2104'},
   {id:'U11',name:'松本 翔',dept:'技術部',title:'技術担当（案件PM）',email:'matsumoto@example.com',phone:'内線 3103'},
@@ -1320,7 +1432,7 @@ DB.activities = [
   {id:'AC14',type:'ToDo',subject:'ヒアリングシートの作成',date:'2026-10-13',what:['opp','O009'],owner:'山田 太郎',status:'未着手',memo:''},
   {id:'AC15',type:'行動',subject:'引き合い対応（電話）',date:'2026-10-05',what:['opp','O010'],who:'C009',owner:'小林 直樹',status:'完了',memo:'図面を後日受領予定。'},
   {id:'AC16',type:'行動',subject:'増産計画ヒアリング',date:'2026-10-20',what:['opp','O008'],who:'C006',owner:'山田 太郎',status:'予定',memo:''},
-  {id:'AC17',type:'ToDo',subject:'原価見積の回答（ロボット搬送ユニット）',date:'2026-10-05',what:['project','P003'],owner:'斎藤 誠',status:'完了',memo:''},
+  {id:'AC17',type:'ToDo',subject:'原価見積の回答（ロボット搬送ユニット）',date:'2026-10-05',what:['project','P003'],owner:'小野 誠',status:'完了',memo:''},
   {id:'AC18',type:'行動',subject:'年次訪問（既納機の稼働状況確認）',date:'2026-09-18',what:['account','A001'],who:'C001',owner:'山田 太郎',status:'完了',memo:'第二工場での更新ニーズあり。'},
   {id:'AC19',type:'行動',subject:'ライン連結部 仕様打合せ',date:'2026-10-05',what:['project','P008'],who:'C010',owner:'松本 翔',status:'完了',memo:'連結コンベアの追加要望。追加請求で対応する方針。'},
   {id:'AC20',type:'ToDo',subject:'追加請求（ライン連結部）の承認フォロー',date:'2026-10-09',what:['project','P008'],owner:'小林 直樹',status:'未着手',memo:''},
@@ -1328,7 +1440,7 @@ DB.activities = [
   {id:'AC22',type:'行動',subject:'DR1 設計審査',date:'2026-10-09',what:['project','P009'],owner:'木村 拓也',status:'予定',memo:'井上 亜希（設計）同席。'},
   {id:'AC23',type:'ToDo',subject:'治具・ツール見積回答の確認',date:'2026-10-08',what:['project','P009'],who:'C012',owner:'山田 太郎',status:'未着手',memo:''},
   {id:'AC24',type:'行動',subject:'面粗度不良の原因調査',date:'2026-10-03',what:['case','CS04'],who:'C013',owner:'松本 翔',status:'完了',memo:'砥石番手の見直しが必要。'},
-  {id:'AC25',type:'ToDo',subject:'採算見直し（見込粗利率の低下）',date:'2026-10-12',what:['project','P010'],owner:'中村 恵',status:'未着手',memo:'購入品コスト増の要因分析。'},
+  {id:'AC25',type:'ToDo',subject:'採算見直し（見込粗利率の低下）',date:'2026-10-12',what:['project','P010'],owner:'前田 恵',status:'未着手',memo:'購入品コスト増の要因分析。'},
   {id:'AC26',type:'ToDo',subject:'調達品見積の回答',date:'2026-10-14',what:['project','P010'],owner:'山口 直子',status:'未着手',memo:''},
   {id:'AC27',type:'行動',subject:'納入後フォロー訪問',date:'2026-10-02',what:['project','P011'],who:'C015',owner:'小林 直樹',status:'完了',memo:'位置ずれ対策後、安定稼働を確認。'},
   {id:'AC28',type:'行動',subject:'試作加工 キックオフ（Web会議）',date:'2026-09-30',what:['project','P012'],who:'C014',owner:'伊藤 大輔',status:'完了',memo:'英語・中国語での資料準備を依頼された。'},
@@ -1340,7 +1452,7 @@ DB.activities = [
   {id:'AC34',type:'行動',subject:'2号機増設の情報交換',date:'2026-10-19',what:['opp','O019'],who:'C007',owner:'小林 直樹',status:'予定',memo:''},
   {id:'AC35',type:'ToDo',subject:'保守契約書の送付',date:'2026-10-09',what:['opp','O020'],who:'C003',owner:'山田 太郎',status:'未着手',memo:''},
   {id:'AC37',type:'行動',subject:'納入立会い・検収',date:'2026-09-29',what:['project','P007'],who:'C007',owner:'木村 拓也',status:'完了',memo:'検収完了。測定値のばらつきは別途ケースで対応。'},
-  {id:'AC38',type:'ToDo',subject:'長納期品（主軸ユニット）の発注確認',date:'2026-10-13',what:['project','P009'],owner:'吉田 さやか',status:'未着手',memo:''},
+  {id:'AC38',type:'ToDo',subject:'長納期品（主軸ユニット）の発注確認',date:'2026-10-13',what:['project','P009'],owner:'野口 さやか',status:'未着手',memo:''},
   {id:'AC39',type:'行動',subject:'技術部 案件レビュー会議（採算悪化）',date:'2026-10-13',what:['project','P010'],owner:'石井 隆',status:'予定',memo:'松本・井上・企画部（森田）同席。'},
   {id:'AC40',type:'ToDo',subject:'月次 採算レポートの確認',date:'2026-10-15',what:['project','P005'],owner:'森田 浩',status:'未着手',memo:''},
   {id:'AC41',type:'行動',subject:'組立工程の段取り確認',date:'2026-10-06',what:['project','P008'],owner:'清水 健太',status:'完了',memo:''},
@@ -1594,7 +1706,7 @@ function editRec(kind,id){
     return `<input id="ef${i}" type="${t==='num'?'number':t==='date'?'date':'text'}" value="${esc(v)}">`;};
   modal(d.title,`<div class="form1">${d.f.map((f,i)=>`<label>${f[1]}${inp(f,i)}</label>`).join('')}</div>`,()=>{
     const ch=[];
-    d.f.forEach(([k,l,t],i)=>{let v=$('#ef'+i).value; if(t==='num') v=+v; if(String(r[k]??'')!==String(v)){ch.push(l);if(kind==='project')r.hist.unshift({dt:nowStr(),f:l,from:String(r[k]??''),to:String(v),by:meName()});r[k]=v;}});
+    d.f.forEach(([k,l,t],i)=>{let v=$('#ef'+i).value; if(t==='num') v=+v; if(String(r[k]??'')!==String(v)){ch.push(l);if(kind==='project')r.hist.unshift({dt:nowStr(),f:l,from:String(r[k]??''),to:String(v),by:meName()});const from=r[k];r[k]=v;emit('fieldChange',{kind,rec:r,field:k,label:l,from,to:v});}});
     toast(ch.length?`保存しました（${ch.join('、')}）`:'変更はありません',ch.length?'':'info');
   });
 }
@@ -1604,11 +1716,11 @@ const LAUNCH = [['projects','案件','i-project','📁'],['opps','商談','i-opp
   ['quotes','見積','i-quote','¥'],['requests','依頼','i-req','✉'],['cases','変更・問題情報','i-case','⚠'],['knowledge','ナレッジ','i-know','📖'],['products','商品','i-prod','▦'],
   ['activities','活動','i-event','📅'],['users','ユーザー','i-user','👤'],['costs','原価予実','i-report','📊'],['batch','商品マスタ取込履歴','i-report','⟳'],['objmap','オブジェクト構成','i-report','🗂']];
 function openLauncher(){
-  modal('アプリケーションランチャー',`<div class="launcher">${LAUNCH.map(([k,l,i,e])=>`<a class="lt" href="#/${k}" onclick="closeModal()"><span class="obj-icon ${i}">${e}</span>${l}</a>`).join('')}</div>`,null,null,true);
+  modal('アプリケーションランチャー',`<div class="launcher">${[...LAUNCH,...EXT.launch].map(([k,l,i,e])=>`<a class="lt" href="#/${k}" onclick="closeModal()"><span class="obj-icon ${i}">${e}</span>${l}</a>`).join('')}</div>`,null,null,true);
 }
 const RECORD_PAGES = ['project','sub','opp','account','contact','hearing','request','case','kb','product','quote','activity','user','batch'];
 function trackRecent(page){
-  if(!RECORD_PAGES.includes(page)) return; const h1=$('#main h1'); if(!h1) return;
+  if(!RECORD_PAGES.includes(page)&&!EXT.recordPages.includes(page)) return; const h1=$('#main h1'); if(!h1) return;
   const t=h1.textContent.trim(), lab=($('#main .obj-label')||{}).textContent||'';
   UI.recent=[{h:CUR,t,k:lab.split('｜')[0]},...UI.recent.filter(r=>r.h!==CUR)].slice(0,8);
 }
@@ -1630,24 +1742,32 @@ const NAV = [
   {k:'activities',label:'活動',roles:['kikaku','eigyo','gijutsu']},
   {k:'costs',label:'原価予実',roles:['kikaku']}
 ];
+function navItems(){
+  const list=[...NAV];
+  EXT.nav.forEach(n=>{const i=n.after?list.findIndex(x=>x.k===n.after):-1; i>=0?list.splice(i+1,0,n):list.push(n);});
+  return list;
+}
 function renderNav(cur){
   $('#appNav').innerHTML = `<a class="app-name" onclick="openLauncher()" title="アプリケーションランチャー"><span class="grid">⋮⋮⋮</span>案件管理</a>` +
-    NAV.filter(n=>n.roles.includes(ROLE)).map(n=>`<a class="nav-item ${cur===n.k?'active':''}" href="#/${n.k}">${n.label}</a>`).join('');
+    navItems().filter(n=>n.roles.includes(ROLE)).map(n=>`<a class="nav-item ${cur===n.k?'active':''}" href="#/${n.k}">${n.label}</a>`).join('');
+  const eh=$('#extHeader'); if(eh) eh.innerHTML=hkList(EXT.header);
 }
 function route(){
   if(!/^#\/kb\//.test(CUR)) UI.kbSeen=null;
   const h = CUR.replace(/^#\//,'') || 'home';
   const [page,id,sub] = h.split('/');
   const navKey = {project:'projects',opp:'opps',account:'accounts',contact:'contacts',request:'requests',case:'cases',kb:'knowledge',hearing:'hearings',sub:'projects',
-    product:'products',batch:'products',quote:'opps',quotes:'opps',activity:'activities',user:'',users:''}[page]??page;
+    product:'products',batch:'products',quote:'opps',quotes:'opps',activity:'activities',user:'',users:'',...EXT.navKeys}[page]??page;
   renderNav(navKey);
   const R = {home:pgHome,projects:()=>pgProjects(id),project:()=>pgProject(id),sub:()=>pgSub(id,sub),opps:pgOpps,opp:()=>pgOpp(id),
     accounts:pgAccounts,account:()=>pgAccount(id),contacts:pgContacts,contact:()=>pgContact(id),hearings:pgHearings,hearing:()=>pgHearing(id),
     requests:pgRequests,request:()=>pgRequest(id),cases:pgCases,case:()=>pgCase(id),knowledge:pgKnowledge,kb:()=>pgKb(id),
     products:pgProducts,product:()=>pgProduct(id),batch:()=>pgBatch(id),quotes:pgQuotes,quote:()=>pgQuote(id),activities:pgActivities,activity:()=>pgActivity(id),
     users:pgUsers,user:()=>pgUser(id),costs:pgCosts,objmap:pgObjMap,search:()=>pgSearch(decodeURIComponent(id||''))};
+  Object.entries(EXT.routes).forEach(([k,f])=>{ if(!R[k]) R[k]=()=>f(id,sub); });
   $('#main').innerHTML = (R[page]||pgHome)();
   if(page==='projects'&&id!=='table') bindKanban();
+  EXT.after.forEach(f=>{try{f(page,id,sub);}catch(e){console.error('[after]',e);}});
   trackRecent(page);
   window.scrollTo(0,0);
   renderNotifCount();
@@ -1676,7 +1796,7 @@ function pgHome(){
     <div class="card kpi click" onclick="go('#/costs')"><div class="l">見込粗利率（進行中平均）</div><div class="v">${avgM.toFixed(1)}<span class="small"> %</span></div><div class="s">目標 ${MARGIN_TARGET}%（デモ設定値）　›</div></div>
     ${ROLE==='eigyo'?`<div class="card kpi click" ${go('opps','open','#/opps')}><div class="l">商談パイプライン</div><div class="v">${man(pipe)}</div><div class="s">受注前の商談 ${DB.opps.filter(o=>o.stage<5).length} 件　›</div></div>`
       :`<div class="card kpi click" ${go('requests','open','#/requests')}><div class="l">未完了の依頼</div><div class="v">${pending.length}<span class="small"> 件</span></div><div class="s">承認待ち・回答待ちの依頼　›</div></div>`}
-  </div>
+  </div>${hkList(EXT.home.kpi)}
   <div class="grid2">
     <div>
       <div class="card"><div class="card-h"><span class="obj-icon sm i-project">📁</span>進行中案件の状況 <span class="right"><a href="#/projects">カンバン</a>｜<a href="#/projects/table" onclick="UI.lv.projects='active'">一覧</a></span></div>
@@ -1687,6 +1807,7 @@ function pgHome(){
       <div class="card"><div class="card-h"><span class="obj-icon sm i-user">🕘</span>最近参照したレコード</div><div class="card-b">
         ${UI.recent.map(r=>`<div class="feed-item"><span class="small muted" style="width:110px;flex-shrink:0">${esc(r.k)}</span><a href="${r.h}">${esc(r.t)}</a></div>`).join('')||'<div class="muted small">まだありません。レコードを開くとここに表示されます。</div>'}
       </div></div>
+      ${hkList(EXT.home.left)}
     </div>
     <div>
       <div class="card"><div class="card-h"><span class="obj-icon sm i-todo">☑</span>自分の予定・ToDo (${todos.length})<span class="right"><a href="#/activities" onclick="UI.lv.acts='mine'">すべて表示</a></span></div><div class="card-b">
@@ -1701,6 +1822,7 @@ function pgHome(){
       <div class="card"><div class="card-h"><span class="obj-icon sm i-know">📖</span>よく見られているナレッジ<span class="right"><a href="#/knowledge">すべて表示</a></span></div><div class="card-b">
         ${[...DB.knowledge].sort((a,b)=>b.views-a.views).slice(0,3).map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><div><a href="#/kb/${k.id}">${esc(k.title)}</a><div class="small muted">${k.cat}｜閲覧 ${k.views}</div></div></div>`).join('')}
       </div></div>
+      ${hkList(EXT.home.right)}
     </div>
   </div>`;
 }
@@ -1708,8 +1830,10 @@ function pgHome(){
 /* =========================================================
    案件（カンバン／一覧・詳細）
    ========================================================= */
+/* @owner WP2 */
 const PJ_VIEWS = {all:['すべての案件',p=>true],active:['進行中の案件',p=>p.stage<5],risk:['要対応の案件（赤ランプあり）',p=>{const c=pjCalc(p);return p.stage<5&&[c.progLamp,c.marginLamp,c.dueLamp].includes('r');}],
   mine:['自分が担当する案件',p=>p.owner===meName()||p.sales===meName()],due60:['60日以内に納期の案件',p=>p.stage<5&&daysTo(p.due)<=60],overseas:['海外案件',p=>!!p.overseas]};
+/* @owner WP2 */
 function pgProjects(mode){
   const isT = mode==='table';
   const rows = lvApply('projects',PJ_VIEWS,DB.projects).sort((a,b)=>a.due.localeCompare(b.due));
@@ -1728,10 +1852,12 @@ function pgProjects(mode){
       </div></div>`}).join('')}
   </div><div class="lamp-legend">● ランプ：左から 進捗／粗利／納期</div></div></div>`;
 }
+/* @owner WP2 */
 function pjNewInfo(){
   modal('案件の作成について','<p>案件は、商談のフェーズを「受注」にすると<b>自動化フローで自動生成</b>されます（手入力による二重登録を防ぐため）。</p><p class="mt8">受注前の商談を開いて、パスの「受注」をクリックしてお試しください。</p>',
     ()=>{UI.lv.opps='open';go('#/opps');},'受注前の商談一覧を開く');
 }
+/* @owner WP2 */
 function pgProject(id){
   const p = byId(DB.projects,id); if(!p) return notFound();
   const c = pjCalc(p), o = byId(DB.opps,p.opp)||{};
@@ -1742,20 +1868,23 @@ function pgProject(id){
     {k:'cost',label:'¥ 採算',roles:['kikaku','eigyo']},
     {k:'detail',label:'詳細',roles:['kikaku','eigyo','gijutsu']},
     {k:'related',label:'関連',roles:['kikaku','eigyo','gijutsu']},
-    {k:'hist',label:'変更履歴',roles:['kikaku','eigyo','gijutsu']}
+    {k:'hist',label:'変更履歴',roles:['kikaku','eigyo','gijutsu']},
+    ...extRec('project').tabs   // {k,label,roles,render:(p,c)=>html, before:'既存タブキー'}
   ].filter(t=>t.roles.includes(ROLE));
+  extRec('project').tabs.filter(t=>t.before).forEach(t=>{const i=tabsDef.indexOf(t),j=tabsDef.findIndex(x=>x.k===t.before); if(i>=0&&j>=0){tabsDef.splice(i,1);tabsDef.splice(tabsDef.findIndex(x=>x.k===t.before),0,t);}});
   let tab = UI.pjTab[id]; if(!tabsDef.find(t=>t.k===tab)) tab = tabsDef[0].k;
-  const body = {sched:()=>pjSched(p),kousu:()=>pjKousu(p,c),req:()=>pjReq(p),cost:()=>pjCost(p,c),detail:()=>pjDetail(p,o),related:()=>pjRelated(p,o),hist:()=>pjHist(p)}[tab]();
+  const body = ({sched:()=>pjSched(p),kousu:()=>pjKousu(p,c),req:()=>pjReq(p),cost:()=>pjCost(p,c),detail:()=>pjDetail(p,o),related:()=>pjRelated(p,o),hist:()=>pjHist(p)}[tab]||(()=>tabsDef.find(t=>t.k===tab).render(p,c)))();
   return recHeader({icon:'i-project',em:'📁',label:'案件管理｜'+p.no,title:esc(p.name),
-    actions:followBtn('project:'+id)+`<div class="btn-group"><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="newCase('${p.id}')">変更・問題を起票</button><button class="btn" onclick="editRec('project','${p.id}')">編集</button></div>`,
+    actions:followBtn('project:'+id)+`<div class="btn-group"><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="newCase('${p.id}')">変更・問題を起票</button><button class="btn" onclick="editRec('project','${p.id}')">編集</button></div>`+hk('project','actions',p,c),
     hl:[['取引先',al(p.acc)],['商談',ol(p.opp)],['納期',`${fmtD(p.due)}（残 ${c.days} 日）`],['技術担当 / 営業担当',`${ul(p.owner)} / ${ul(p.sales)}`],
       ...(ROLE!=='gijutsu'?[['受注額（追加請求含む）',yen(c.revenue)],['見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`]]:[['工数（実績／予定）',`${c.act}h / ${c.plan}h`]]),
-      ['進捗／粗利／納期',`${lamps(c)} <span class="small muted">${LAMP_TXT[c.progLamp]}・${LAMP_TXT[c.marginLamp]}・${LAMP_TXT[c.dueLamp]}</span>`]]})
-  +`${pathHtml(STAGES,p.stage,`setPjStage('${p.id}',`,'現在のプロジェクト進捗段階としてマーク')}
+      ['進捗／粗利／納期',`${lamps(c)} <span class="small muted">${LAMP_TXT[c.progLamp]}・${LAMP_TXT[c.marginLamp]}・${LAMP_TXT[c.dueLamp]}</span>`],...hkArr('project','hl',p,c)]})
+  +`${pathHtml(STAGES,p.stage,`setPjStage('${p.id}',`,'現在のプロジェクト進捗段階としてマーク')}${hk('project','top',p,c)}
   <div class="grid2"><div class="card"><div class="tabs">${tabsDef.map(t=>`<div class="tab ${t.k===tab?'active':''}" onclick="UI.pjTab['${id}']='${t.k}';route()">${t.label}</div>`).join('')}</div>
-    <div class="tab-body">${body}</div></div>
-    <div>${pjSide(p,c)}</div></div>`;
+    <div class="tab-body">${body}</div></div>${hk('project','main',p,c)}
+    <div>${hk('project','side',p,c)}${pjSide(p,c)}</div></div>`;
 }
+/* @owner WP3 */
 function pjKousu(p,c){
   const ks=DB.kousu.filter(k=>k.pj===p.id);
   return `<div class="flex mb8"><span class="pill ${c.act>c.plan?'r':'g'}">実績 ${c.act}h／予定 ${c.plan}h</span>${c.overHours?`<span class="pill y">予定超過の工程 ${c.overHours} 件</span>`:''}
@@ -1766,6 +1895,7 @@ function pjKousu(p,c){
   </tbody><tfoot><tr><td colspan="2">合計</td><td class="num">${c.plan}</td><td class="num">${c.act}</td><td class="num">${c.act-c.plan>0?'+':''}${c.act-c.plan}</td><td></td></tr></tfoot></table></div>
   <div class="small muted mt8">※工数の実績は各部門の子レコード（加工・機案・設計・製造・調達）から入力し、案件へ自動集約されます。工程区分をクリックすると子レコードを開きます。</div>`;
 }
+/* @owner WP2 */
 function pjDetail(p,o){
   return `<div class="section-title">基本情報</div><div class="fields">
     ${fld('案件番号',p.no,'自動採番')}${fld('案件名',esc(p.name))}${fld('取引先',al(p.acc))}${fld('商談',ol(p.opp))}
@@ -1775,6 +1905,7 @@ function pjDetail(p,o){
     <div class="section-title">システム情報</div><div class="fields">${fld('作成者','自動化フロー（商談受注）')}${fld('最終更新',(p.hist[0]||{}).dt||'—')}</div>
     <div class="mt8"><button class="btn" onclick="editRec('project','${p.id}')">編集</button></div>`;
 }
+/* @owner WP2 */
 function pjRelated(p,o){
   const hs=DB.hearings.filter(h=>h.opp===p.opp), cs=DB.cases.filter(c=>c.pj===p.id), q=DB.quotes.find(x=>x.opp===p.opp), rq=DB.requests.filter(r=>r.pj===p.id);
   return relCard('i-opp','★','商談',1,tbl(['商談','フェーズ','#金額','所有者'],[tr([ol(o.id),OPP_STAGES[o.stage],[yen(o.amount)],ul(o.owner)])]))
@@ -1784,9 +1915,11 @@ function pjRelated(p,o){
    +relCard('i-case','⚠','変更・問題情報',cs.length,tbl(['ケース','種別','状況'],cs.map(c=>tr([`<a href="#/case/${c.id}">${esc(c.subject)}</a>`,c.type,stPill(c.status)]))),`<button class="btn" onclick="newCase('${p.id}')">新規</button>`)
    +relCard('i-contact','👤','取引先責任者',DB.contacts.filter(c=>c.acc===p.acc).length,tbl(['氏名','役職・部署'],DB.contacts.filter(c=>c.acc===p.acc).map(c=>tr([cl(c.id),esc(c.title)]))));
 }
+/* @owner WP2 */
 function pjHist(p){
   return tbl(['日時','項目','変更前','変更後','変更者'],p.hist.map(h=>tr([h.dt,h.f,esc(h.from)||'—',esc(h.to),ul(h.by)])));
 }
+/* @owner WP2 */
 function pjSide(p,c){
   return `<div class="card"><div class="card-h">進捗サマリー</div><div class="card-b">
     <div class="small muted">計画上の経過率 ${c.planPct.toFixed(0)}% ／ ステージ進捗 ${c.actPct.toFixed(0)}%</div>
@@ -1796,20 +1929,22 @@ function pjSide(p,c){
     <div class="small mt12">子レコード：${SUBS.map(s=>`<a href="#/sub/${p.id}/${s.k}">${s.label.replace('管理','')}</a>`).join('｜')}</div></div></div>
   ${actPanel('project',p.id)}`;
 }
+/* @owner WP2 */
 function pgSub(pid,k){
   const p=byId(DB.projects,pid), s=SUBS.find(x=>x.k===k); if(!p||!s) return notFound();
   const d=p[k]; const cur=Math.max(0,s.phases.indexOf(d.phase)); const ks=DB.kousu.filter(x=>x.pj===pid&&x.sub===k);
   return recHeader({icon:s.icon,em:s.em,label:s.label,title:esc(p.name.replace(/】.*/,'】'))+' '+s.label,
-    actions:`<button class="btn" onclick="editSubDates('${pid}','${k}')">日程を編集</button><a class="btn" href="#/project/${pid}">← 親案件へ</a>`,
-    hl:[['親案件',pl(pid)],['フェーズ',d.phase],...s.cols.map((c,i)=>[c,fmtD(d['d'+(i+1)])])]})
+    actions:hk('sub','actions',p,k)+`<button class="btn" onclick="editSubDates('${pid}','${k}')">日程を編集</button><a class="btn" href="#/project/${pid}">← 親案件へ</a>`,
+    hl:[['親案件',pl(pid)],['フェーズ',d.phase],...s.cols.map((c,i)=>[c,fmtD(d['d'+(i+1)])]),...hkArr('sub','hl',p,k)]})
   +`<div class="tabs card" style="margin-bottom:12px">${SUBS.map(x=>`<a class="tab ${x.k===k?'active':''}" href="#/sub/${pid}/${x.k}"><span class="obj-icon sm ${x.icon}">${x.em}</span> ${x.label}</a>`).join('')}</div>
   ${pathHtml(s.phases,cur,`setSubPhase('${pid}','${k}',`,'現在のフェーズとしてマーク')}
   <div class="card"><div class="card-h"><span class="obj-icon sm i-kousu">⏱</span>工数管理 (${ks.length})<span class="right"><button class="btn" onclick="addKousu('${pid}')">New</button></span></div>
   <div class="card-b tbl-wrap"><table class="tbl"><thead><tr><th>工程名</th><th class="num">実績工数</th><th class="num">予定工数</th><th>コメント</th></tr></thead><tbody>
   ${ks.map(x=>`<tr><td>${esc(x.name)}</td><td class="num" style="color:${x.act>x.plan?'var(--red)':''}">${x.act}</td><td class="num">${x.plan}</td><td>${esc(x.cm)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">工数はまだ登録されていません</td></tr>'}
-  </tbody></table></div></div>
+  </tbody></table></div></div>${hk('sub','main',p,k)}
   <div class="note">「案件（大計画）」の下に部門ごとの「${s.label}（中計画）」、その下に「工数管理」がぶら下がる階層構造です。上のタブで他部門の子レコードへ移動できます。</div>`;
 }
+/* @owner WP2 */
 function editSubDates(pid,k){
   const p=byId(DB.projects,pid), s=SUBS.find(x=>x.k===k), d=p[k];
   modal(s.label+'の日程を編集',`<div class="form1">${s.cols.map((c,i)=>`<label>${c}<input type="date" id="sd${i}" value="${d['d'+(i+1)]||''}"></label>`).join('')}</div>`,
@@ -1819,6 +1954,7 @@ function editSubDates(pid,k){
 /* =========================================================
    商談
    ========================================================= */
+/* @owner WP2 */
 function pgOpps(){
   const V={all:['すべての商談',o=>true],open:['受注前の商談',o=>o.stage<5],won:['受注済みの商談',o=>o.stage>=5],mine:['自分の商談',o=>o.owner===meName()],thisq:['今四半期に完了予定',o=>o.close>='2026-10-01'&&o.close<='2026-12-31']};
   const rows=lvApply('opps',V,DB.opps);
@@ -1826,29 +1962,33 @@ function pgOpps(){
     actions:`<a class="btn" href="#/quotes">見積一覧</a><button class="btn brand" onclick="newOpp()">新規</button>`,
     table:tbl(['商談名','取引先','フェーズ','#金額','完了予定日','#確度','所有者','案件'],rows.map(o=>tr([ol(o.id),al(o.acc),OPP_STAGES[o.stage],[yen(o.amount)],fmtD(o.close),[o.prob+'%'],ul(o.owner),o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'<span class="muted">—</span>'])))});
 }
+/* @owner WP2 */
 function pgOpp(id){
   const o=byId(DB.opps,id); if(!o) return notFound();
   const hs=DB.hearings.find(h=>h.opp===id), items=oppItems(o), q=DB.quotes.find(x=>x.opp===id), cs=DB.contacts.filter(c=>c.acc===o.acc);
   return recHeader({icon:'i-opp',em:'★',label:'商談',title:esc(o.name),
-    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`go('#/hearing/${hs.id}')`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="go('#/quote/${q.id}');setTimeout(()=>quotePreview('${q.id}'),50)">見積書出力</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`,
-    hl:[['取引先',al(o.acc)],['金額',yen(o.amount)],['完了予定日',fmtD(o.close)],['確度',o.prob+'%'],['商談所有者',ul(o.owner)],['案件',o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'未生成']]})
+    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`go('#/hearing/${hs.id}')`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="go('#/quote/${q.id}');setTimeout(()=>quotePreview('${q.id}'),50)">見積書出力</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`+hk('opp','actions',o),
+    hl:[['取引先',al(o.acc)],['金額',yen(o.amount)],['完了予定日',fmtD(o.close)],['確度',o.prob+'%'],['商談所有者',ul(o.owner)],['案件',o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'未生成'],...hkArr('opp','hl',o)]})
   +`${pathHtml(OPP_STAGES,o.stage,`setOppStage('${o.id}',`,o.stage>=5?'受注済み':'フェーズを完了としてマーク')}
-  ${o.stage<5?`<div class="note mb8">デモ：フェーズを「受注」にすると、自動化フローが<b>案件を自動生成</b>し、関係者へ通知します。</div>`:''}
+  ${o.stage<5?`<div class="note mb8">デモ：フェーズを「受注」にすると、自動化フローが<b>案件を自動生成</b>し、関係者へ通知します。</div>`:''}${hk('opp','top',o)}
   <div class="grid2"><div>
     ${relCard('i-prod','▦','商談商品',items.length,tbl(['商品コード','商品名','#数量','#販売価格','#合計'],items.map(i=>tr([i.pr.code,prl(i.p),[i.q],[yen(i.pr.price)],[yen(i.pr.price*i.q)]]))),o.stage<5?`<button class="btn" onclick="addOppItem('${o.id}')">商品を追加</button>`:'')}
     ${relCard('i-quote','¥','見積',1,tbl(['見積番号','見積名','#合計','状況'],[tr([`<a href="#/quote/${q.id}">${q.no}</a>`,esc(o.name)+' 御見積',[yen(o.amount)],stPill(q.status)])]))}
     ${relCard('i-contact','👤','取引先責任者',cs.length,tbl(['氏名','役職・部署','役割'],cs.map((c,i)=>tr([cl(c.id),esc(c.title),i===0?'意思決定者':'技術窓口']))))}
     ${o.project?relCard('i-project','📁','案件',1,tbl(['案件','ステージ','状況'],[tr([pl(o.project),STAGES[byId(DB.projects,o.project).stage],lamps(pjCalc(byId(DB.projects,o.project)))])])):''}
-  </div><div>
+    ${hk('opp','main',o)}
+  </div><div>${hk('opp','side',o)}
     <div class="card"><div class="card-h"><span class="obj-icon sm i-hear">📋</span>ヒアリングシート</div><div class="card-b">${hs?`<a href="#/hearing/${hs.id}">${esc(hs.name)}</a><div class="small muted">${hs.status}｜最終更新 ${fmtD(hs.updated)}</div>${hsSummary(hs)}`:`<div class="muted">未作成</div><button class="btn mt8" onclick="newHearing('${o.id}')">作成する</button>`}</div></div>
     ${actPanel('opp',id)}
   </div></div>`;
 }
+/* @owner WP2 */
 function addOppItem(oid){
   const o=byId(DB.opps,oid);
   modal('商品を追加',`<div class="form1"><label>商品<select id="oiP">${DB.products.map(p=>`<option value="${p.id}">${p.code}　${esc(p.name)}（${yen(p.price)}）</option>`).join('')}</select></label><label>数量<input id="oiQ" type="number" value="1"></label></div>`,
     ()=>{const pid=$('#oiP').value,q=+$('#oiQ').value||1;const ex=o.items.find(i=>i.p===pid);ex?ex.q+=q:o.items.push({p:pid,q});o.amount=oppItems(o).reduce((a,i)=>a+i.pr.price*i.q,0);toast('商談商品を追加し、商談金額を再計算しました');});
 }
+/* @owner WP2 */
 function newOpp(accId){
   modal('新規商談',`<div class="form1">
     <label>商談名<input id="oName" value="（デモ）主軸ユニット更新"></label>
@@ -1862,6 +2002,7 @@ function newOpp(accId){
 /* =========================================================
    依頼
    ========================================================= */
+/* @owner WP3 */
 function pgRequests(){
   const V={all:['すべての依頼',r=>true],open:['未完了（承認待ち・依頼中）',r=>r.status==='承認待ち'||r.status==='依頼中'],mine:['自分が依頼したもの',r=>r.requester===meName()],
     approve:['営業部長の承認待ち',r=>r.status==='承認待ち'],cost:['原価見積依頼',r=>r.type==='原価見積依頼'],add:['追加請求',r=>r.type==='追加請求']};
@@ -1869,6 +2010,7 @@ function pgRequests(){
   return listPage({icon:'i-req',em:'✉',label:'依頼',sel:lvSel('requests',V),count:rows.length,
     table:tbl(['依頼番号','件名','種別','案件','依頼先','状況','依頼者','依頼日'],rows.map(r=>tr([`<a href="#/request/${r.id}">${r.no}</a>`,`<a href="#/request/${r.id}">${esc(r.name)}</a>`,r.type,`<a href="#/project/${r.pj}">${byId(DB.projects,r.pj).no}</a>`,r.to,stPill(r.status),ul(r.requester),fmtD(r.created)])))});
 }
+/* @owner WP3 */
 function pgRequest(id){
   const r=byId(DB.requests,id); if(!r) return notFound();
   const p=byId(DB.projects,r.pj);
@@ -1888,42 +2030,47 @@ function pgRequest(id){
     r.lines.map((l,i)=>tr([`<a onclick="lineModal('${r.id}',${i})">${l.no}</a>`,esc(l.item),esc(l.detail),[l.q.toFixed(2)],[yen(l.target)],[l.ans==null?'<span class="muted">回答待ち</span>':yen(l.ans)],[`<span style="color:${l.ans>l.target?'var(--red)':''}">${l.ans==null?'':(l.ans-l.target>0?'+':'')+(l.ans-l.target).toLocaleString()}</span>`]]))))}
   ${r.type==='追加請求'?relCard('i-appr','✔','承認履歴',r.approvals.length,tbl(['ステップ名','日付','状況','割り当て先'],[...r.approvals].reverse().map(x=>tr([x.step,x.date,stPill(x.st.replace('済み','済')),ul(x.who)])))+'<div class="small muted mt8">承認されると、追加請求額が案件の受注額に加算され、粗利が再計算されます。</div>',
     canApprove?`<div class="btn-group"><button class="btn" onclick="approve('${r.id}',true)">承認</button><button class="btn" onclick="approve('${r.id}',false)">却下</button></div>`:''):''}
-  </div><div>
+  </div><div>${hk('request','side',r)}
     ${relCard('i-project','📁','案件',1,`${pl(p.id)}<div class="small muted">${STAGES[p.stage]}｜納期 ${fmtD(p.due)}｜技術担当 ${esc(p.owner)}</div>`)}
     ${relCard('i-req','✉','同じ案件の他の依頼',others.length,others.map(x=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/request/${x.id}">${esc(x.name)}</a><div class="small muted">${x.type}｜${x.status}</div></div></div>`).join('')||'<div class="muted">なし</div>')}
   </div></div>`;
 }
+/* @owner WP3 */
 function lineModal(rid,i){
   const r=byId(DB.requests,rid), l=r.lines[i];
   modal('明細：'+l.no,`<div class="fields" style="grid-template-columns:1fr 1fr">${fld('品目',esc(l.item))}${fld('品目詳細',esc(l.detail)||'—')}${fld('数量',l.q)}${fld('ターゲット単価',yen(l.target))}${fld('回答単価',l.ans==null?'回答待ち':yen(l.ans))}${fld('差異',l.ans==null?'—':yen(l.ans-l.target))}${fld('依頼',esc(r.name))}${fld('依頼先',r.to)}</div>`);
 }
+/* @owner WP3 */
 function finishReq(id){const r=byId(DB.requests,id);r.status='完了';toast('原価見積を機案見積管理へ反映し、依頼を完了しました');route();}
 
 /* =========================================================
    ケース・ナレッジ
    ========================================================= */
+/* @owner WP2 */
 function pgCases(){
   const V={all:['すべてのケース',c=>true],open:['対応中のケース',c=>c.status!=='クローズ'],closed:['クローズ済み',c=>c.status==='クローズ'],mine:['自分の担当',c=>c.owner===meName()],bug:['不具合',c=>c.type==='不具合'],chg:['変更',c=>c.type==='変更']};
   const rows=lvApply('cases',V,DB.cases);
   return listPage({icon:'i-case',em:'⚠',label:'変更・問題情報（ケース）',sel:lvSel('cases',V),count:rows.length,actions:`<button class="btn brand" onclick="newCase()">新規</button>`,
     table:tbl(['ケース番号','件名','種別','優先度','状況','案件','担当','起票日','ナレッジ'],rows.map(c=>tr([`<a href="#/case/${c.id}">${c.no}</a>`,`<a href="#/case/${c.id}">${esc(c.subject)}</a>`,c.type,c.priority,stPill(c.status),`<a href="#/project/${c.pj}">${byId(DB.projects,c.pj).no}</a>`,ul(c.owner),fmtD(c.opened),c.kb?`<a href="#/kb/${c.kb}">📖 記事</a>`:'—'])))});
 }
+/* @owner WP2 */
 function pgCase(id){
   const c=byId(DB.cases,id); if(!c) return notFound();
   const st=['新規','対応中','原因・対策確定','クローズ']; const cur=c.status==='クローズ'?3:c.cause?2:c.status==='対応中'?1:0;
   const ct=DB.contacts.find(x=>x.acc===c.acc);
   const sim=DB.knowledge.filter(k=>/ゲージ|芯|研削油|粗度/.test(k.title+JSON.stringify(k.body))&&k.id!==c.kb).slice(0,3);
   return recHeader({icon:'i-case',em:'⚠',label:'ケース｜'+c.no,title:esc(c.subject),
-    actions:followBtn('case:'+id)+`${c.status!=='クローズ'?`<button class="btn brand" onclick="closeCase('${c.id}')">クローズしてナレッジ化</button>`:c.kb?`<a class="btn" href="#/kb/${c.kb}">📖 ナレッジ記事を開く</a>`:''}<button class="btn" onclick="editRec('case','${c.id}')">編集</button>`,
-    hl:[['種別',c.type],['優先度',c.priority],['案件',pl(c.pj)],['取引先',al(c.acc)],['取引先責任者',ct?cl(ct.id):'—'],['担当',ul(c.owner)]]})
+    actions:followBtn('case:'+id)+`${c.status!=='クローズ'?`<button class="btn brand" onclick="closeCase('${c.id}')">クローズしてナレッジ化</button>`:c.kb?`<a class="btn" href="#/kb/${c.kb}">📖 ナレッジ記事を開く</a>`:''}<button class="btn" onclick="editRec('case','${c.id}')">編集</button>`+hk('case','actions',c),
+    hl:[['種別',c.type],['優先度',c.priority],['案件',pl(c.pj)],['取引先',al(c.acc)],['取引先責任者',ct?cl(ct.id):'—'],['担当',ul(c.owner)],...hkArr('case','hl',c)]})
   +`<div class="path"><ol>${st.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
   <div class="grid2"><div class="card"><div class="card-h">詳細</div><div class="card-b">
     <div class="fields" style="grid-template-columns:1fr">${fld('内容',esc(c.desc))}
     ${fld('原因',c.status==='クローズ'?esc(c.cause):`<textarea id="cCause" class="role-select" style="width:100%" rows="2" placeholder="原因を入力">${esc(c.cause||'エアゲージのエア源圧力が工場エアの変動の影響を受けていた')}</textarea>`)}
-    ${fld('対策',c.status==='クローズ'?esc(c.measure):`<textarea id="cMeasure" class="role-select" style="width:100%" rows="2" placeholder="対策を入力">${esc(c.measure||'精密レギュレータを追加し、マスターリングで再校正')}</textarea>`)}</div></div></div>
-  <div>${relCard('i-know','📖','類似のナレッジ',sim.length,sim.map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${k.id}">${esc(k.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
+    ${fld('対策',c.status==='クローズ'?esc(c.measure):`<textarea id="cMeasure" class="role-select" style="width:100%" rows="2" placeholder="対策を入力">${esc(c.measure||'精密レギュレータを追加し、マスターリングで再校正')}</textarea>`)}</div></div>${hk('case','main',c)}</div>
+  <div>${hk('case','side',c)}${relCard('i-know','📖','類似のナレッジ',sim.length,sim.map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${k.id}">${esc(k.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
   ${actPanel('case',id)}</div></div>`;
 }
+/* @owner WP2 */
 function newCase(pid){
   modal('変更・問題情報を起票',`<div class="form1">
     <label>案件<select id="csPj">${DB.projects.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
@@ -1934,6 +2081,7 @@ function newCase(pid){
       DB.notifs.unshift({t:`ケース「${$('#csSub').value}」が起票されました`,tm:nowStr(),link:'#/case/'+id,unread:true});
       setTimeout(()=>go('#/case/'+id),0);toast('ケースを起票し、技術担当へ通知しました');});
 }
+/* @owner WP1 */
 function pgKnowledge(){
   const cats=['すべて','トラブル事例','原因と対策','作業手順','既知の不具合'];
   const rows=DB.knowledge.filter(k=>UI.kbCat==='すべて'||k.cat===UI.kbCat);
@@ -1941,6 +2089,7 @@ function pgKnowledge(){
     table:`<div class="flex mb8">${cats.map(c=>`<a class="pill ${UI.kbCat===c?'b':''} click" onclick="UI.kbCat='${c}';route()">${c}</a>`).join('')}</div>`+
       tbl(['タイトル','カテゴリ','#閲覧数','#役に立った','元ケース','最終更新'],rows.map(k=>{const c=DB.cases.find(x=>x.kb===k.id);return tr([`<a href="#/kb/${k.id}">${esc(k.title)}</a>`,k.cat,[k.views],[k.votes],c?`<a href="#/case/${c.id}">${c.no}</a>`:'—',fmtD(k.updated)]);}))});
 }
+/* @owner WP1 */
 function pgKb(id){
   const k=byId(DB.knowledge,id); if(!k) return notFound(); if(UI.kbSeen!==id){k.views++;UI.kbSeen=id;} k.votes=k.votes||0; k.status=k.status||'公開済';
   const c=DB.cases.find(x=>x.kb===id), rel=DB.knowledge.filter(x=>x.id!==id&&x.cat===k.cat);
@@ -1950,6 +2099,7 @@ function pgKb(id){
   <div>${relCard('i-know','📖','同じカテゴリの記事',rel.length,rel.map(x=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${x.id}">${esc(x.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
   ${c?relCard('i-project','📁','関連案件',1,pl(c.pj)):''}</div></div>`;
 }
+/* @owner WP1 */
 function newKb(){
   modal('新規ナレッジ記事',`<div class="form1"><label>タイトル<input id="kbT" value="（デモ）試作時の面粗度不良の対策"></label>
     <label>カテゴリ<select id="kbC"><option>トラブル事例</option><option>原因と対策</option><option>作業手順</option><option>既知の不具合</option></select></label>
@@ -1968,7 +2118,7 @@ function pgObjMap(){
     <div class="grp"><h4>営業支援</h4>${c('商談','std','#/opps')}${c('見積','std','#/quotes')}${c('商談商品','std','#/opp/O001')}${c('商品','std','#/products')}${c('ヒアリングシート','cus','#/hearings')}</div>
     <div class="grp"><h4>案件管理</h4>${c('案件管理','cus','#/projects')}<br>${SUBS.map(s=>c(s.label.replace('機案見積','機案'),'cus','#/sub/P003/'+s.k)).join('')}<br>${c('工数管理','cus','#/project/P003')}${c('依頼','cus','#/requests')}${c('ケース（変更・問題）','std','#/cases')}${c('ナレッジ（再発防止）','std','#/knowledge')}</div>
   </div>
-  <div class="note mt12">「オブジェクト構成図案」をもとに、御見積書 ver2.2 のスコープ（ヒアリングシート電子化 No.9／変更・問題情報管理 No.12／原価予実管理 No.10）を追加して画面化しています。配置・実装方式は要件レビューで確定します。</div></div></div>`;
+  <div class="note mt12">「オブジェクト構成図案」をもとに、御見積書 ver2.3 のスコープ（ヒアリングシート電子化 No.9／変更・問題情報管理 No.12／原価予実管理 No.10）を追加して画面化しています。配置・実装方式は要件レビューで確定します。</div></div></div>`;
 }
 function pgSearch(q){
   const m=s=>String(s).toLowerCase().includes(q.toLowerCase());
@@ -1982,7 +2132,8 @@ function pgSearch(q){
     ...DB.cases.filter(c=>m(c.subject)).map(c=>['ケース',c.subject,'#/case/'+c.id,'i-case','⚠']),
     ...DB.products.filter(p=>m(p.name)||m(p.code)).map(p=>['商品',p.code+' '+p.name,'#/product/'+p.id,'i-prod','▦']),
     ...DB.activities.filter(a=>m(a.subject)).map(a=>['活動',a.subject,'#/activity/'+a.id,'i-event','📅']),
-    ...DB.users.filter(u=>m(u.name)||m(u.dept)).map(u=>['ユーザー',u.name+'（'+u.dept+'）','#/user/'+u.id,'i-user','👤'])];
+    ...DB.users.filter(u=>m(u.name)||m(u.dept)).map(u=>['ユーザー',u.name+'（'+u.dept+'）','#/user/'+u.id,'i-user','👤']),
+    ...EXT.search.flatMap(f=>{try{return f(q,m)||[];}catch(e){console.error('[search]',e);return [];}})];
   return recHeader({icon:'i-report',em:'🔍',label:'検索',title:`「${esc(q)}」の検索結果（${res.length}件）`})+`<div class="card"><div class="card-b" style="padding-top:8px">
     ${res.map(r=>`<div class="feed-item"><span class="obj-icon sm ${r[3]}">${r[4]}</span><div><a href="${r[2]}">${esc(r[1])}</a><div class="small muted">${r[0]}</div></div></div>`).join('')||'<div class="muted">該当なし</div>'}</div></div>`;
 }
@@ -2004,17 +2155,38 @@ function modal(title,body,onOk,okLabel,wide){
 }
 function modalSubmit(){const f=modalOk;if(f) f();closeModal();if(f) route();}
 function closeModal(){$('#overlay').innerHTML='';}
-function renderNotifCount(){const n=DB.notifs.filter(x=>x.unread).length;const b=$('#notifCount');b.textContent=n||'';b.style.display=n?'':'none';
+function renderNotifCount(){const n=DB.notifs.filter(x=>x.unread&&isForMe(x)).length;const b=$('#notifCount');b.textContent=n||'';b.style.display=n?'':'none';
   if(UI.notifOpen) renderNotifPanel();}
 function toggleNotif(){UI.notifOpen=!UI.notifOpen;renderNotifPanel();}
 function renderNotifPanel(){
-  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel" style="top:${Math.round($('.g-header').getBoundingClientRect().bottom)+4}px"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
-    ${DB.notifs.slice(0,8).map((n,i)=>`<div class="it ${n.unread?'unread':''}"><a href="${n.link}" onclick="DB.notifs[${i}].unread=false;UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}</div></div>`).join('')}</div>`:'';
+  const list=DB.notifs.map((n,i)=>({n,i})).filter(x=>UI.notifAll||isForMe(x.n));
+  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel" style="top:${Math.round($('.g-header').getBoundingClientRect().bottom)+4}px"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.filter(isForMe).forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
+    <div class="notif-scope"><a class="${UI.notifAll?'':'on'}" onclick="event.stopPropagation();UI.notifAll=false;renderNotifPanel()">自分宛て</a><a class="${UI.notifAll?'on':''}" onclick="event.stopPropagation();UI.notifAll=true;renderNotifPanel()">すべて（デモ確認用）</a></div>
+    ${list.slice(0,10).map(({n,i})=>`<div class="it ${n.unread?'unread':''}"><a href="${n.link}" onclick="DB.notifs[${i}].unread=false;UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}${n.to?`<span class="notif-to">宛先：${esc(toLabel(n.to))}</span>`:''}</div></div>`).join('')||'<div class="it muted">通知はありません</div>'}</div>`:'';
 }
 document.addEventListener('click',e=>{if(UI.notifOpen&&!e.target.closest('.notif-panel')&&!e.target.closest('.icon-btn')){UI.notifOpen=false;renderNotifPanel();}});
 
 
-$('#avatar').title=USERS[ROLE].name; $('#avatar').textContent=USERS[ROLE].initial; $('#avatar').href='#/user/'+ME[ROLE];
+/* ===================================================================
+   ===== WP1 BEGIN =====  ① ヒアリングシート電子化／⑤ 再発防止ナレッジ／要件レビュー画面
+   （WP1 の新規コード・EXT 登録・追加データはこの間に書く）
+   =================================================================== */
+
+/* ===== WP1 END ===== */
+
+/* ===================================================================
+   ===== WP2 BEGIN =====  ② 部門横断SNS（Chatter）／⑥ 変更・問題情報管理／⑦ 案件進捗の全体管理
+   =================================================================== */
+
+/* ===== WP2 END ===== */
+
+/* ===================================================================
+   ===== WP3 BEGIN =====  ③ 追加要求のチケット管理／④ 原価予実管理
+   =================================================================== */
+
+/* ===== WP3 END ===== */
+
+applyRoleUi();
 route();
 </script>
 </body>
