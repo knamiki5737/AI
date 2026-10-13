@@ -547,7 +547,8 @@ const EXT = {
     newTicket:pid=>newRequest(pid),         // WP3：追加要求チケットの起票
     newAddClaim:(pid,sub)=>newRequest(pid), // WP3：追加請求の起票（sub=子レコードのキー）
     delayFlag:p=>false,                     // WP2：遅延フラグの判定（true/false）
-    costGap:p=>({over:0,items:[]})          // WP3：原価UP（実績＞予定）の工程数と内訳 {over:件数, items:[{sub,plan,act}]}
+    costGap:p=>({over:0,items:[]}),         // WP3：原価UP（実績＞予定）の工程数と内訳 {over:件数, items:[{sub,plan,act}]}
+    reqPending:()=>DB.requests.filter(r=>r.status==='承認待ち'||r.status==='依頼中') // WP3：ホームの「未完了の依頼」「承認・依頼の受信箱」の対象
   }
 };
 function extRec(kind){ return EXT.rec[kind] || (EXT.rec[kind]={actions:[],hl:[],tabs:[],top:[],main:[],side:[]}); }
@@ -1783,7 +1784,7 @@ function pgHome(){
   const calcs = act.map(p=>({p,c:pjCalc(p)}));
   const risk = calcs.filter(x=>[x.c.progLamp,x.c.marginLamp,x.c.dueLamp].includes('r'));
   const avgM = calcs.reduce((a,x)=>a+x.c.margin,0)/calcs.length;
-  const pending = DB.requests.filter(r=>r.status==='承認待ち'||r.status==='依頼中');
+  const pending = EXT.fn.reqPending();
   const pipe = DB.opps.filter(o=>o.stage<5).reduce((a,o)=>a+o.amount,0);
   const todos = DB.activities.filter(a=>a.owner===meName()&&a.status!=='完了').sort((a,b)=>a.date.localeCompare(b.date));
   const roleMsg = {kikaku:'全社の案件進捗と採算を俯瞰します',eigyo:'担当商談・ヒアリング状況と案件の納期を確認します',gijutsu:'担当工程と工数・依頼・不具合対応を確認します'}[ROLE];
