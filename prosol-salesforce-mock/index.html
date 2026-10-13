@@ -391,6 +391,50 @@ table.rv-cqt .btn{padding:0 8px;line-height:20px;font-size:12px}
 tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 /* ===== WP1 END ===== */
 /* ===== WP2 BEGIN ===== */
+/* ② Chatter フィード */
+.fd-card .card-h .right select{border:1px solid var(--border);border-radius:4px;padding:3px 6px;background:#fff;max-width:100%}
+.fd-card.flat{box-shadow:none}
+.fd-comp{border:1px solid var(--border);border-radius:4px;padding:8px;background:#fafaf9;margin-bottom:8px}
+.fd-comp textarea{width:100%;border:1px solid var(--border);border-radius:4px;padding:6px 8px;background:#fff;resize:vertical;min-height:52px}
+.fd-tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+.fd-tools select{border:1px solid var(--border);border-radius:4px;padding:4px 6px;background:#fff;color:var(--brand);max-width:100%;min-width:0;flex:1 1 130px}
+.fd-tools .btn{margin-left:auto}
+.fd-chips{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px}
+.fd-chips:empty{display:none}
+.fd-chip{display:inline-flex;align-items:center;gap:4px;border-radius:12px;padding:0 4px 0 8px;font-size:12px;line-height:22px;background:var(--brand-light);color:var(--brand-dark);max-width:100%}
+.fd-chip.file{background:#ecebea;color:var(--text)}
+.fd-chip button{border:none;background:transparent;color:inherit;font-size:12px;padding:0 4px;line-height:20px}
+.fd-post{border-top:1px solid var(--border-light);padding:10px 0}
+.fd-head{display:flex;gap:8px;align-items:flex-start}
+.fd-av{width:30px;height:30px;border-radius:50%;color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:13px}
+.fd-av.sm{width:24px;height:24px;font-size:11px}
+.fd-name{font-weight:700}
+.fd-body{margin:6px 0 0 38px;word-break:break-word}
+.fd-men{color:var(--brand);font-weight:700}
+.fd-files{margin:6px 0 0 38px;display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+.fd-file{display:inline-flex;gap:4px;align-items:center;border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:12px;background:#fff;max-width:100%;word-break:break-all}
+.fd-acts{margin:6px 0 0 38px;display:flex;gap:14px;flex-wrap:wrap}
+.fd-act{border:none;background:transparent;color:var(--text-weak);padding:0;font-size:12px}
+.fd-act:hover{color:var(--brand);text-decoration:underline}
+.fd-act.on{color:var(--brand);font-weight:700}
+.fd-likes{margin:4px 0 0 38px;font-size:12px;color:var(--text-mute)}
+.fd-cmts{margin:6px 0 0 38px;background:#f8f8f8;border-radius:4px}
+.fd-cmts:empty{display:none}
+.fd-cmt{padding:8px;border-bottom:1px solid var(--border-light)}
+.fd-cmt:last-child{border-bottom:none}
+.fd-cmt .fd-body,.fd-cmt .fd-acts,.fd-cmt .fd-likes{margin-left:32px}
+.fd-cmt .fd-comp{margin:0}
+/* ⑥ 仕様変更モーダル */
+.wp2-impact{border:1px solid var(--border);border-radius:4px;padding:6px 10px}
+.wp2-impact legend{font-size:12px;color:var(--text-weak);padding:0 4px}
+.form1 label.wp2-chk{display:inline-flex;flex-direction:row;align-items:center;gap:4px;margin:2px 14px 2px 0;font-size:13px;color:var(--text)}
+.form1 label.wp2-chk input{width:auto}
+/* ⑦ 案件進捗 */
+.wp2-lsearch{border:1px solid var(--border);border-radius:4px;padding:5px 8px;background:#fff;min-width:0;width:220px;max-width:100%}
+.wp2-flag-on{color:var(--red);font-weight:700;white-space:nowrap}
+.wp2-sched-legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.wp2-sched-legend .small{flex-basis:100%}
+@media(max-width:700px){.wp2-lsearch{width:100%}.wp2-pjbtns{flex-wrap:wrap;row-gap:4px}.wp2-pjbtns .btn{border-radius:4px!important;margin-left:0!important;margin-right:4px}}
 /* ===== WP2 END ===== */
 /* ===== WP3 BEGIN ===== */
 .tk-tiles .kpi.on{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand)}
@@ -794,8 +838,8 @@ function bindKanban(){
     col.addEventListener('dragleave',()=>col.classList.remove('drag-over'));
     col.addEventListener('drop',e=>{e.preventDefault();const p=byId(DB.projects,e.dataTransfer.getData('text/plain'));
       if(p&&p.stage===+col.dataset.stage){col.classList.remove('drag-over');return;}
-      if(p){p.hist.unshift({dt:nowStr(),f:'ステージ',from:STAGES[p.stage],to:STAGES[+col.dataset.stage],by:meName()});p.stage=+col.dataset.stage;toast(`「${p.name}」のステージを「${STAGES[p.stage]}」に更新しました。関係者へ通知しました（自動化フロー）`);
-        DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[p.stage]}」になりました`,tm:nowStr(),link:'#/project/'+p.id,unread:true});route();}});
+      if(p){p.hist.unshift({dt:nowStr(),f:'ステージ',from:STAGES[p.stage],to:STAGES[+col.dataset.stage],by:meName()});p.stage=+col.dataset.stage;toast(`「${p.name}」のステージを「${STAGES[p.stage]}」に更新しました。技術担当・営業担当・企画部へ通知しました（自動化フロー）`);
+        wp2StageNotify(p);route();}});
   });
 }
 
@@ -812,15 +856,20 @@ function pathHtml(steps,cur,fn,label){
 function setPjStage(id,i,next){
   const p=byId(DB.projects,id); if(p.stage===i&&!next) return;
   p.hist.unshift({dt:nowStr(),f:'ステージ',from:STAGES[p.stage],to:STAGES[i],by:meName()});
-  p.stage=i; toast(`ステージを「${STAGES[i]}」に更新しました。技術担当・営業担当へ通知しました（自動化フロー）`);
-  DB.notifs.unshift({t:`案件「${p.name}」のステージが「${STAGES[i]}」になりました`,tm:nowStr(),link:'#/project/'+id,unread:true}); route();
+  p.stage=i; toast(`ステージを「${STAGES[i]}」に更新しました。技術担当・営業担当・企画部へ通知しました（自動化フロー）`);
+  wp2StageNotify(p); route();
 }
 /* @owner WP2 */
 function pjSched(p){
-  return SUBS.map(s=>{const d=p[s.k];const ds=['d1','d2','d3','d4'].slice(0,s.cols.length);
+  const done=wp2SubDone, cellStyle=(d,k)=>{if(done(d.phase)||!d[k]) return ''; const n=daysTo(d[k]); return n<0?'color:var(--red);font-weight:700':n<=WP2_SOON_DAYS?'background:var(--yellow-bg);color:#8c4b02;font-weight:700':'';};
+  const flag=EXT.fn.delayFlag(p);
+  return `<div class="wp2-sched-legend"><span class="pill ${flag?'r':'g'}">${flag?'⚑ 遅延フラグ ON':'遅延フラグ OFF'}</span>
+    <span class="legend"><span><i style="background:var(--red)"></i>期日超過（未完了）</span><span><i style="background:#fcc003"></i>期日まで${WP2_SOON_DAYS}日以内（注意）</span></span>
+    <div class="small muted">${WP2_DELAY_NOTE}／注意表示：未完了の期日の${WP2_SOON_DAYS}日前から黄色（仮置き・要確認 CQ-23）</div></div>`
+  + SUBS.map(s=>{const d=p[s.k];const ds=['d1','d2','d3','d4'].slice(0,s.cols.length);
     return `<div class="card" style="box-shadow:none"><div class="card-h"><span class="obj-icon sm ${s.icon}">${s.em}</span><a href="#/sub/${p.id}/${s.k}">${s.label} (1)</a></div>
     <div class="tbl-wrap"><table class="tbl"><thead><tr><th>フェーズ</th>${s.cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-    <tbody><tr><td><span class="pill ${d.phase==='完了'||d.phase==='出図済'||d.phase==='入荷済'?'g':d.phase==='未着手'?'':'b'}">${d.phase}</span></td>${ds.map(k=>`<td style="color:${d.phase!=='完了'&&d.phase!=='出図済'&&d.phase!=='入荷済'&&daysTo(d[k])<0?'var(--red)':''}">${fmtD(d[k])}</td>`).join('')}</tr></tbody></table></div></div>`}).join('')
+    <tbody><tr><td><span class="pill ${done(d.phase)?'g':d.phase==='未着手'?'':'b'}">${d.phase}</span></td>${ds.map(k=>`<td style="${cellStyle(d,k)}">${fmtD(d[k])}</td>`).join('')}</tr></tbody></table></div></div>`}).join('')
   + `<div class="card" style="box-shadow:none"><div class="card-h">大計画（工程ガント）<span class="right small muted">赤線＝本日</span></div><div class="card-b">${gantt(p)}</div></div>`;
 }
 /* @owner WP2 */
@@ -845,7 +894,9 @@ function pjCost(p,c){ return tkPjCost(p,c); }   // 実装は WP3 ブロック（
 const fld=(l,v,spec)=>`<div class="field"><div class="l">${l}${spec?`<span class="spec-tag">${spec}</span>`:''}</div><div class="v">${v}</div></div>`;
 /* ---------- 子レコード（階層構造：大計画→中計画） ---------- */
 /* @owner WP2 */
-function setSubPhase(pid,k,i){const p=byId(DB.projects,pid),s=SUBS.find(x=>x.k===k);p.hist.unshift({dt:nowStr(),f:s.label+'：フェーズ',from:p[k].phase,to:s.phases[Math.min(i,s.phases.length-1)],by:meName()});p[k].phase=s.phases[Math.min(i,s.phases.length-1)];toast(`${s.label}のフェーズを「${p[k].phase}」に更新しました`);route();}
+function setSubPhase(pid,k,i){const p=byId(DB.projects,pid),s=SUBS.find(x=>x.k===k);p.hist.unshift({dt:nowStr(),f:s.label+'：フェーズ',from:p[k].phase,to:s.phases[Math.min(i,s.phases.length-1)],by:meName()});p[k].phase=s.phases[Math.min(i,s.phases.length-1)];
+  notify(`案件「${p.name}」の${s.label}のフェーズが「${p[k].phase}」に更新されました（${meName()}）`,'#/sub/'+pid+'/'+k,{depts:['企画部']});
+  toast(`${s.label}のフェーズを「${p[k].phase}」に更新しました。企画部へ通知しました`);route();}
 
 /* =========================================================
    商談
@@ -853,7 +904,10 @@ function setSubPhase(pid,k,i){const p=byId(DB.projects,pid),s=SUBS.find(x=>x.k==
 /* @owner WP2 */
 function setOppStage(id,i){
   const o=byId(DB.opps,id); if(o.stage>=5){toast('受注済みの商談です','info');return;}
-  o.stage=i; o.prob=[10,20,40,60,80,100][i];
+  const prob=[10,20,40,60,80,100][i];
+  if(o.stage!==i) wp2OppHist(o,'フェーズ',OPP_STAGES[o.stage],OPP_STAGES[i]);
+  if(o.prob!==prob) wp2OppHist(o,'確度(%)',o.prob,prob);
+  o.stage=i; o.prob=prob;
   if(i===5){ runWonFlow(o); return; }
   toast(`フェーズを「${OPP_STAGES[i]}」に更新しました`); route();
 }
@@ -867,7 +921,7 @@ function runWonFlow(o){
     sekkei:{phase:'未着手',d1:add(st,60),d2:add(st,74),d3:add(st,88),d4:add(st,95)},seizou:{phase:'未着手',d1:add(st,100),d2:add(st,165)},chou:{phase:'見積取得',d1:add(st,40),d2:add(st,140)}};
   p.hist=[{dt:nowStr(),f:'作成',from:'',to:'商談受注フローにより自動作成',by:'自動化フロー'}];
   DB.projects.push(p); o.project=pid; o.close='2026-10-08';
-  DB.notifs.unshift({t:`商談「${o.name}」が受注となり、案件 ${p.no} を自動生成しました`,tm:nowStr(),link:'#/project/'+pid,unread:true});
+  notify(`商談「${o.name}」が受注となり、案件 ${p.no} を自動生成しました`,'#/project/'+pid,{users:[(userBy(o.owner)||{}).id].filter(Boolean),depts:['技術部','調達部','企画部']});
   modal('自動化フロー：商談成約 → 案件自動生成',`
     <div class="flow-step"><div class="n">1</div><div><b>トリガー</b>：商談のフェーズが「受注」に更新</div></div>
     <div class="flow-step"><div class="n">2</div><div><b>案件を自動生成</b>：<a href="#/project/${pid}" onclick="closeModal()">${p.no}</a> ${esc(p.name)}<br><span class="small muted">取引先・商談・受注額・営業担当を引き継ぎ</span></div></div>
@@ -1308,8 +1362,9 @@ function newRequest(pid,parent){ tkNewCostReq(pid,parent); }   // 原価見積�
 function closeCase(id){
   const c=byId(DB.cases,id); c.cause=$('#cCause').value; c.measure=$('#cMeasure').value;
   const kid='KB'+String(DB.knowledge.length+1).padStart(2,'0');
-  DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='不具合'?'トラブル事例':'原因と対策',views:0,votes:0,status:'下書き',updated:'2026-10-08',
+  DB.knowledge.unshift({id:kid,title:c.subject+'（原因と対策）',cat:c.type==='問題'?'トラブル事例':'原因と対策',views:0,votes:0,status:'下書き',updated:'2026-10-08',
     body:{現象:c.desc,原因:c.cause,対策:c.measure,関連案件:byId(DB.projects,c.pj).name}});
+  wp2CaseHist(c,'状況',c.status,'クローズ');
   c.status='クローズ'; c.kb=kid;
   toast('ケースをクローズし、ナレッジ記事（下書き）を自動作成しました'); go('#/kb/'+kid);
 }
@@ -1910,21 +1965,26 @@ const PJ_VIEWS = {all:['すべての案件',p=>true],active:['進行中の案件
 /* @owner WP2 */
 function pgProjects(mode){
   const isT = mode==='table';
-  const rows = lvApply('projects',PJ_VIEWS,DB.projects).sort((a,b)=>a.due.localeCompare(b.due));
-  const head = `<div class="page-h"><div class="top"><span class="obj-icon i-project">📁</span><div><div class="obj-label">案件管理</div><h1>${lvSel('projects',PJ_VIEWS)}</h1></div>
-    <div class="actions"><div class="btn-group"><a class="btn ${isT?'':'on'}" href="#/projects">▥ カンバン</a><a class="btn ${isT?'on':''}" href="#/projects/table">☰ 一覧</a></div><button class="btn brand" onclick="pjNewInfo()">新規</button></div></div>
-    <div class="small muted mt8">${rows.length} 個の項目・並び替え基準：納期${isT?'':' ・ カードをドラッグしてステージを変更できます'}</div></div>`;
-  if(isT) return head+`<div class="card"><div class="card-b tbl-wrap" style="padding-top:12px">${tbl(['案件番号','案件名','取引先','ステージ','技術担当','営業担当','納期','#受注額','#見込粗利率','状況'],
-    rows.map(p=>{const c=pjCalc(p);return tr([p.no,pl(p.id),al(p.acc),STAGES[p.stage],ul(p.owner),ul(p.sales),fmtD(p.due),[man(c.revenue)],[`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`],lamps(c)]);}))}</div></div>`;
+  const q = (UI.pjQ||'').trim().toLowerCase();
+  const hit = p => !q || [p.name,p.no,acc(p.acc).name].some(s=>String(s||'').toLowerCase().includes(q));
+  const rows = lvApply('projects',PJ_VIEWS,DB.projects).filter(hit).sort((a,b)=>a.due.localeCompare(b.due));
+  const head = `<div class="page-h"><div class="top"><span class="obj-icon i-project">📁</span><div><div class="obj-label">案件管理 ${stepBadge(2)}</div><h1>${lvSel('projects',PJ_VIEWS)}</h1></div>
+    <div class="actions"><input id="pjQ" class="wp2-lsearch" type="search" placeholder="このリストを検索…" value="${esc(UI.pjQ||'')}" oninput="wp2PjSearch(this,event)" oncompositionend="wp2PjSearch(this,event)" title="案件名・取引先・案件番号で絞り込み"><div class="btn-group"><a class="btn ${isT?'':'on'}" href="#/projects">▥ カンバン</a><a class="btn ${isT?'on':''}" href="#/projects/table">☰ 一覧</a></div><button class="btn brand" onclick="pjNewInfo()">新規</button></div></div>
+    <div class="small muted mt8">${rows.length} 個の項目・並び替え基準：納期${q?` ・ 「${esc(UI.pjQ.trim())}」で絞り込み中`:''}${isT?'':' ・ カードをドラッグしてステージを変更できます'}</div></div>`;
+  const legend = `<div class="lamp-legend mt8">● ランプ：左から 進捗／粗利／納期 ／ <span class="pill r">⚑ 遅延</span> ${WP2_DELAY_NOTE} ／ <span class="pill y">原価UP n工程</span> ④原価予実で実績原価が予定原価を超えた工程の数（原価GAP）</div>`;
+  if(isT) return head+`<div class="card"><div class="card-b tbl-wrap" style="padding-top:12px">${tbl(['案件番号','案件名','取引先','ステージ','技術担当','営業担当','納期','#受注額','#見込粗利率','状況','遅延フラグ','原価GAP'],
+    rows.map(p=>{const c=pjCalc(p),f=EXT.fn.delayFlag(p),g=wp2Gap(p);return tr([p.no,pl(p.id),al(p.acc),STAGES[p.stage],ul(p.owner),ul(p.sales),fmtD(p.due),[man(c.revenue)],[`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`],lamps(c),
+      `<span class="${f?'wp2-flag-on':'muted'}" title="${f?'遅延あり':'遅延なし'}">${f?'☑ 遅延':'☐'}</span>`,g.over?`<span class="pill y">原価UP ${g.over}工程</span>`:'']);}))}${legend}</div></div>`;
   return head+`<div class="card"><div class="card-b" style="padding-top:12px"><div class="kanban">
     ${STAGES.map((s,i)=>{const ps=rows.filter(p=>p.stage===i);
       return `<div class="k-col"><div class="k-col-h">${s}（${ps.length}）</div><div class="k-col-b" data-stage="${i}">
-      ${ps.map(p=>{const c=pjCalc(p);return `<div class="k-card" draggable="true" data-id="${p.id}" onclick="go('#/project/${p.id}')">
+      ${ps.map(p=>{const c=pjCalc(p),f=EXT.fn.delayFlag(p),g=wp2Gap(p);return `<div class="k-card" draggable="true" data-id="${p.id}" onclick="go('#/project/${p.id}')">
         <div class="t">${esc(p.name)}</div><div class="s">${esc(acc(p.acc).name)}</div>
         <div class="row"><span class="s">納期 ${fmtD(p.due)}</span>${lamps(c)}</div>
-        <div class="row"><span class="s">${man(c.revenue)}｜${esc(p.owner)}</span><span class="pill ${c.marginLamp}">粗利 ${c.margin.toFixed(1)}%</span></div></div>`}).join('')}
+        <div class="row"><span class="s">${man(c.revenue)}｜${esc(p.owner)}</span><span class="pill ${c.marginLamp}">粗利 ${c.margin.toFixed(1)}%</span></div>
+        ${f||g.over?`<div class="row" style="justify-content:flex-start;gap:4px">${f?'<span class="pill r" title="遅延フラグ">⚑ 遅延</span>':''}${g.over?`<span class="pill y" title="原価GAP">原価UP ${g.over}工程</span>`:''}</div>`:''}</div>`}).join('')}
       </div></div>`}).join('')}
-  </div><div class="lamp-legend">● ランプ：左から 進捗／粗利／納期</div></div></div>`;
+  </div>${legend}</div></div>`;
 }
 /* @owner WP2 */
 function pjNewInfo(){
@@ -1936,10 +1996,11 @@ function pgProject(id){
   const p = byId(DB.projects,id); if(!p) return notFound();
   const c = pjCalc(p), o = byId(DB.opps,p.opp)||{};
   const tabsDef = [
+    {k:'chat',label:'💬 社内相談',roles:['kikaku','eigyo','gijutsu']},
     {k:'sched',label:'🗓 日程管理',roles:['kikaku','eigyo','gijutsu']},
-    {k:'kousu',label:'⏱ 工数管理',roles:['kikaku','gijutsu']},
+    {k:'kousu',label:'⏱ 工数管理',roles:['kikaku','eigyo','gijutsu']},
     {k:'req',label:'✉ 依頼・承認',roles:['kikaku','eigyo','gijutsu']},
-    {k:'cost',label:'¥ 採算',roles:['kikaku','eigyo']},
+    {k:'cost',label:'¥ 原価予実',roles:['kikaku','eigyo','gijutsu']},
     {k:'detail',label:'詳細',roles:['kikaku','eigyo','gijutsu']},
     {k:'related',label:'関連',roles:['kikaku','eigyo','gijutsu']},
     {k:'hist',label:'変更履歴',roles:['kikaku','eigyo','gijutsu']},
@@ -1947,12 +2008,19 @@ function pgProject(id){
   ].filter(t=>t.roles.includes(ROLE));
   extRec('project').tabs.filter(t=>t.before).forEach(t=>{const i=tabsDef.indexOf(t),j=tabsDef.findIndex(x=>x.k===t.before); if(i>=0&&j>=0){tabsDef.splice(i,1);tabsDef.splice(tabsDef.findIndex(x=>x.k===t.before),0,t);}});
   let tab = UI.pjTab[id]; if(!tabsDef.find(t=>t.k===tab)) tab = tabsDef[0].k;
-  const body = ({sched:()=>pjSched(p),kousu:()=>pjKousu(p,c),req:()=>pjReq(p),cost:()=>pjCost(p,c),detail:()=>pjDetail(p,o),related:()=>pjRelated(p,o),hist:()=>pjHist(p)}[tab]||(()=>tabsDef.find(t=>t.k===tab).render(p,c)))();
-  return recHeader({icon:'i-project',em:'📁',label:'案件管理｜'+p.no,title:esc(p.name),
-    actions:followBtn('project:'+id)+`<div class="btn-group"><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="newCase('${p.id}')">変更・問題を起票</button><button class="btn" onclick="editRec('project','${p.id}')">編集</button></div>`+hk('project','actions',p,c),
-    hl:[['取引先',al(p.acc)],['商談',ol(p.opp)],['納期',`${fmtD(p.due)}（残 ${c.days} 日）`],['技術担当 / 営業担当',`${ul(p.owner)} / ${ul(p.sales)}`],
-      ...(ROLE!=='gijutsu'?[['受注額（追加請求含む）',yen(c.revenue)],['見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`]]:[['工数（実績／予定）',`${c.act}h / ${c.plan}h`]]),
-      ['進捗／粗利／納期',`${lamps(c)} <span class="small muted">${LAMP_TXT[c.progLamp]}・${LAMP_TXT[c.marginLamp]}・${LAMP_TXT[c.dueLamp]}</span>`],...hkArr('project','hl',p,c)]})
+  const body = ({chat:()=>wp2PjChat(p,o),sched:()=>pjSched(p),kousu:()=>pjKousu(p,c),req:()=>pjReq(p),cost:()=>pjCost(p,c),detail:()=>pjDetail(p,o),related:()=>pjRelated(p,o),hist:()=>pjHist(p)}[tab]||(()=>tabsDef.find(t=>t.k===tab).render(p,c)))();
+  const flag = EXT.fn.delayFlag(p), gap = wp2Gap(p);
+  return recHeader({icon:'i-project',em:'📁',label:'案件管理｜'+p.no+' '+stepBadge(2),title:esc(p.name),
+    actions:followBtn('project:'+id)+`<div class="btn-group wp2-pjbtns"><button class="btn" onclick="newRequest('${p.id}')">原価見積依頼</button><button class="btn" onclick="EXT.fn.specChange('${p.id}')">仕様変更を起票</button><button class="btn" onclick="newCase('${p.id}')">問題を起票</button><button class="btn" onclick="editRec('project','${p.id}')">編集</button></div>`+hk('project','actions',p,c),
+    hl:[['プロジェクト状況',p.stage>=5?'<span class="pill g">完了</span>':'<span class="pill b">継続中</span>'],['進捗度',STAGES[p.stage]],
+      ['遅延フラグ',flag?'<span class="wp2-flag-on" title="'+esc(WP2_DELAY_NOTE)+'">☑ 遅延</span>':'<span class="muted" title="'+esc(WP2_DELAY_NOTE)+'">☐ なし</span>'],
+      ['取引先',al(p.acc)],['商談',ol(p.opp)],['納期',`${fmtD(p.due)}（残 ${c.days} 日）`],['技術担当 / 営業担当',`${ul(p.owner)} / ${ul(p.sales)}`],
+      ['受注額（追加請求含む）',yen(c.revenue)],['見込粗利率',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`],
+      ...(ROLE==='gijutsu'?[['工数（実績／予定）',`${c.act}h / ${c.plan}h`]]:[]),
+      ['進捗／粗利／納期',`${lamps(c)} <span class="small muted">${LAMP_TXT[c.progLamp]}・${LAMP_TXT[c.marginLamp]}・${LAMP_TXT[c.dueLamp]}</span>`],
+      ['納期リスク',`${flag?'<span class="pill r">⚑ 遅延あり</span>':'<span class="pill g">遅延なし</span>'} <span class="small muted">納期ランプ</span> <span class="lamps"><span class="lamp ${c.dueLamp}"></span></span> <span class="small">${LAMP_TXT[c.dueLamp]}</span>`],
+      ['原価GAP',`${gap.over?`<span class="pill y">原価UP ${gap.over}工程</span>`:'<span class="pill g">原価UPなし</span>'} <span class="small muted">粗利ランプ</span> <span class="lamps"><span class="lamp ${c.marginLamp}"></span></span> <span class="small">${LAMP_TXT[c.marginLamp]}</span>`],
+      ...hkArr('project','hl',p,c)]})
   +`${pathHtml(STAGES,p.stage,`setPjStage('${p.id}',`,'現在のプロジェクト進捗段階としてマーク')}${hk('project','top',p,c)}
   <div class="grid2"><div class="card"><div class="tabs">${tabsDef.map(t=>`<div class="tab ${t.k===tab?'active':''}" onclick="UI.pjTab['${id}']='${t.k}';route()">${t.label}</div>`).join('')}</div>
     <div class="tab-body">${body}</div></div>${hk('project','main',p,c)}
@@ -1991,7 +2059,7 @@ function pjRelated(p,o){
 }
 /* @owner WP2 */
 function pjHist(p){
-  return tbl(['日時','項目','変更前','変更後','変更者'],p.hist.map(h=>tr([h.dt,h.f,esc(h.from)||'—',esc(h.to),ul(h.by)])));
+  return `<div class="tbl-wrap">${tbl(['日時','項目','変更前','変更後','変更者'],p.hist.map(h=>tr([h.dt,h.f,esc(h.from)||'—',esc(h.to),ul(h.by)])))}</div>`;
 }
 /* @owner WP2 */
 function pjSide(p,c){
@@ -2008,7 +2076,7 @@ function pgSub(pid,k){
   const p=byId(DB.projects,pid), s=SUBS.find(x=>x.k===k); if(!p||!s) return notFound();
   const d=p[k]; const cur=Math.max(0,s.phases.indexOf(d.phase)); const ks=DB.kousu.filter(x=>x.pj===pid&&x.sub===k);
   return recHeader({icon:s.icon,em:s.em,label:s.label,title:esc(p.name.replace(/】.*/,'】'))+' '+s.label,
-    actions:hk('sub','actions',p,k)+`<button class="btn" onclick="editSubDates('${pid}','${k}')">日程を編集</button><a class="btn" href="#/project/${pid}">← 親案件へ</a>`,
+    actions:`<button class="btn" onclick="EXT.fn.newAddClaim('${pid}','${k}')">追加請求</button>`+hk('sub','actions',p,k)+`<button class="btn" onclick="editSubDates('${pid}','${k}')">日程を編集</button><a class="btn" href="#/project/${pid}">← 親案件へ</a>`,
     hl:[['親案件',pl(pid)],['フェーズ',d.phase],...s.cols.map((c,i)=>[c,fmtD(d['d'+(i+1)])]),...hkArr('sub','hl',p,k)]})
   +`<div class="tabs card" style="margin-bottom:12px">${SUBS.map(x=>`<a class="tab ${x.k===k?'active':''}" href="#/sub/${pid}/${x.k}"><span class="obj-icon sm ${x.icon}">${x.em}</span> ${x.label}</a>`).join('')}</div>
   ${pathHtml(s.phases,cur,`setSubPhase('${pid}','${k}',`,'現在のフェーズとしてマーク')}
@@ -2022,7 +2090,10 @@ function pgSub(pid,k){
 function editSubDates(pid,k){
   const p=byId(DB.projects,pid), s=SUBS.find(x=>x.k===k), d=p[k];
   modal(s.label+'の日程を編集',`<div class="form1">${s.cols.map((c,i)=>`<label>${c}<input type="date" id="sd${i}" value="${d['d'+(i+1)]||''}"></label>`).join('')}</div>`,
-    ()=>{s.cols.forEach((c,i)=>{const v=$('#sd'+i).value;if(v!==d['d'+(i+1)]){p.hist.unshift({dt:nowStr(),f:s.label+'：'+c,from:fmtD(d['d'+(i+1)]),to:fmtD(v),by:meName()});d['d'+(i+1)]=v;}});toast('日程を更新しました（親案件のガントに反映）');});
+    ()=>{const ch=[];s.cols.forEach((c,i)=>{const v=$('#sd'+i).value;if(v!==d['d'+(i+1)]){p.hist.unshift({dt:nowStr(),f:s.label+'：'+c,from:fmtD(d['d'+(i+1)]),to:fmtD(v),by:meName()});d['d'+(i+1)]=v;ch.push(c+' '+fmtD(v));}});
+      if(!ch.length){toast('変更はありません','info');return;}
+      notify(`案件「${p.name}」の${s.label}の日程が更新されました：${ch.join('、')}（${meName()}）`,'#/sub/'+pid+'/'+k,{depts:['企画部']});
+      toast(`日程を更新しました（親案件のガント・遅延フラグに反映し、企画部へ通知しました）${EXT.fn.delayFlag(p)?'':'／この案件の遅延フラグはOFFです'}`);});
 }
 
 /* =========================================================
@@ -2050,9 +2121,11 @@ function pgOpp(id){
     ${relCard('i-quote','¥','見積',1,tbl(['見積番号','見積名','#合計','状況'],[tr([`<a href="#/quote/${q.id}">${q.no}</a>`,esc(o.name)+' 御見積',[yen(o.amount)],stPill(q.status)])]))}
     ${relCard('i-contact','👤','取引先責任者',cs.length,tbl(['氏名','役職・部署','役割'],cs.map((c,i)=>tr([cl(c.id),esc(c.title),i===0?'意思決定者':'技術窓口']))))}
     ${o.project?relCard('i-project','📁','案件',1,tbl(['案件','ステージ','状況'],[tr([pl(o.project),STAGES[byId(DB.projects,o.project).stage],lamps(pjCalc(byId(DB.projects,o.project)))])])):''}
+    ${wp2OppHistCard(o)}
     ${hk('opp','main',o)}
   </div><div>${hk('opp','side',o)}
     <div class="card"><div class="card-h"><span class="obj-icon sm i-hear">📋</span>ヒアリングシート</div><div class="card-b">${hs?`<a href="#/hearing/${hs.id}">${esc(hs.name)}</a><div class="small muted">${hs.status}｜最終更新 ${fmtD(hs.updated)}</div>${hsSummary(hs)}`:`<div class="muted">未作成</div><button class="btn mt8" onclick="newHearing('${o.id}')">作成する</button>`}</div></div>
+    ${EXT.fn.feed('opp',id)}
     ${actPanel('opp',id)}
   </div></div>`;
 }
@@ -2060,7 +2133,7 @@ function pgOpp(id){
 function addOppItem(oid){
   const o=byId(DB.opps,oid);
   modal('商品を追加',`<div class="form1"><label>商品<select id="oiP">${DB.products.map(p=>`<option value="${p.id}">${p.code}　${esc(p.name)}（${yen(p.price)}）</option>`).join('')}</select></label><label>数量<input id="oiQ" type="number" value="1"></label></div>`,
-    ()=>{const pid=$('#oiP').value,q=+$('#oiQ').value||1;const ex=o.items.find(i=>i.p===pid);ex?ex.q+=q:o.items.push({p:pid,q});o.amount=oppItems(o).reduce((a,i)=>a+i.pr.price*i.q,0);toast('商談商品を追加し、商談金額を再計算しました');});
+    ()=>{const pid=$('#oiP').value,q=+$('#oiQ').value||1;const ex=o.items.find(i=>i.p===pid);ex?ex.q+=q:o.items.push({p:pid,q});const before=o.amount;o.amount=oppItems(o).reduce((a,i)=>a+i.pr.price*i.q,0);if(before!==o.amount)wp2OppHist(o,'金額',yen(before),yen(o.amount));toast('商談商品を追加し、商談金額を再計算しました');});
 }
 /* @owner WP2 */
 function newOpp(accId){
@@ -2090,7 +2163,7 @@ function finishReq(id){ tkFinish(id); }   // 実装は WP3 ブロック
    ========================================================= */
 /* @owner WP2 */
 function pgCases(){
-  const V={all:['すべてのケース',c=>true],open:['対応中のケース',c=>c.status!=='クローズ'],closed:['クローズ済み',c=>c.status==='クローズ'],mine:['自分の担当',c=>c.owner===meName()],bug:['不具合',c=>c.type==='不具合'],chg:['変更',c=>c.type==='変更']};
+  const V={all:['すべてのケース',c=>true],open:['対応中のケース',c=>c.status!=='クローズ'],closed:['クローズ済み',c=>c.status==='クローズ'],mine:['自分の担当',c=>c.owner===meName()],bug:['問題',c=>c.type==='問題'],chg:['変更',c=>c.type==='変更']};
   const rows=lvApply('cases',V,DB.cases);
   return listPage({icon:'i-case',em:'⚠',label:'変更・問題情報（ケース）',sel:lvSel('cases',V),count:rows.length,actions:`<button class="btn brand" onclick="newCase()">新規</button>`,
     table:tbl(['ケース番号','件名','種別','優先度','状況','案件','担当','起票日','ナレッジ'],rows.map(c=>tr([`<a href="#/case/${c.id}">${c.no}</a>`,`<a href="#/case/${c.id}">${esc(c.subject)}</a>`,c.type,c.priority,stPill(c.status),`<a href="#/project/${c.pj}">${byId(DB.projects,c.pj).no}</a>`,ul(c.owner),fmtD(c.opened),c.kb?`<a href="#/kb/${c.kb}">📖 記事</a>`:'—'])))});
@@ -2103,24 +2176,27 @@ function pgCase(id){
   const sim=DB.knowledge.filter(k=>/ゲージ|芯|研削油|粗度/.test(k.title+JSON.stringify(k.body))&&k.id!==c.kb).slice(0,3);
   return recHeader({icon:'i-case',em:'⚠',label:'ケース｜'+c.no,title:esc(c.subject),
     actions:followBtn('case:'+id)+`${c.status!=='クローズ'?`<button class="btn brand" onclick="closeCase('${c.id}')">クローズしてナレッジ化</button>`:c.kb?`<a class="btn" href="#/kb/${c.kb}">📖 ナレッジ記事を開く</a>`:''}<button class="btn" onclick="editRec('case','${c.id}')">編集</button>`+hk('case','actions',c),
-    hl:[['種別',c.type],['優先度',c.priority],['案件',pl(c.pj)],['取引先',al(c.acc)],['取引先責任者',ct?cl(ct.id):'—'],['担当',ul(c.owner)],...hkArr('case','hl',c)]})
+    hl:[['種別',c.type],...(c.type==='変更'&&(c.reason||c.impact)?[['仕様変更の理由',esc(c.reason||'—')+(/（仮）/.test(c.reason||'')?' <span class="tent kari">仮置き・要確認</span>':'')],['影響範囲',(c.impact||[]).map(esc).join('・')||'—']]:[]),
+      ['優先度',c.priority],['案件',pl(c.pj)],['取引先',al(c.acc)],['取引先責任者',ct?cl(ct.id):'—'],['担当',ul(c.owner)],...hkArr('case','hl',c)]})
   +`<div class="path"><ol>${st.map((s,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${i<cur?'✓ ':''}${s}</li>`).join('')}</ol></div>
-  <div class="grid2"><div class="card"><div class="card-h">詳細</div><div class="card-b">
+  <div class="grid2"><div><div class="card"><div class="card-h">詳細</div><div class="card-b">
     <div class="fields" style="grid-template-columns:1fr">${fld('内容',esc(c.desc))}
     ${fld('原因',c.status==='クローズ'?esc(c.cause):`<textarea id="cCause" class="role-select" style="width:100%" rows="2" placeholder="原因を入力">${esc(c.cause||'エアゲージのエア源圧力が工場エアの変動の影響を受けていた')}</textarea>`)}
-    ${fld('対策',c.status==='クローズ'?esc(c.measure):`<textarea id="cMeasure" class="role-select" style="width:100%" rows="2" placeholder="対策を入力">${esc(c.measure||'精密レギュレータを追加し、マスターリングで再校正')}</textarea>`)}</div></div>${hk('case','main',c)}</div>
-  <div>${hk('case','side',c)}${relCard('i-know','📖','類似のナレッジ',sim.length,sim.map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${k.id}">${esc(k.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
+    ${fld('対策',c.status==='クローズ'?esc(c.measure):`<textarea id="cMeasure" class="role-select" style="width:100%" rows="2" placeholder="対策を入力">${esc(c.measure||'精密レギュレータを追加し、マスターリングで再校正')}</textarea>`)}</div></div></div>
+    ${EXT.fn.feed('case',id)}${wp2CaseHistCard(c)}${hk('case','main',c)}</div>
+  <div>${hk('case','side',c)}${relCard('i-know','📖','類似のナレッジ',sim.length,sim.map(k=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a class="click" title="記事をこの画面で確認します" onclick="EXT.fn.kbPreview('${k.id}')">${esc(k.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
   ${actPanel('case',id)}</div></div>`;
 }
 /* @owner WP2 */
 function newCase(pid){
   modal('変更・問題情報を起票',`<div class="form1">
     <label>案件<select id="csPj">${DB.projects.map(p=>`<option value="${p.id}" ${p.id===pid?'selected':''}>${esc(p.name)}</option>`).join('')}</select></label>
-    <label>種別<select id="csType"><option>不具合</option><option>変更</option><option>問い合わせ</option></select></label>
+    <label>種別<select id="csType"><option>問題</option><option>変更</option></select></label>
     <label>件名<input id="csSub" value="試作加工で面粗度が規格外"></label>
     <label>内容<textarea id="csDesc" rows="3">仕上げ面粗度 Rz1.6 の要求に対し Rz2.3。</textarea></label></div>`,
-    ()=>{const p=byId(DB.projects,$('#csPj').value);const id='CS'+(10+DB.cases.length);DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:$('#csSub').value,pj:p.id,acc:p.acc,type:$('#csType').value,priority:'中',status:'対応中',opened:'2026-10-08',owner:p.owner,cause:'',measure:'',desc:$('#csDesc').value});
-      DB.notifs.unshift({t:`ケース「${$('#csSub').value}」が起票されました`,tm:nowStr(),link:'#/case/'+id,unread:true});
+    ()=>{const p=byId(DB.projects,$('#csPj').value);const id='CS'+(10+DB.cases.length);DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:$('#csSub').value,pj:p.id,acc:p.acc,type:$('#csType').value,priority:'中',status:'対応中',opened:'2026-10-08',owner:p.owner,cause:'',measure:'',desc:$('#csDesc').value,
+        hist:[{dt:nowStr(),f:'作成',from:'',to:'起票（状況：対応中）',by:meName()}]});
+      const ow=userBy(p.owner); notify(`ケース「${$('#csSub').value}」（${$('#csType').value}）が起票されました`,'#/case/'+id,ow?{users:[ow.id]}:{depts:['技術部']});
       setTimeout(()=>go('#/case/'+id),0);toast('ケースを起票し、技術担当へ通知しました');});
 }
 /* @owner WP1 */
@@ -2577,6 +2653,304 @@ EXT.review.push({
 /* ===================================================================
    ===== WP2 BEGIN =====  ② 部門横断SNS（Chatter）／⑥ 変更・問題情報管理／⑦ 案件進捗の全体管理
    =================================================================== */
+
+/* ---------- ⑦ 遅延フラグ・原価GAP（判定は仮置き：DECISIONS DC-27／CQ-23） ---------- */
+const WP2_DONE_PHASES = ['完了','出図済','入荷済'];
+const wp2SubDone = ph => WP2_DONE_PHASES.includes(ph);
+const WP2_SOON_DAYS = 7;
+const WP2_DELAY_NOTE = '遅延フラグ：未完了の子レコードの期日超過で自動ON（判定は仮置き・要確認 CQ-23）';
+EXT.fn.delayFlag = p => !!p && p.stage<5 && SUBS.some(s=>{const d=p[s.k]; if(!d||wp2SubDone(d.phase)) return false;
+  return s.cols.some((c,i)=>{const v=d['d'+(i+1)]; return v && daysTo(v)<0;});});
+/* ④の原価UP工程（WP3 実装）。未実装・例外時は 0 件扱い */
+function wp2Gap(p){ try{ const g=EXT.fn.costGap&&EXT.fn.costGap(p); return g&&typeof g.over==='number'?g:{over:0,items:[]}; }catch(e){ console.error('[costGap]',e); return {over:0,items:[]}; } }
+/* 案件ステージ更新の通知（技術担当・営業担当・企画部） */
+function wp2StageNotify(p){
+  const users=[userBy(p.owner),userBy(p.sales)].filter(Boolean).map(u=>u.id);
+  notify(`案件「${p.name}」の進捗度が「${STAGES[p.stage]}」になりました（${meName()}）`,'#/project/'+p.id,{users,depts:['企画部']});
+}
+/* 進捗一覧の検索（入力中もフォーカスとカーソル位置を保つ） */
+function wp2PjSearch(el,ev){
+  if(ev&&ev.isComposing) return;
+  UI.pjQ=el.value; const pos=el.selectionStart; route();
+  const n=$('#pjQ'); if(n){ n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} }
+}
+UI.pjQ = '';
+/* 企画ホーム：遅延・原価GAPのある案件（REQ-7-16） */
+EXT.home.left.push(()=>{
+  if(ROLE!=='kikaku') return '';
+  const list=DB.projects.filter(p=>p.stage<5).map(p=>({p,f:EXT.fn.delayFlag(p),g:wp2Gap(p),c:pjCalc(p)})).filter(x=>x.f||x.g.over).sort((a,b)=>a.p.due.localeCompare(b.p.due));
+  return `<div class="card"><div class="card-h"><span class="obj-icon sm i-project">⚑</span>遅延・原価GAPのある案件 (${list.length})<span class="right"><a href="#/projects">カンバン</a>｜<a href="#/projects/table">一覧</a></span></div>
+    <div class="card-b tbl-wrap">${tbl(['案件','進捗度','遅延フラグ','原価GAP','粗利','納期'],list.map(({p,f,g,c})=>tr([pl(p.id),STAGES[p.stage],f?'<span class="wp2-flag-on">☑ 遅延</span>':'<span class="muted">☐</span>',
+      g.over?`<span class="pill y">原価UP ${g.over}工程</span>`:'<span class="muted">—</span>',`<span class="pill ${c.marginLamp}">${c.margin.toFixed(1)}%</span>`,`${fmtD(p.due)}<span class="small muted">（残 ${c.days} 日）</span>`])),'遅延・原価GAPのある案件はありません')}
+    <div class="lamp-legend mt8">${WP2_DELAY_NOTE}。原価GAP＝④原価予実で実績原価が予定原価を超えた工程の数</div></div></div>`;
+});
+/* 案件「社内相談」タブ（REQ-2-02, REQ-7-07） */
+function wp2PjChat(p,o){
+  return `<div class="flex mb8"><span class="muted">この案件に関する部門横断の相談・回答を記録します（Chatter）。</span>
+    ${o&&o.id?`<span style="margin-left:auto"><a class="btn" href="#/opp/${o.id}">元の商談のフィードを見る</a></span>`:''}</div>
+    ${EXT.fn.feed('project',p.id)}
+    <div class="small muted mt8">※受注前の商談での会話は商談のフィードに残ります（会話をコピー・統合はしません。案件側での見せ方は要確認 CQ-04）</div>`;
+}
+
+/* ---------- ⑥ 変更・問題情報（ケース） ---------- */
+EDIT.case.f[1][2] = 'sel:変更,問題';                       /* 種別は「変更」「問題」の2つ（DC-22） */
+DB.cases.forEach(c=>{ if(c.type==='不具合'||c.type==='問い合わせ') c.type='問題'; });
+Object.assign(byId(DB.cases,'CS02'),{reason:'顧客理由',impact:['設計','調達','製造']});
+const WP2_REASONS = ['顧客理由','（仮）社内理由','（仮）その他'];
+function wp2CaseHist(c,f,from,to){ (c.hist=c.hist||[]).unshift({dt:nowStr(),f,from:String(from??''),to:String(to??''),by:meName()}); }
+[['CS01',[{dt:'2026/10/03 09:40',f:'作成',from:'',to:'起票（状況：新規）',by:'小林 直樹'},{dt:'2026/10/03 10:05',f:'状況',from:'新規',to:'対応中',by:'佐藤 健'},{dt:'2026/10/03 10:05',f:'担当',from:'木村 拓也',to:'佐藤 健',by:'石井 隆'}]],
+ ['CS02',[{dt:'2026/09/18 11:20',f:'作成',from:'',to:'起票（状況：対応中）',by:'小林 直樹'},{dt:'2026/09/24 16:30',f:'状況',from:'対応中',to:'クローズ',by:'佐藤 健'}]],
+ ['CS04',[{dt:'2026/10/02 15:10',f:'作成',from:'',to:'起票（状況：対応中）',by:'高橋 美咲'},{dt:'2026/10/03 08:55',f:'担当',from:'佐藤 健',to:'松本 翔',by:'石井 隆'}]]
+].forEach(([id,h])=>{ const c=byId(DB.cases,id); if(c) c.hist=h.sort((a,b)=>b.dt.localeCompare(a.dt)); });
+function wp2CaseHistCard(c){
+  const h=c.hist||[];
+  return relCard('i-case','⚠','ケース履歴',h.length,tbl(['日時','項目','変更前','変更後','変更者'],h.map(x=>tr([x.dt,esc(x.f),esc(x.from)||'—',esc(x.to),ul(x.by)])),'履歴はまだありません'));
+}
+/* 仕様変更を起票（REQ-6-02〜6-06） */
+EXT.fn.specChange = pid => wp2SpecChange(pid);
+function wp2SpecChange(pid){
+  const p=byId(DB.projects,pid); if(!p) return;
+  const st={reason:WP2_REASONS[0],impact:[],cm:''};
+  modal('仕様変更を起票',`<div class="form1"><div>仕様変更を起票します</div><div class="small muted">案件：${esc(p.name)}</div>
+    <label>仕様変更の理由<select id="scReason">${WP2_REASONS.map(r=>`<option ${r===st.reason?'selected':''}>${r}</option>`).join('')}</select>
+      <span class="small muted">「（仮）」の付いた選択肢は仮置きです（選択肢は要確認）</span></label>
+    <fieldset class="wp2-impact"><legend>影響範囲</legend>${IMPACT_DEPTS.map((d,i)=>`<label class="wp2-chk"><input type="checkbox" id="scImp${i}" value="${d.k}" ${st.impact.includes(d.k)?'checked':''}>${d.k}</label>`).join('')}
+      <div class="small muted">選んだ部門の部署へ通知します（選ばなかった部門には届きません）。加工技術・設計は技術部として扱います（仮置き・要確認 CQ-19）</div></fieldset>
+    <label>コメント<textarea id="scCm" rows="3" placeholder="変更の内容や、各部門に確認してほしいことを入力してください">${esc(st.cm)}</textarea></label></div>`,
+    ()=>{
+      const reason=$('#scReason').value, impact=IMPACT_DEPTS.filter((d,i)=>$('#scImp'+i).checked).map(d=>d.k), cm=$('#scCm').value.trim();
+      const depts=[...new Set(IMPACT_DEPTS.filter(d=>impact.includes(d.k)).map(d=>d.dept))];
+      const id='CS'+(10+DB.cases.length);
+      DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:'仕様変更：'+(cm?cm.slice(0,20):'（コメントなし）'),pj:p.id,acc:p.acc,type:'変更',priority:'中',status:'対応中',opened:'2026-10-08',owner:p.owner,
+        cause:'',measure:'',desc:cm,reason,impact,hist:[{dt:nowStr(),f:'作成',from:'',to:'仕様変更を起票（状況：対応中）',by:meName()}]});
+      if(!depts.length){ toast('仕様変更を起票しました。影響範囲が選択されていないため、部門への通知はしていません','info'); return; }
+      notify(`【仕様変更】案件「${p.name}」：理由（${reason}）／影響範囲（${impact.join('・')}）／コメント：${cm||'（なし）'}`,'#/case/'+id,{depts});
+      toast(`仕様変更を起票し、影響範囲の部門（${depts.join('・')}）へ通知しました`);
+    },'完了');
+}
+
+/* ---------- ⑥ 商談項目履歴（REQ-6-09、DC-24） ---------- */
+DB.oppHist = [
+  {id:'OH01',opp:'O001',dt:'2026/09/03 10:15',f:'フェーズ',from:'引き合い',to:'ヒアリング',by:'山田 太郎'},
+  {id:'OH02',opp:'O001',dt:'2026/09/03 10:15',f:'確度(%)',from:'10',to:'20',by:'山田 太郎'},
+  {id:'OH03',opp:'O001',dt:'2026/09/24 14:10',f:'フェーズ',from:'ヒアリング',to:'仕様提案',by:'山田 太郎'},
+  {id:'OH04',opp:'O001',dt:'2026/09/24 14:10',f:'確度(%)',from:'20',to:'40',by:'山田 太郎'},
+  {id:'OH05',opp:'O001',dt:'2026/09/30 16:40',f:'金額',from:'¥34,400,000',to:'¥36,800,000',by:'山田 太郎'},
+  {id:'OH06',opp:'O001',dt:'2026/10/02 11:05',f:'フェーズ',from:'仕様提案',to:'見積提出',by:'山田 太郎'},
+  {id:'OH07',opp:'O001',dt:'2026/10/02 11:05',f:'確度(%)',from:'40',to:'60',by:'山田 太郎'},
+  {id:'OH08',opp:'O001',dt:'2026/10/02 11:07',f:'完了予定日',from:'2026/10/30',to:'2026/11/20',by:'山田 太郎'},
+  {id:'OH09',opp:'O006',dt:'2026/09/25 17:30',f:'フェーズ',from:'仕様提案',to:'見積提出',by:'山田 太郎'},
+  {id:'OH10',opp:'O006',dt:'2026/09/25 17:30',f:'確度(%)',from:'40',to:'60',by:'山田 太郎'},
+  {id:'OH11',opp:'O006',dt:'2026/10/05 09:20',f:'フェーズ',from:'見積提出',to:'交渉',by:'山田 太郎'},
+  {id:'OH12',opp:'O006',dt:'2026/10/05 09:20',f:'確度(%)',from:'60',to:'80',by:'山田 太郎'},
+  {id:'OH13',opp:'O009',dt:'2026/09/30 15:00',f:'フェーズ',from:'引き合い',to:'ヒアリング',by:'山田 太郎'},
+  {id:'OH14',opp:'O009',dt:'2026/09/30 15:00',f:'確度(%)',from:'10',to:'20',by:'山田 太郎'},
+  {id:'OH15',opp:'O009',dt:'2026/10/06 13:45',f:'フェーズ',from:'ヒアリング',to:'仕様提案',by:'山田 太郎'},
+  {id:'OH16',opp:'O009',dt:'2026/10/06 13:45',f:'確度(%)',from:'20',to:'40',by:'山田 太郎'}
+];
+UI.ohAll = {};
+function wp2OppHist(o,f,from,to){
+  const n=DB.oppHist.reduce((a,h)=>Math.max(a,+h.id.slice(2)||0),0)+1;
+  DB.oppHist.unshift({id:'OH'+String(n).padStart(2,'0'),opp:o.id,dt:nowStr(),f,from:String(from??''),to:String(to??''),by:meName()});
+}
+function wp2OppHistCard(o){
+  const all=DB.oppHist.filter(h=>h.opp===o.id).sort((a,b)=>b.dt.localeCompare(a.dt)||b.id.localeCompare(a.id));
+  const rows=UI.ohAll[o.id]?all:all.slice(0,5);
+  return `<div id="wp2oh-${o.id}">${relCard('i-opp','★','商談項目履歴',all.length,
+    tbl(['日付','項目','ユーザー','元の値','新しい値'],rows.map(h=>tr([h.dt,esc(h.f),ul(h.by),esc(h.from)||'—',esc(h.to)])),'履歴はまだありません')
+    +(all.length>5?`<div class="mt8" style="text-align:center"><a class="click" onclick="UI.ohAll['${o.id}']=!UI.ohAll['${o.id}'];wp2OhRefresh('${o.id}')">${UI.ohAll[o.id]?'最新の5件だけ表示':'すべて表示'}</a></div>`:'')
+    +`<div class="small muted mt8">追跡する項目：フェーズ・確度・金額・完了予定日・商談所有者・商談名（対象項目は要確認 CQ-20）</div>`)}</div>`;
+}
+function wp2OhRefresh(id){ const el=document.getElementById('wp2oh-'+id), o=byId(DB.opps,id); if(el&&o) el.outerHTML=wp2OppHistCard(o); else route(); }
+onEvt('fieldChange',e=>{
+  if(e.kind==='opp'){ const L={prob:'確度(%)',close:'完了予定日',owner:'商談所有者',name:'商談名'}[e.field];
+    if(L) wp2OppHist(e.rec,L,e.field==='close'?fmtD(e.from):e.from,e.field==='close'?fmtD(e.to):e.to); }
+  if(e.kind==='case'){ const L={owner:'担当',type:'種別'}[e.field]; if(L) wp2CaseHist(e.rec,L,e.from,e.to); }
+});
+
+/* ---------- ② Chatter フィード（商談・案件・ケースで共用） ---------- */
+const WP2_GROUPS = ['営業部','技術部','企画部','調達部','製造部'];
+const WP2_FILES = ['図面_rev2.pdf','見積書_draft.pdf','測定結果.xlsx','仕様確認メモ.docx','現地写真.jpg'];
+const WP2_DEPT_COLOR = {'営業部':'#0176d3','技術部':'#3c9662','企画部':'#5a1ba9','調達部':'#06a59a','製造部':'#7a5af5'};
+DB.feeds = [
+  {id:'FD01',kind:'opp',rid:'O001',by:'U01',at:'2026/09/29 10:20',to:[{t:'dept',id:'技術部'},{t:'user',id:'U03'}],files:['客先図面_rev1.pdf'],likes:['U04'],
+    body:'多軸タイプでの更新をご要望いただいています。見積を出す前に、前加工の精度と測定方法についてお客様に確認しておくべき点を教えてください。',
+    comments:[
+      {by:'U03',at:'2026/09/29 13:45',to:[{t:'user',id:'U01'}],likes:['U01','U02'],body:'図面を確認しました。見積前に次の3点の確認をお願いします。\n①前加工の真円度：シートでは0.010mmです。目標0.003mmに対して取代が少ないと、多軸でもサイクルタイム45秒に収まらないおそれがあります。\n②測定機の指定：社内と客先で測定機・測定条件が違うと、測定値が合わないリスクがあります。\n③サイクルタイムの条件：ワークの搬入・搬出を含むかどうか。'},
+      {by:'U01',at:'2026/09/30 09:10',to:[],likes:['U03'],body:'ありがとうございます。①〜③をお客様に確認し、ヒアリングシートに追記します。'},
+      {by:'U12',at:'2026/10/07 11:30',to:[{t:'user',id:'U01'}],likes:['U01'],body:'多軸の場合は主軸間のピッチをワークの穴ピッチに合わせるため、穴ピッチの公差もあわせて確認をお願いします。'}]},
+  {id:'FD02',kind:'opp',rid:'O001',by:'U01',at:'2026/10/05 17:30',edited:'2026/10/05 17:42',to:[{t:'user',id:'U03'}],files:['客先回答メモ_1005.xlsx'],likes:['U03'],
+    body:'お客様から回答をいただきました。前加工の真円度は0.008mmまで改善できる見込み、測定は客先指定の真円度測定機に合わせる方針、サイクルタイムは搬入・搬出を含む条件です。',
+    comments:[{by:'U03',at:'2026/10/06 09:05',to:[],likes:[],body:'承知しました。この条件で取代と加工時間を再計算し、見積の工数に反映します。'}]},
+  {id:'FD03',kind:'project',rid:'P003',by:'U02',at:'2026/09/28 15:10',to:[{t:'dept',id:'技術部'},{t:'dept',id:'調達部'}],files:[],likes:['U04'],
+    body:'お客様より、ランクセレクトを3ランクから5ランクに変更したいとのご相談がありました。設計への影響と、追加部品の納期を確認させてください。',
+    comments:[
+      {by:'U03',at:'2026/09/28 17:20',to:[],likes:['U02'],body:'仕分け用のシュートとNGボックスの追加が必要です。設計工数は約40時間の見込みです。'},
+      {by:'U07',at:'2026/09/29 10:05',to:[{t:'user',id:'U02'}],likes:['U02','U03'],body:'追加のシュート部品は現行の手配先で約4週間です。全体の日程には影響しない見込みです。'},
+      {by:'U02',at:'2026/09/29 11:40',to:[],likes:[],body:'ありがとうございます。追加請求で対応する方針でお客様に説明します。'}]},
+  {id:'FD04',kind:'project',rid:'P003',by:'U03',at:'2026/10/02 16:05',to:[{t:'dept',id:'企画部'}],files:[],likes:['U04'],
+    body:'ランクセレクト変更分の追加請求を申請しました。承認後に設計へ着手します。日程は日程管理タブに反映済みです。',comments:[]},
+  {id:'FD05',kind:'case',rid:'CS01',by:'U02',at:'2026/10/03 10:30',to:[{t:'user',id:'U03'},{t:'dept',id:'製造部'}],files:[],likes:[],
+    body:'お客様より、納入後2週目から仕上げ径の測定値がばらつくとのご連絡がありました。現地調査の日程を相談させてください。',
+    comments:[
+      {by:'U03',at:'2026/10/03 13:15',to:[{t:'user',id:'U02'}],likes:['U02'],body:'10/6に現地調査に伺います。工場エアの圧力変動が疑われるため、エア源の記録をお客様にご依頼ください。'},
+      {by:'U08',at:'2026/10/03 16:00',to:[],likes:['U03'],body:'出荷前検査では±1μm以内でした。検査記録は案件の関連ファイルにあります。'}]},
+  {id:'FD06',kind:'case',rid:'CS01',by:'U03',at:'2026/10/06 18:20',to:[{t:'dept',id:'営業部'},{t:'dept',id:'製造部'}],files:['現地調査報告_1006.pdf'],likes:['U02','U08'],
+    body:'現地調査の結果、工場エアの圧力変動の影響と判断しました。精密レギュレータの追加と、マスターリングでの再校正で対応します。',comments:[]}
+];
+UI.fd = {}; UI.fdc = {}; UI.fdOpen = new Set(); UI.fdSort = {};
+const wp2FdKey = (kind,id) => kind+'-'+id;
+const wp2U = id => byId(DB.users,id)||{name:id,dept:''};
+const wp2ULabel = id => { const u=wp2U(id); return u.dept?`${u.name}（${u.dept}）`:u.name; };
+function wp2FdRecLabel(kind,id){
+  if(kind==='opp') return `商談「${(byId(DB.opps,id)||{}).name||id}」`;
+  if(kind==='project') return `案件「${(byId(DB.projects,id)||{}).name||id}」`;
+  if(kind==='case') return `ケース「${(byId(DB.cases,id)||{}).subject||id}」`;
+  return id;
+}
+const wp2Av = (uid,sm) => { const u=wp2U(uid); return `<span class="fd-av ${sm?'sm':''}" style="background:${WP2_DEPT_COLOR[u.dept]||'#b0adab'}" title="${esc(wp2ULabel(uid))}">${esc(u.name.slice(0,1))}</span>`; };
+const wp2Men = t => t.t==='user'?`<a class="fd-men" href="#/user/${t.id}">@${esc(wp2ULabel(t.id))}</a>`:`<span class="fd-men">@${esc(t.id)}グループ</span>`;
+function wp2FdBody(x){
+  const men=(x.to||[]).map(wp2Men).join(' ');
+  return `<div class="fd-body">${men?`<div>${men} さん</div>`:''}${esc(x.body).replace(/\n/g,'<br>')}</div>`;
+}
+function wp2FdLikes(likes){ return likes&&likes.length?`<div class="fd-likes">👍 ${likes.map(id=>esc(wp2U(id).name)+'さん').join('、')}がいいね!と言っています</div>`:''; }
+function wp2FdFiles(files){ return files&&files.length?`<div class="fd-files">${files.map(f=>`<a class="fd-file click" data-n="${esc(f)}" onclick="wp2FdDl(this)" title="ダウンロード（デモ用のダミー）">📎 ${esc(f)}</a>`).join('')}</div>`:''; }
+function wp2FdDl(el){ toast(`「${el.dataset.n}」はデモ用のダミーファイルのため、ダウンロードはできません`,'info'); }
+function wp2MenOpts(){
+  return `<option value="">@メンション…</option><optgroup label="ユーザー">${DB.users.map(u=>`<option value="user:${u.id}">${esc(u.name)}（${esc(u.dept)}）</option>`).join('')}</optgroup>
+    <optgroup label="グループ">${WP2_GROUPS.map(g=>`<option value="dept:${g}">${g}グループ</option>`).join('')}</optgroup>`;
+}
+const wp2Chip = (t,rm) => `<span class="fd-chip">${t.t==='user'?'@'+esc(wp2ULabel(t.id)):'@'+esc(t.id)+'グループ'}<button title="取り消す" onclick="${rm}">✕</button></span>`;
+const wp2LastAct = f => [f.at,...(f.comments||[]).map(c=>c.at)].sort().pop();
+EXT.fn.feed = (kind,id) => {
+  const key=wp2FdKey(kind,id), sort=UI.fdSort[key]||'recent', d=UI.fd[key]||{text:'',to:[],files:[]}, me=myUser().id;
+  const list=DB.feeds.filter(f=>f.kind===kind&&f.rid===id).sort((a,b)=>sort==='recent'?wp2LastAct(b).localeCompare(wp2LastAct(a)):b.at.localeCompare(a.at));
+  const post=f=>`<div class="fd-post" id="fdp-${f.id}">
+    <div class="fd-head">${wp2Av(f.by)}<div><a class="fd-name" href="#/user/${f.by}">${esc(wp2U(f.by).name)}</a><span class="muted">（${esc(wp2U(f.by).dept)}）</span>
+      <div class="small muted">${f.at}${f.edited?` ・ ${f.edited} に編集されました`:''}</div></div></div>
+    ${wp2FdBody(f)}${wp2FdFiles(f.files)}
+    <div class="fd-acts"><button class="fd-act ${f.likes.includes(me)?'on':''}" onclick="wp2FdLike('${kind}','${id}','${f.id}')" title="${f.likes.includes(me)?'もう一度押すと取り消します':''}">👍 いいね!</button><button class="fd-act" onclick="wp2FdCmtOpen('${kind}','${id}','${f.id}')">💬 コメント${f.comments.length?`（${f.comments.length}）`:''}</button></div>
+    ${wp2FdLikes(f.likes)}
+    <div class="fd-cmts">${f.comments.map((c,i)=>`<div class="fd-cmt"><div class="fd-head">${wp2Av(c.by,1)}<div><a class="fd-name" href="#/user/${c.by}">${esc(wp2U(c.by).name)}</a><span class="muted">（${esc(wp2U(c.by).dept)}）</span><div class="small muted">${c.at}</div></div></div>
+      ${wp2FdBody(c)}<div class="fd-acts"><button class="fd-act ${(c.likes||[]).includes(me)?'on':''}" onclick="wp2FdLike('${kind}','${id}','${f.id}',${i})">👍 いいね!</button></div>${wp2FdLikes(c.likes)}</div>`).join('')}${UI.fdOpen.has(f.id)?wp2CmtComp(kind,id,f.id):''}</div>
+  </div>`;
+  return `<div class="card fd-card ${kind==='project'?'flat':''}" id="fd-${key}"><div class="card-h"><span class="obj-icon sm i-opp" style="background:#1b96ff">💬</span>フィード (${list.length})
+    <span class="right"><select aria-label="並び替え" onchange="UI.fdSort['${key}']=this.value;wp2FdRefresh('${kind}','${id}')"><option value="recent" ${sort==='recent'?'selected':''}>並び替え：最近の活動</option><option value="posted" ${sort==='posted'?'selected':''}>並び替え：投稿日順</option></select></span></div>
+    <div class="card-b"><div class="fd-comp">
+      <div class="fd-chips">${d.to.map((t,i)=>wp2Chip(t,`wp2FdRm('${kind}','${id}','to',${i})`)).join('')}${d.files.map((f,i)=>`<span class="fd-chip file">📎 ${esc(f)}<button title="取り消す" onclick="wp2FdRm('${kind}','${id}','files',${i})">✕</button></span>`).join('')}</div>
+      <textarea id="fdt-${key}" rows="2" placeholder="質問・相談を投稿します。@メンションで関係者や部門に通知できます" oninput="wp2FdDraft('${kind}','${id}').text=this.value">${esc(d.text)}</textarea>
+      <div class="fd-tools"><select aria-label="@メンション" onchange="wp2FdAddTo('${kind}','${id}',this.value)">${wp2MenOpts()}</select>
+        <select aria-label="ファイルを添付" onchange="wp2FdAddFile('${kind}','${id}',this.value)"><option value="">📎 ファイルを添付…</option>${WP2_FILES.map(f=>`<option>${f}</option>`).join('')}</select>
+        <button class="btn brand" onclick="wp2FdPost('${kind}','${id}')">投稿</button></div>
+      <div class="small muted mt8">投稿者：${esc(wp2ULabel(me))}（ロールのユーザー）／添付はデモ用のダミーファイル名です</div></div>
+    ${list.map(post).join('')||'<div class="muted small">まだ投稿はありません。最初の投稿をしてみましょう。</div>'}</div></div>`;
+};
+function wp2CmtComp(kind,id,fid){
+  const d=UI.fdc[fid]||{text:'',to:[]};
+  return `<div class="fd-cmt"><div class="fd-comp"><div class="fd-chips">${d.to.map((t,i)=>wp2Chip(t,`wp2FdCmtRm('${kind}','${id}','${fid}',${i})`)).join('')}</div>
+    <textarea id="fdc-${fid}" rows="2" placeholder="コメントを書く…" oninput="(UI.fdc['${fid}']=UI.fdc['${fid}']||{text:'',to:[]}).text=this.value">${esc(d.text)}</textarea>
+    <div class="fd-tools"><select aria-label="@メンション" onchange="wp2FdCmtAddTo('${kind}','${id}','${fid}',this.value)">${wp2MenOpts()}</select><button class="btn brand" onclick="wp2FdComment('${kind}','${id}','${fid}')">コメント</button></div></div></div>`;
+}
+function wp2FdDraft(kind,id){ const k=wp2FdKey(kind,id); return UI.fd[k]||(UI.fd[k]={text:'',to:[],files:[]}); }
+function wp2FdRefresh(kind,id){ const el=document.getElementById('fd-'+wp2FdKey(kind,id)); if(el) el.outerHTML=EXT.fn.feed(kind,id); else route(); }
+function wp2ParseTo(v){ const [t,...r]=String(v).split(':'); const id=r.join(':'); return (t==='user'||t==='dept')&&id?{t,id}:null; }
+function wp2FdAddTo(kind,id,v){ const t=wp2ParseTo(v); if(!t) return; const d=wp2FdDraft(kind,id); if(!d.to.some(x=>x.t===t.t&&x.id===t.id)) d.to.push(t); wp2FdRefresh(kind,id); }
+function wp2FdAddFile(kind,id,v){ if(!v) return; const d=wp2FdDraft(kind,id); if(!d.files.includes(v)) d.files.push(v); wp2FdRefresh(kind,id); }
+function wp2FdRm(kind,id,f,i){ wp2FdDraft(kind,id)[f].splice(i,1); wp2FdRefresh(kind,id); }
+function wp2FdCmtOpen(kind,id,fid){ UI.fdOpen.has(fid)?UI.fdOpen.delete(fid):UI.fdOpen.add(fid); wp2FdRefresh(kind,id); const t=document.getElementById('fdc-'+fid); if(t) t.focus(); }
+function wp2FdCmtAddTo(kind,id,fid,v){ const t=wp2ParseTo(v); if(!t) return; const d=UI.fdc[fid]||(UI.fdc[fid]={text:'',to:[]}); if(!d.to.some(x=>x.t===t.t&&x.id===t.id)) d.to.push(t); wp2FdRefresh(kind,id); }
+function wp2FdCmtRm(kind,id,fid,i){ (UI.fdc[fid]||{to:[]}).to.splice(i,1); wp2FdRefresh(kind,id); }
+function wp2FdLike(kind,id,fid,ci){
+  const f=byId(DB.feeds,fid); if(!f) return; const x=ci==null?f:f.comments[ci]; x.likes=x.likes||[]; const me=myUser().id;
+  const i=x.likes.indexOf(me); i>=0?x.likes.splice(i,1):x.likes.push(me); wp2FdRefresh(kind,id);
+}
+/* メンション・フォローの通知（ユーザー宛て／部門グループ宛て） */
+function wp2FdNotify(kind,id,by,to,text,thread){
+  const rec=wp2FdRecLabel(kind,id), link='#/'+kind+'/'+id, bu=wp2U(by), s=text.replace(/\s+/g,' '), head=s.length>30?s.slice(0,30)+'…':s, sent=new Set(); let n=0;
+  to.forEach(t=>{
+    if(t.t==='user'){ if(t.id===by) return; notify(`${bu.name}さんが${rec}であなた（${wp2U(t.id).dept}）をメンションしました：${head}`,link,{users:[t.id]}); sent.add(t.id); n++; }
+    else { notify(`${bu.name}さんが${rec}で${t.id}グループ（あなたの部署）をメンションしました：${head}`,link,{depts:[t.id]}); n++; }
+  });
+  const fl=followersOf(kind+':'+id).filter(u=>u!==by&&!sent.has(u));
+  if(fl.length){ notify(`フォロー中の${rec}に新しい${thread?'コメント':'投稿'}があります（${bu.name}さん）：${head}`,link,{users:fl}); fl.forEach(u=>sent.add(u)); n++; }
+  if(thread&&thread!==by&&!sent.has(thread)){ notify(`${bu.name}さんがあなたの投稿にコメントしました（${rec}）：${head}`,link,{users:[thread]}); n++; }
+  return n;
+}
+function wp2FdPost(kind,id){
+  const d=wp2FdDraft(kind,id), ta=document.getElementById('fdt-'+wp2FdKey(kind,id)); if(ta) d.text=ta.value;
+  const text=d.text.trim(); if(!text){ toast('本文を入力してください','info'); return; }
+  const me=myUser().id, n=DB.feeds.reduce((a,f)=>Math.max(a,+f.id.slice(2)||0),0)+1;
+  DB.feeds.unshift({id:'FD'+String(n).padStart(2,'0'),kind,rid:id,by:me,at:nowStr(),body:text,to:[...d.to],files:[...d.files],likes:[],comments:[]});
+  const sent=wp2FdNotify(kind,id,me,d.to,text,null);
+  UI.fd[wp2FdKey(kind,id)]={text:'',to:[],files:[]};
+  wp2FdRefresh(kind,id);
+  toast(sent?'投稿しました。メンション先・フォロー中のユーザーへ通知しました':'投稿しました');
+}
+function wp2FdComment(kind,id,fid){
+  const f=byId(DB.feeds,fid); if(!f) return; const d=UI.fdc[fid]||{text:'',to:[]}, ta=document.getElementById('fdc-'+fid); if(ta) d.text=ta.value;
+  const text=(d.text||'').trim(); if(!text){ toast('コメントを入力してください','info'); return; }
+  const me=myUser().id; f.comments.push({by:me,at:nowStr(),body:text,to:[...d.to],likes:[]});
+  const sent=wp2FdNotify(kind,id,me,d.to,text,f.by);
+  delete UI.fdc[fid]; UI.fdOpen.delete(fid); wp2FdRefresh(kind,id);
+  toast(sent?'コメントしました。関係者へ通知しました':'コメントしました');
+}
+
+/* ---------- 要件レビュー画面への登録（共通ルール 0-6） ---------- */
+EXT.review.push({
+  topic:'②', page:'p11', step:1, title:'部門横断SNS（Chatter・標準機能）',
+  issue:'新しい仕様の要求に対し、顧客に条件やリスクを確認せず進めてしまい、後から工数が膨れる',
+  measure:'お客様の要求仕様に対し、タイムリーに複数の関係者へアドバイスを求め、回答を得る仕組みをつくる',
+  reqs:[['REQ-2-01','商談レコードに Chatter フィード（投稿欄＋投稿一覧）','必須'],['REQ-2-02','案件の「社内相談」タブにフィード','必須'],['REQ-2-03','会話はレコードごとに分かれ、過去のやり取りを遡れる','必須'],
+    ['REQ-2-04','1投稿で複数人に @メンション','必須'],['REQ-2-05','部門グループ宛てのメンション','推奨'],['REQ-2-06','コメント（返信）でスレッド表示','必須'],['REQ-2-07','メンションされた人・部門に通知','必須'],
+    ['REQ-2-08','投稿者・メンション先に所属部門を併記','推奨'],['REQ-2-09','ファイル添付（ダミー）','推奨'],['REQ-2-10','いいね!と、いいねした人の表示','推奨'],['REQ-2-11','並び替え（最近の活動／投稿日）','推奨'],
+    ['REQ-2-12','仕様の条件・リスクを経験者に相談し回答を得たサンプル（O001）','必須'],['REQ-2-13','標準機能の範囲に限る（既読管理・回答期限・スタンプ・DM などは作らない）','必須'],
+    ['REQ-2-14','フォロー中レコードの更新を通知で受け取る','推奨'],['REQ-2-15','商談のフェーズ名・タブ構成は参考画面に合わせて変えない（作らない）','レビューで確認']],
+  links:[{label:'商談 O001 のフィード',h:'#/opp/O001',role:'eigyo'},{label:'案件 P003 の社内相談',h:'#/project/P003'},{label:'ケース CS01 のフィード',h:'#/case/CS01'}],
+  demo:[{text:'営業部ロールで O001 を開き、フィードで過去の相談と技術部の回答を確認（並び替えも切り替え）',h:'#/opp/O001',role:'eigyo'},
+    {text:'@技術部グループ・@佐藤 健 を選び、ファイルを添付して投稿'},
+    {text:'技術部ロールに切り替え、通知（自分宛て）から O001 を開く',h:'#/opp/O001',role:'gijutsu'},
+    {text:'投稿に「コメント」で回答し、「いいね!」を押す'},
+    {text:'P003 の「社内相談」タブで案件ごとの会話を確認',h:'#/project/P003',role:'eigyo'}],
+  cq:['CQ-04','CQ-05','CQ-06']
+});
+EXT.review.push({
+  topic:'⑥', page:'p15', step:1, title:'変更・問題情報管理',
+  issue:'部門を超えた調整のために専門組織（営業統括）を設けるほど負荷が高い',
+  measure:'変更や問題の情報をSalesforceでタイムリーに共有し、部門を超えたコミュニケーションが行える仕組みをつくる',
+  reqs:[['REQ-6-01','変更・問題をケースとして起票し、案件に紐づける','必須'],['REQ-6-02','案件ヘッダーの「仕様変更を起票」（遷移なしのモーダル、「完了」で起票）','必須'],
+    ['REQ-6-03','仕様変更の理由（顧客理由＋仮の値）','推奨'],['REQ-6-04','影響範囲6部門の複数選択','推奨'],['REQ-6-05','選んだ部門へ直接通知（選ばない部門には届かない）','必須'],
+    ['REQ-6-06','コメントをケースと通知文に記録','推奨'],['REQ-6-07','関係部門のホーム・一覧にすぐ出る（全ロールで閲覧）','必須'],['REQ-6-08','ケースにフィードを置き、部門を超えて会話を記録','必須'],
+    ['REQ-6-09','項目履歴（商談項目履歴・ケース履歴・案件の変更履歴）','必須'],['REQ-6-10','新規→対応中→原因・対策確定→クローズ','必須'],['REQ-6-11','クローズでナレッジ記事（下書き）を作成','必須'],
+    ['REQ-6-12','種別を「変更」「問題」に分ける','レビューで確認']],
+  links:[{label:'案件 P003（仕様変更を起票）',h:'#/project/P003',role:'kikaku'},{label:'変更・問題情報（ケース一覧）',h:'#/cases'},{label:'商談 O001 の商談項目履歴',h:'#/opp/O001'},{label:'ケース CS01',h:'#/case/CS01'}],
+  demo:[{text:'企画部ロールで P003 を開き「仕様変更を起票」（理由＝顧客理由、影響範囲＝加工技術・設計・調達、コメントを入力）→「完了」で案件画面にとどまる',h:'#/project/P003',role:'kikaku'},
+    {text:'技術部ロールに切り替え、通知（自分宛て）に仕様変更が届いていることを確認',h:'#/cases',role:'gijutsu'},
+    {text:'営業部ロールでは（営業を選ばなかったため）通知が届かないことを確認',h:'#/cases',role:'eigyo'},
+    {text:'ケース CS01 のフィードで部門をまたいだ会話を確認',h:'#/case/CS01'},
+    {text:'O001 でフェーズを1つ進め、商談項目履歴に「フェーズ」「確度(%)」が追加されることを確認',h:'#/opp/O001',role:'eigyo'},
+    {text:'CS01 で「クローズしてナレッジ化」→ ナレッジ記事（下書き）を確認',h:'#/case/CS01'}],
+  cq:['CQ-09','CQ-18','CQ-19','CQ-20','CQ-21']
+});
+EXT.review.push({
+  topic:'⑦', page:'p16', step:2, title:'案件進捗の全体管理',
+  issue:'企画がPMとして期日・利益を管理したいが、各部門の業務進捗を把握できない（メール・電話で煩雑）',
+  measure:'案件ごとの各部門進捗や原価予実を部門横断で見える化し、納期遅延・原価GAPのリスクを全員で確認する',
+  reqs:[['REQ-7-01','段階別かんばんと件数','必須'],['REQ-7-02','進捗段階名（仕様確認〜納入）','レビューで確認'],['REQ-7-03','カードに案件名・期日・3ランプ（＋遅延フラグ）','推奨'],
+    ['REQ-7-04','遅延フラグの自動ON／OFF（判定は仮置き）','必須'],['REQ-7-05','期日接近（7日以内・仮置き）の注意表示','レビューで確認'],['REQ-7-06','日程管理タブで部門別のフェーズと期日','必須'],
+    ['REQ-7-07','「社内相談」タブを先頭に追加','推奨'],['REQ-7-08','案件→子レコード→工数をリンクで往復','必須'],['REQ-7-09','進捗度をパスで更新','推奨'],['REQ-7-10','子レコードのフェーズパス','推奨'],
+    ['REQ-7-11','工数管理（超過の識別）','推奨'],['REQ-7-12','子レコードから「追加請求」を起票','推奨'],['REQ-7-13','原価予実を全ロールで確認','必須'],['REQ-7-14','納期リスクと原価GAPを区別して表示','必須'],
+    ['REQ-7-15','どのロールでもかんばん・リスク表示が見える','必須'],['REQ-7-16','企画ホームに遅延・原価GAPのある案件','必須'],['REQ-7-17','子の期日・工数・原価を親に集約','必須'],
+    ['REQ-7-18','各部門のフェーズ更新を企画へ通知','必須'],['REQ-7-19','案件ヘッダーに状況・進捗度・遅延フラグ','推奨'],['REQ-7-20','進捗一覧で案件を検索','推奨'],['REQ-7-21','活動の記録とフォロー','推奨']],
+  links:[{label:'案件進捗（かんばん）',h:'#/projects',role:'kikaku'},{label:'案件 P003',h:'#/project/P003'},{label:'加工管理（P003）',h:'#/sub/P003/kakou'}],
+  demo:[{text:'企画部ロールで案件のかんばんを開き、遅延フラグ・原価GAPの表示と「このリストを検索…」を確認',h:'#/projects',role:'kikaku'},
+    {text:'ホームの「遅延・原価GAPのある案件」カードを確認',h:'#/home',role:'kikaku'},
+    {text:'P003 のヘッダーで プロジェクト状況・進捗度・遅延フラグ・納期リスク／原価GAP を確認し、「日程管理」タブで期日の赤（超過）・黄（7日以内）を確認',h:'#/project/P003'},
+    {text:'技術部ロールで加工管理を開き、フェーズを進める（企画部へ通知）',h:'#/sub/P003/kakou',role:'gijutsu'},
+    {text:'加工管理の「追加請求」ボタンで④の追加請求へ',h:'#/sub/P003/kakou'},
+    {text:'技術部ロールでも案件の「¥ 原価予実」タブと見込粗利率が見えることを確認',h:'#/project/P003',role:'gijutsu'}],
+  cq:['CQ-22','CQ-23','CQ-25']
+});
 
 /* ===== WP2 END ===== */
 
