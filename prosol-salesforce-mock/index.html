@@ -546,7 +546,8 @@ const EXT = {
     specChange:pid=>newCase(pid),           // WP2：「仕様変更を起票」モーダル
     newTicket:pid=>newRequest(pid),         // WP3：追加要求チケットの起票
     newAddClaim:(pid,sub)=>newRequest(pid), // WP3：追加請求の起票（sub=子レコードのキー）
-    delayFlag:p=>false                      // WP2：遅延フラグの判定
+    delayFlag:p=>false,                     // WP2：遅延フラグの判定（true/false）
+    costGap:p=>({over:0,items:[]})          // WP3：原価UP（実績＞予定）の工程数と内訳 {over:件数, items:[{sub,plan,act}]}
   }
 };
 function extRec(kind){ return EXT.rec[kind] || (EXT.rec[kind]={actions:[],hl:[],tabs:[],top:[],main:[],side:[]}); }
@@ -558,7 +559,7 @@ function hkList(list,...a){ return (list||[]).map(f=>{try{return f(...a)||'';}ca
 function onEvt(ev,f){ (EXT.on[ev]=EXT.on[ev]||[]).push(f); }
 function emit(ev,p){ (EXT.on[ev]||[]).forEach(f=>{try{f(p);}catch(e){console.error('[event '+ev+']',e);}}); }
 /* 影響範囲（p15 画面の6部門）と、モックの部署（DB.users.dept）・ロールの対応。③⑥で共用。
-   加工技術・設計はモック上「技術部」に含めている（仮置き・レビューで確認：DECISIONS D-11） */
+   加工技術・設計はモック上「技術部」に含めている（仮置き・レビューで確認：DECISIONS DC-23） */
 const IMPACT_DEPTS = [
   {k:'営業',dept:'営業部',role:'eigyo'},{k:'加工技術',dept:'技術部',role:'gijutsu'},{k:'設計',dept:'技術部',role:'gijutsu'},
   {k:'調達',dept:'調達部',role:null},{k:'製造',dept:'製造部',role:null},{k:'企画',dept:'企画部',role:'kikaku'}];
@@ -1736,11 +1737,11 @@ const NAV = [
   {k:'hearings',label:'ヒアリングシート',roles:['kikaku','eigyo','gijutsu']},
   {k:'projects',label:'案件',roles:['kikaku','eigyo','gijutsu']},
   {k:'requests',label:'依頼',roles:['kikaku','eigyo','gijutsu']},
-  {k:'cases',label:'変更・問題情報',roles:['kikaku','gijutsu']},
+  {k:'cases',label:'変更・問題情報',roles:['kikaku','eigyo','gijutsu']},
   {k:'knowledge',label:'ナレッジ',roles:['kikaku','eigyo','gijutsu']},
   {k:'products',label:'商品',roles:['kikaku','eigyo']},
   {k:'activities',label:'活動',roles:['kikaku','eigyo','gijutsu']},
-  {k:'costs',label:'原価予実',roles:['kikaku']}
+  {k:'costs',label:'原価予実',roles:['kikaku','eigyo','gijutsu']}
 ];
 function navItems(){
   const list=[...NAV];
