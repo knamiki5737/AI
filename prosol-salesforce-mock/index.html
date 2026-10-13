@@ -1470,7 +1470,7 @@ DB.batches = ['09/25','09/26','09/27','09/28','09/29','09/30','10/01','10/02','1
 DB.projects.forEach(p=>{p.hist=[{dt:fmtD(p.start)+' 09:00',f:'作成',from:'',to:'商談受注フローにより自動作成',by:'自動化フロー'}];
   if(p.stage>0){const sd=new Date(p.start),span=Math.min(TODAY-sd,new Date(p.due)-sd);sd.setTime(sd.getTime()+span*Math.min(0.9,p.stage/6));p.hist.unshift({dt:fmtD(sd.toISOString().slice(0,10))+' 17:20',f:'ステージ',from:STAGES[p.stage-1],to:STAGES[p.stage],by:p.owner});}});
 DB.knowledge.forEach(k=>{k.votes=Math.round(k.views/6);k.status='公開済';});
-UI.follow = new Set(['project:P003']); UI.lv = {}; UI.recent = []; UI.kbCat = 'すべて';
+UI.follow = new Set(['U04|project:P003']); /* フォローはユーザー単位（ユーザーID|レコードキー） */ UI.lv = {}; UI.recent = []; UI.kbCat = 'すべて';
 
 /* ---------- リンク・共通部品 ---------- */
 const userBy = n => {const nm=String(n||'').replace(/（.*?）/g,'').trim();return DB.users.find(u=>u.name===nm);};
@@ -1484,8 +1484,10 @@ const actAcc = a => {const [k,id]=a.what;return k==='account'?id:k==='project'?(
 function whatLink(w){const [k,id]=w;
   if(k==='project') return '案件：'+pl(id); if(k==='opp') return '商談：'+ol(id); if(k==='account') return '取引先：'+al(id);
   if(k==='case'){const c=byId(DB.cases,id);return c?`ケース：<a href="#/case/${id}">${esc(c.subject)}</a>`:'—';} return '—';}
-function followBtn(key){return `<button class="btn" onclick="toggleFollow('${key}')">${UI.follow.has(key)?'✓ フォロー中':'＋ フォローする'}</button>`;}
-function toggleFollow(key){UI.follow.has(key)?UI.follow.delete(key):UI.follow.add(key);toast(UI.follow.has(key)?'フォローしました。更新がフィードと通知に表示されます':'フォローを解除しました','info');route();}
+const fKey = key => ME[ROLE]+'|'+key;
+function followersOf(key){ return [...UI.follow].filter(x=>x.endsWith('|'+key)).map(x=>x.split('|')[0]); } // そのレコードをフォローしているユーザーID（②の通知で使用）
+function followBtn(key){return `<button class="btn" onclick="toggleFollow('${key}')">${UI.follow.has(fKey(key))?'✓ フォロー中':'＋ フォローする'}</button>`;}
+function toggleFollow(key){const k=fKey(key);UI.follow.has(k)?UI.follow.delete(k):UI.follow.add(k);toast(UI.follow.has(k)?'フォローしました。更新がフィードと通知に表示されます':'フォローを解除しました','info');route();}
 function recHeader(o){
   return `<div class="page-h"><div class="top"><span class="obj-icon ${o.icon}">${o.em}</span><div><div class="obj-label">${o.label}</div><h1>${o.title}</h1></div>
     <div class="actions">${o.actions||''}</div></div>${o.hl&&o.hl.length?`<div class="highlights">${o.hl.map(([l,v])=>fld(l,v)).join('')}</div>`:''}</div>`;
