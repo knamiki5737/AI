@@ -1791,7 +1791,7 @@ function pgBatch(id){
     table:tbl(['実行日時','ファイル','結果','#新規','#更新','#エラー'],[...DB.batches].reverse().map(b=>tr([`<a href="#/batch/${b.id}">${b.dt}</a>`,b.file,b.status==='成功'?'<span class="pill g">成功</span>':'<span class="pill r">一部エラー</span>',[b.ins],[b.upd],[b.err]])))});
 }
 function runBatch(){const n=DB.batches.length+1;DB.batches.push({id:'B'+String(n).padStart(2,'0'),dt:nowStr(),file:'item_master_manual.csv',status:'成功',ins:0,upd:3,err:0,errMsg:'',prods:DB.products.slice(0,3).map(p=>p.id)});
-  DB.notifs.unshift({t:'商品マスタ取込バッチが正常終了しました（更新 3件）',tm:nowStr(),link:'#/batch/B'+String(n).padStart(2,'0'),unread:true});toast('取込を実行しました（更新 3件・エラー 0件）');route();}
+  notify('商品マスタ取込バッチが正常終了しました（更新 3件）','#/batch/B'+String(n).padStart(2,'0'),{depts:['企画部']});toast('取込を実行しました（更新 3件・エラー 0件）');route();}
 
 /* ---------- 見積 ---------- */
 const oppItems = o => o.items.map(i=>({...i,pr:byId(DB.products,i.p)}));
