@@ -386,6 +386,8 @@ summary.rv-lab{cursor:pointer}
 .rv-scope{display:flex;flex-wrap:wrap;gap:4px 24px;font-size:13px;margin-bottom:8px}
 table.rv-steps td.rv-tp{text-align:center;font-size:15px;color:#a96404}
 .wp1-donebadge{display:inline-flex;align-items:center;border-radius:4px;padding:4px 12px;line-height:22px;background:var(--green-bg);color:#194e31;font-weight:700;font-size:13px;white-space:nowrap}
+.wp1-voted{cursor:default;color:var(--text-mute)}
+.wp1-voted:hover{background:#fff}
 .rv-cq{display:inline-block;border:1px solid #f2b67a;background:#fff8ef;color:#8c4b02;border-radius:10px;padding:0 8px;font-size:12px;cursor:pointer}
 table.rv-steps td:first-child{white-space:nowrap}
 table.rv-cqt td:first-child{white-space:nowrap}
@@ -1246,7 +1248,7 @@ function qHtml(q,a,h){
   if(k==='A-316'&&a['A-303']==='リピート') warn='<div class="small muted mt8">納入実績区分＝リピートのため「フルリピート」を自動選択しました（A-303 連動）</div>';
   if(k==='A-304'&&v) warn='<div class="small muted mt8">既納機の仕様データを自動コピーできます（定義書 備考）　<a onclick="toast(\'既納機仕様のコピーはモック対象外です\',\'info\')">既納機仕様をコピー</a></div>';
   return `<div class="q ${q.p?'child':''} ${UI.hsNew&&UI.hsNew.includes(k)?'new':''} ${UI.hsFocus===k?'focus':''}" onclick="hsFocus('${k}')">
-    <div class="ql">${q.req?'<span class="req">*</span>':''}${esc(q.q)}${tags(q)}<a class="why-btn" onclick="event.stopPropagation();hsFocus('${k}')">定義を見る</a></div>${input}${warn}</div>`;
+    <div class="ql">${q.req?'<span class="req">*</span>':''}${esc(q.q)}${tags(q)}<a class="why-btn" onclick="event.stopPropagation();hsFocus('${k}');wp1ShowWhy()">定義を見る</a></div>${input}${warn}</div>`;
 }
 /* @owner WP1 */
 function rowsHtml(a,hid){
@@ -2223,7 +2225,7 @@ function pgKnowledge(){
 function pgKb(id){
   const k=byId(DB.knowledge,id); if(!k) return notFound(); if(UI.kbSeen!==id){k.views++;UI.kbSeen=id;} k.votes=k.votes||0; k.status=k.status||'公開済';
   const c=DB.cases.find(x=>x.kb===id), rel=DB.knowledge.filter(x=>x.id!==id&&x.cat===k.cat);
-  return recHeader({icon:'i-know',em:'📖',label:'ナレッジ｜'+k.cat,title:esc(k.title),actions:`<span class="pill ${k.status==='下書き'?'y':'g'}">${k.status}</span>${k.status==='下書き'?`<button class="btn brand" onclick="byId(DB.knowledge,'${id}').status='公開済';toast('記事を公開しました');route()">公開する</button>`:''}<button class="btn" onclick="byId(DB.knowledge,'${id}').votes++;toast('「役に立った」を記録しました','info');route()">👍 役に立った（${k.votes}）</button>`,
+  return recHeader({icon:'i-know',em:'📖',label:'ナレッジ｜'+k.cat,title:esc(k.title),actions:`<span class="pill ${k.status==='下書き'?'y':'g'}">${k.status}</span>${k.status==='下書き'?`<button class="btn brand" onclick="byId(DB.knowledge,'${id}').status='公開済';toast('記事を公開しました');route()">公開する</button>`:''}${(k.voters||[]).includes(myUser().id)?`<span class="btn wp1-voted" title="記録済みです（1ユーザー1回まで）">👍 役に立った（済）</span>`:`<button class="btn" onclick="wp1Vote('${id}')">👍 役に立った（${k.votes}）</button>`}`,
     hl:[['カテゴリ',k.cat],['公開状況',k.status],['閲覧',k.views],['最終更新',fmtD(k.updated)],['元ケース',c?`<a href="#/case/${c.id}">${c.no} ${esc(c.subject)}</a>`:'—']]})
   +`<div class="grid2"><div class="card"><div class="card-b kb-article" style="padding-top:4px">${Object.entries(k.body).map(([h,t])=>`<h3>${h}</h3><p>${esc(t)}</p>`).join('')}</div></div>
   <div>${relCard('i-know','📖','同じカテゴリの記事',rel.length,rel.map(x=>`<div class="feed-item"><span class="obj-icon sm i-know">📖</span><a href="#/kb/${x.id}">${esc(x.title)}</a></div>`).join('')||'<div class="muted">なし</div>')}
@@ -2424,6 +2426,11 @@ function wp1Mfgdoc(id){
 
 /* ---------- ① 後工程への通知は hsComplete（notify：技術部宛て）で実施（REQ-1-15） ---------- */
 
+/* H001：前加工の真円度を、O001 の社内相談でお客様から回答を得た値（0.008mm）に合わせる */
+{ const r=(byId(DB.hearings,'H001').ans.qm||[]).find(x=>x.name==='真円度'); if(r) r.pre='0.008'; }
+/* 狭い画面（1列表示）では「定義を見る」で定義パネルまでスクロールする */
+function wp1ShowWhy(){ if(window.innerWidth>1100) return; const el=$('#whyPanel'); if(el){ const c=el.closest('.card')||el; window.scrollTo(0,Math.max(0,c.getBoundingClientRect().top+window.scrollY-8)); } }
+
 /* H002（回答完了済み）は任意項目も埋めて「全項目が埋まった製造依頼書」の見本にする（値は架空。分岐を開かない値を選んでいる） */
 Object.assign(byId(DB.hearings,'H002').ans,{
   'A-012':'検収後60日、立会検査あり','A-222':'1','A-061':'24000','A-063':'21','A-064':'20','A-065':'85','A-104':'要','A-107':'要',
@@ -2443,10 +2450,10 @@ DB.hearings.push({id:'H021',no:'SF-2026-00895',name:'いずみ金型工業 ガ�
 /* ---------- ⑤ ナレッジ：カテゴリを p7 の3分類に（REQ-5-02）、原価追加の再発防止記事（REQ-5-03） ---------- */
 ['KB04','KB08'].forEach(id=>{const k=byId(DB.knowledge,id); if(k){ k.cat='トラブル事例'; k.title=k.title.replace(/^既知の不具合：/,''); }});
 DB.knowledge.push(
-  {id:'KB21',title:'受注後のランクセレクト段数変更で追加工数が発生した事例と、ヒアリング時の確認ポイント',cat:'原因と対策',views:21,votes:6,status:'公開済',updated:'2026-10-05',
+  {id:'KB21',title:'受注後のランクセレクト段数変更で追加工数が発生した事例と、ヒアリング時の確認ポイント',cat:'原因と対策',views:21,votes:6,status:'公開済',updated:'2026-10-07',
     body:{現象:'自動ホーニングセル（モーターハウジング加工）の受注後に、ランクセレクトの段数を3ランクから5ランクへ変更する追加要求があり、設計・計測装置の変更で追加工数と部品費が発生した。',
       原因:'ヒアリング時にポスト計測（A-072）の有無は確認していたが、マッチング／ランクセレクトの別とランク数（A-072 系）を確定しないまま見積を提出していた。',
-      対策:'変更内容を追加請求として起票し、承認を得たうえで顧客へ見積を提示した。',
+      対策:'変更内容を追加請求として起票し、営業部長の承認を申請中（承認後に顧客へ見積を提示する予定）。',
       再発防止:'ヒアリングシート L3「測定・工程能力」でポスト計測が「あり」の場合は、方式（A-072）とランク数・NG排出方式までを見積前に確認し、未確定の場合は見積条件に明記する。'}},
   {id:'KB22',title:'試作材質の確認漏れによる試作やり直し（工数超過）と、材質・熱処理の確認方法',cat:'原因と対策',views:14,votes:3,status:'公開済',updated:'2026-09-30',
     body:{現象:'半自動ホーニング盤の試作加工で、受領した試作ワークの材質が想定と異なり、加工条件の見直しと試作のやり直しが発生し、試作加工の工数が予定を超過した。',
@@ -2456,6 +2463,9 @@ DB.knowledge.push(
 );
 /* 記事 → 関連するヒアリング項目ID（「この区分に関連」の判定に使う。仮置き：DC-18／CQ-15） */
 const KB_ITEMS = {KB02:['A-166','A-167','A-221','A-181'],KB03:['A-328'],KB05:['A-144'],KB06:['A-339'],KB07:['A-221','A-181','A-200'],KB21:['A-072','A-072c'],KB22:['A-016','A-017']};
+
+/* 「役に立った」はユーザー（ロール）ごとに1回まで */
+function wp1Vote(id){ const k=byId(DB.knowledge,id), u=myUser().id; k.voters=k.voters||[]; if(k.voters.includes(u)) return; k.voters.push(u); k.votes=(k.votes||0)+1; toast('「役に立った」を記録しました','info'); route(); }
 
 /* ---------- ⑤ 類似ナレッジ（ヒアリングシート内の検索パネル：REQ-5-04・5-05・5-07） ---------- */
 const wp1KbPub = () => DB.knowledge.filter(k=>k.status!=='下書き');
@@ -2569,7 +2579,7 @@ const RV_REQ0 = [
   ['REQ-0-06','ロール（企画・営業・技術）でホームの構成・ナビ・表示を切り替える。部門横断で全員が見るべき情報（進捗・原価予実・変更問題）は隠さない','レビューで確認','#/home'],
   ['REQ-0-07','製品機能と分離した「要件レビュー（レビュー用）」画面で、①〜⑦の要件・施策、該当画面への導線、デモ手順、ステップ区分、お客様確認事項を一覧する','必須'],
   ['REQ-0-08','実在の人名や参考画面の値をモックに使わない（データはすべて架空）','必須'],
-  ['REQ-0-09','版数の誤記を直す（オブジェクト構成の注記を「御見積書 ver2.3」に）','必須','#/objmap']];
+  ['REQ-0-09','見積書の版数表記を最新（御見積書 ver2.3）に統一する（オブジェクト構成の注記）','必須','#/objmap']];
 const RV_ROLE = {kikaku:'企画部',eigyo:'営業部',gijutsu:'技術部'};
 const rvKind = k => k==='必須'?'m':k==='推奨'?'r':'c';
 function rvBtn(label,h,role,cls){ return `<button class="btn ${cls||''}" onclick="goAs('${esc(h)}','${role||''}')">${esc(label)}${role?`<span class="rv-role">（${RV_ROLE[role]||role}ロール）</span>`:''}</button>`; }
