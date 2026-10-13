@@ -67,7 +67,7 @@ main{padding:12px;max-width:1500px;margin:0 auto}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 @media(max-width:1000px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
 .grid2>*,.grid3>*,.grid4>*{min-width:0}
-@media(max-width:700px){.path{flex-wrap:wrap}.path ol{overflow-x:auto;flex-basis:100%}.path li{min-width:96px}.path .btn{width:100%}main{padding:12px 16px}.g-tools label{display:none}.g-header{gap:6px;padding:0 8px}.g-search{min-width:0}.role-select{max-width:84px;padding:5px 4px}.notif-panel{right:8px}main .obj-map{grid-template-columns:1fr}.logo span{display:none}.g-tools{margin-left:auto}.tbl{min-width:640px}.bar-chart .row{grid-template-columns:110px 1fr 56px!important}.fields{grid-template-columns:1fr}.notif-panel{right:8px;width:calc(100vw - 16px)}.app-name{font-size:14px}.page-h h1{font-size:16px}}
+@media(max-width:700px){.path{flex-wrap:wrap}.path ol{overflow-x:auto;flex-basis:100%}.path li{min-width:96px}.path .btn{width:100%}main{padding:12px 16px}.g-tools label{display:none}.toast{top:auto;bottom:16px;min-width:0;width:calc(100vw - 32px)}.g-header{gap:6px;padding:0 8px}.g-search{min-width:0}.role-select{max-width:84px;padding:5px 4px}.notif-panel{right:8px}main .obj-map{grid-template-columns:1fr}.logo span{display:none}.g-tools{margin-left:auto}.tbl{min-width:640px}.bar-chart .row{grid-template-columns:110px 1fr 56px!important}.fields{grid-template-columns:1fr}.notif-panel{right:8px;width:calc(100vw - 16px)}.app-name{font-size:14px}.page-h h1{font-size:16px}}
 
 .obj-icon{width:28px;height:28px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
 .obj-icon.sm{width:22px;height:22px;font-size:12px}
@@ -2285,14 +2285,17 @@ function modal(title,body,onOk,okLabel,wide){
 }
 function modalSubmit(){const f=modalOk;if(f) f();closeModal();if(f) route();}
 function closeModal(){$('#overlay').innerHTML='';}
-function renderNotifCount(){const n=DB.notifs.filter(x=>x.unread&&isForMe(x)).length;const b=$('#notifCount');b.textContent=n||'';b.style.display=n?'':'none';
+/* 既読はユーザー（ロール）ごとに管理 */
+const isUnread = n => !!n.unread && !(n.readBy||[]).includes(myUser().id);
+function markRead(n){ n.readBy=n.readBy||[]; const id=myUser().id; if(!n.readBy.includes(id)) n.readBy.push(id); }
+function renderNotifCount(){const n=DB.notifs.filter(x=>isUnread(x)&&isForMe(x)).length;const b=$('#notifCount');b.textContent=n||'';b.style.display=n?'':'none';
   if(UI.notifOpen) renderNotifPanel();}
 function toggleNotif(){UI.notifOpen=!UI.notifOpen;renderNotifPanel();}
 function renderNotifPanel(){
-  const list=DB.notifs.map((n,i)=>({n,i})).filter(x=>UI.notifAll||isForMe(x.n));
-  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel" style="top:${Math.round($('.g-header').getBoundingClientRect().bottom)+4}px"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.filter(isForMe).forEach(n=>n.unread=false);renderNotifCount()">すべて既読にする</a></span></div>
+  const list=DB.notifs.map((n,i)=>({n,i})).filter(x=>UI.notifAll||isForMe(x.n)).sort((a,b)=>String(b.n.tm).localeCompare(String(a.n.tm)));
+  $('#notifPanel').innerHTML=UI.notifOpen?`<div class="notif-panel" style="top:${Math.round($('.g-header').getBoundingClientRect().bottom)+4}px"><div class="card-h">通知<span class="right"><a onclick="DB.notifs.filter(isForMe).forEach(markRead);renderNotifCount()">すべて既読にする</a></span></div>
     <div class="notif-scope"><a class="${UI.notifAll?'':'on'}" onclick="event.stopPropagation();UI.notifAll=false;renderNotifPanel()">自分宛て</a><a class="${UI.notifAll?'on':''}" onclick="event.stopPropagation();UI.notifAll=true;renderNotifPanel()">すべて（デモ確認用）</a></div>
-    ${list.slice(0,10).map(({n,i})=>`<div class="it ${n.unread?'unread':''}"><a href="${n.link}" onclick="DB.notifs[${i}].unread=false;UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}${n.to?`<span class="notif-to">宛先：${esc(toLabel(n.to))}</span>`:''}</div></div>`).join('')||'<div class="it muted">通知はありません</div>'}</div>`:'';
+    ${list.slice(0,10).map(({n,i})=>`<div class="it ${isUnread(n)?'unread':''}"><a href="${n.link}" onclick="markRead(DB.notifs[${i}]);UI.notifOpen=false;renderNotifPanel()">${esc(n.t)}</a><div class="tm">${n.tm}${n.to?`<span class="notif-to">宛先：${esc(toLabel(n.to))}</span>`:''}</div></div>`).join('')||'<div class="it muted">通知はありません</div>'}</div>`:'';
 }
 document.addEventListener('click',e=>{if(UI.notifOpen&&!e.target.closest('.notif-panel')&&!e.target.closest('.icon-btn')){UI.notifOpen=false;renderNotifPanel();}});
 
