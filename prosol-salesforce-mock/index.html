@@ -383,6 +383,9 @@ summary.rv-lab{cursor:pointer}
 .rv-req .rv-k{justify-self:start}
 .rv-req .btn{padding:0 8px;line-height:20px;font-size:12px;margin-left:4px}
 .rv-id{font-weight:700;white-space:nowrap}
+.rv-scope{display:flex;flex-wrap:wrap;gap:4px 24px;font-size:13px;margin-bottom:8px}
+table.rv-steps td.rv-tp{text-align:center;font-size:15px;color:#a96404}
+.wp1-donebadge{display:inline-flex;align-items:center;border-radius:4px;padding:4px 12px;line-height:22px;background:var(--green-bg);color:#194e31;font-weight:700;font-size:13px;white-space:nowrap}
 .rv-cq{display:inline-block;border:1px solid #f2b67a;background:#fff8ef;color:#8c4b02;border-radius:10px;padding:0 8px;font-size:12px;cursor:pointer}
 table.rv-steps td:first-child{white-space:nowrap}
 table.rv-cqt td:first-child{white-space:nowrap}
@@ -1168,8 +1171,8 @@ function newHearing(oppId){
 /* @owner WP1 */
 function pgHearing(id){
   const h=byId(DB.hearings,id); if(!h) return notFound();
-  if(UI.hsCtx!==id){UI.hsCtx=id;UI.hsGroup=null;}
-  const a=h.ans;
+  if(UI.hsCtx!==id){UI.hsCtx=id;UI.hsGroup=null;UI.hsLayer=1;UI.hsFocus=null;}   // 別のシートを開いたら表示中の区分・レイヤーをリセット
+  const a=h.ans, done=h.status==='完了';
   const G=(UI.hsGroup&&HS_GROUPS.includes(UI.hsGroup))?UI.hsGroup:(UI.hsGroup=null);
   if(G) UI.hsLayer=hsGroupL(G);
   const L=UI.hsLayer, inScope=q=>G?q.g===G:q.L===L, qs=visibleQs(a).filter(inScope);
@@ -1179,13 +1182,13 @@ function pgHearing(id){
   const body=qs.map(q=>{const head=!G&&q.g!==lastG?`<div class="qgrp">▶ ${esc(q.g)}</div>`:'';lastG=q.g;return head+qHtml(q,a,h);}).join('')||'<div class="muted small">回答内容により、この区分の項目は対象外です。</div>';
   const gi=G?HS_GROUPS.indexOf(G):-1, gp=G?hsGroupStep(a,gi,-1):-1, gn=G?hsGroupStep(a,gi,1):-1;
   const navBtns=G
-    ? `<div class="flex mt12">${gp>=0?`<button class="btn" onclick="wp1OpenGroup(${gp})">← 前の区分</button>`:''}<span style="margin-left:auto"></span>${gn>=0?`<button class="btn brand" onclick="wp1OpenGroup(${gn})">次へ →</button>`:`<button class="btn brand" onclick="hsComplete('${id}')">回答完了</button>`}</div>`
-    : `<div class="flex mt12">${L>1?`<button class="btn" onclick="UI.hsLayer=${L-1};UI.hsGroup=null;UI.hsFocus=null;route()">← 前のレイヤー</button>`:''}<span style="margin-left:auto"></span>${L<5?`<button class="btn brand" onclick="UI.hsLayer=${L+1};UI.hsGroup=null;UI.hsFocus=null;route();window.scrollTo(0,0)">次のレイヤー →</button>`:`<button class="btn brand" onclick="hsComplete('${id}')">回答完了</button>`}</div>`;
+    ? `<div class="flex mt12">${gp>=0?`<button class="btn" onclick="wp1OpenGroup(${gp})">← 前の区分</button>`:''}<span style="margin-left:auto"></span>${gn>=0?`<button class="btn brand" onclick="wp1OpenGroup(${gn})">次へ →</button>`:(done?'':`<button class="btn brand" onclick="hsComplete('${id}')">回答完了</button>`)}</div>`
+    : `<div class="flex mt12">${L>1?`<button class="btn" onclick="UI.hsLayer=${L-1};UI.hsGroup=null;UI.hsFocus=null;route()">← 前のレイヤー</button>`:''}<span style="margin-left:auto"></span>${L<5?`<button class="btn brand" onclick="UI.hsLayer=${L+1};UI.hsGroup=null;UI.hsFocus=null;route();window.scrollTo(0,0)">次のレイヤー →</button>`:(done?'':`<button class="btn brand" onclick="hsComplete('${id}')">回答完了</button>`)}</div>`;
   const formHead=G
     ? `<div class="card-h wp1-formh"><span>区分：${esc(hsShort(G))}<span class="small muted wp1-formh-l">（L${L} ${LAYERS[L-1].t}）</span></span><span class="right"><span class="small muted">${hidden?`回答内容により ${hidden} 項目を非表示中`:''}</span><button class="btn" onclick="UI.hsGroup=null;UI.hsFocus=null;route()">レイヤー全体を表示</button></span></div>`
     : `<div class="card-h">L${L}：${LAYERS[L-1].t}<span class="right small muted">${hidden?`回答内容により ${hidden} 項目を非表示中`:''}</span></div>`;
   return `<div class="page-h"><div class="top"><span class="obj-icon i-hear">📋</span><div><div class="obj-label">ヒアリングシート｜${h.no}</div><h1>${esc(h.name)}</h1></div>
-    <div class="actions"><button class="btn" onclick="go('#/mfgdoc/${id}')">製造依頼書プレビュー</button><button class="btn" onclick="wp1Save('${id}')">一時保存</button><button class="btn brand" onclick="hsComplete('${id}')">回答完了・加工技術へ連携</button></div></div>
+    <div class="actions"><button class="btn" onclick="go('#/mfgdoc/${id}')">製造依頼書プレビュー</button>${done?'<span class="wp1-donebadge">✓ 回答完了済み</span>':`<button class="btn" onclick="wp1Save('${id}')">一時保存</button><button class="btn brand" onclick="hsComplete('${id}')">回答完了・加工技術へ連携</button>`}</div></div>
     <div class="highlights">${fld('取引先',al(h.acc))}${fld('商談',`<a href="#/opp/${h.opp}">${esc((byId(DB.opps,h.opp)||{}).name)}</a>`)}${fld('状況',h.status)}${fld('必須項目の回答',`${D} / ${T}`)}${fld('最終更新',fmtD(h.updated))}${fld('準拠','データ項目定義書 V1.0（141項目）')}</div></div>
   ${wp1ResumeBar(h)}${wp1Tiles(h)}
   <div class="hs-layout">
@@ -1328,6 +1331,7 @@ function branchState(a){
 /* @owner WP1 */
 function hsComplete(id){
   const h=byId(DB.hearings,id); let D=0,T=0; const miss=[];
+  if(h.status==='完了'){toast('このヒアリングシートは回答完了済みです','info');return;}
   LAYERS.forEach(x=>{const[d,t]=layerProg(h.ans,x.n);D+=d;T+=t;});
   if(D<T){
     const vis=visibleQs(h.ans);
@@ -2417,6 +2421,13 @@ Object.assign(byId(DB.hearings,'H002').ans,{
   'A-329':'不要','A-332':['生産個数','ツール交換'],'A-334':'3段（赤・黄・緑）','A-335':'正面右側','A-338':'選択1','A-340':['高さ検出装置','エアブロー装置'],
   'A-341':['下穴検出装置(油圧)'],'A-174':'ISO VG32','A-186':'W3.5×D3.0m以内','A-189':'10〜40℃','A-190':'30〜90%RH','A-193':'ミストコレクター設置','A-199':'80dB以下 @1m',
   'A-209':'選択1','A-210':'3','A-215':'不要'});
+/* デモ用：回答中で必須項目がすべて埋まったシート（O017 に紐付け。回答完了→技術部への通知を見せる。値は架空） */
+DB.hearings.push({id:'H021',no:'SF-2026-00895',name:'いずみ金型工業 ガイドポスト穴 手動ホーニング盤',opp:'O017',acc:'A015',status:'回答中',updated:'2026-10-07',
+  ans:Object.assign(JSON.parse(JSON.stringify(HS_DOMESTIC_DONE)),{
+    'A-004':'岐阜県○○市 本社工場 金型加工棟','A-005':'村上 由美 / murakami@example.com','A-007':['品質向上'],'A-010':'7700000','A-008':'PR12','A-009':'1','A-011':'2027-02-26',
+    'A-303':'既納先','A-304':'（既納機 機番）','A-013':'ガイドポスト穴','works':[{part:'GP-20-01'}],'A-016':'SKD11','A-017':'焼入れ焼戻し HRC58-60',
+    'A-225':'20','A-226':'60','A-227':'5','A-228':'10','A-137':'手動機(MM系)','A-130':'10','A-131':'2026-11-16'})});
+{ const o=byId(DB.opps,'O017'); if(o) o.hearing='H021'; }
 
 /* ---------- ⑤ ナレッジ：カテゴリを p7 の3分類に（REQ-5-02）、原価追加の再発防止記事（REQ-5-03） ---------- */
 ['KB04','KB08'].forEach(id=>{const k=byId(DB.knowledge,id); if(k){ k.cat='トラブル事例'; k.title=k.title.replace(/^既知の不具合：/,''); }});
@@ -2440,7 +2451,7 @@ const wp1KbPub = () => DB.knowledge.filter(k=>k.status!=='下書き');
 /* 検索語の自動セット：機種の商品名の主要語・加工品名・海外なら国名（キーワード一致のみ。AI推薦はしない） */
 function wp1KbTerms(h){
   const a=h.ans, t=[], m=byId(DB.products,a['A-008']);
-  if(m) t.push(m.name.replace(/（.*?）/g,'').replace(/^(縦型|横型|半自動|手動)/,'').trim());
+  if(m){ const w=m.name.replace(/（.*?）/g,'').replace(/^(縦型|横型|半自動|手動)/,'').trim(); if(!/^ホーニング盤?$/.test(w)) t.push(w); }   // 一般語「ホーニング盤」は全機種に共通で絞り込みにならないため除く
   if(a['A-013']) t.push(String(a['A-013']).replace(/（.*?）/g,'').trim());
   if(isOverseas(a)) t.push(a['A-003']);
   return [...new Set(t.filter(Boolean))].slice(0,3).join(' ');
@@ -2495,21 +2506,22 @@ EXT.header.push(()=>'<a class="review-btn" href="#/review" title="要件レビ�
 const RV_TOPICS = [
   ['①','p10',1,'ヒアリングシート電子化'],['②','p11',1,'部門横断SNS（Chatter・標準機能）'],['③','p12',1,'顧客からの追加要求のチケット管理'],
   ['④','p13',2,'原価予実管理'],['⑤','p14',1,'再発防止ナレッジ'],['⑥','p15',1,'変更・問題情報管理'],['⑦','p16',2,'案件進捗の全体管理']];
+/* p7「スコープと実施内容」の表（原典の並び順）：[区分, 作業項目, 実施内容, 運用開始(1/2/0=共通), 対応するトピック] */
 const RV_STEPS = [
-  ['業務プロセス整流化','① ヒアリングシート電子化','各部門へのヒアリング結果をもとに入力画面を構築し、案件・商談と連携',1],
-  ['基盤構築','② 部門横断SNS（Chatter）','案件・商談ごとの会話をChatterへ一本化（標準機能として設定）',1],
-  ['業務プロセス整流化','③ 顧客からの追加要求のチケット管理（追加費用回収フロー）','受注後の追加要求をチケットで起票・通知し、影響範囲の特定から追加費用の請求までを管理',1],
-  ['業務プロセス整流化','④ 原価予実管理','案件・工数・仕入データで原価・予実を可視化（基幹実績とのTableau連携は予定）',2],
-  ['業務プロセス整流化','⑤ 再発防止ナレッジ','Salesforce Knowledgeでトラブル事例・原因と対策・作業手順を記事化',1],
-  ['業務プロセス整流化','⑥ 変更・問題情報管理','ケースで起票から問題情報管理・クローズまでを実装し、クローズ時にナレッジ化',1],
-  ['基盤構築','⑦ 案件進捗の全体管理（p7：案件オブジェクト構築・進捗管理）','案件の器と関連オブジェクトのリレーションを整備し、進捗・粗利・納期の集約ロジックを実装',2],
-  ['基盤構築','要件レビュー・業務照合','Salesforce社で整理済みの要件を実業務と突合し、実装可否と優先度を確定（全16回・PM同席）',0],
-  ['基盤構築','基本設計／詳細設計','オブジェクト構成・Flow・項目定義・基幹連携項目・帳票レイアウトの設計とドキュメント作成',0],
-  ['基盤構築','フロントエンド開発','各オブジェクトの項目・レイアウト・Lightningページ設定、部門別のレイアウト分岐・権限制御',0],
-  ['基盤構築','自動化フロー開発','商談成約時の案件自動生成、関連ユーザーへの通知、案件ステータスの更新',0],
-  ['基盤構築','データインポート開発','商品マスタをCSVで取り込むバッチ（Windows Scheduler＋データローダー、1日1回）',0],
-  ['基盤構築','テスト／リリース','Flow・承認・帳票出力・バッチ処理など主要機能の動作確認と本番反映',0]];
-/* お客様確認事項（DECISIONS.md「3. 明日お客様に確認する事項」から番号・文言どおり転記）。末尾は関連画面 [h, role] */
+  ['基盤構築','要件レビュー・業務照合','Salesforce社で整理済みの要件を実業務と突合し、実装可否と優先度を確定（全16回・PM同席）',0,''],
+  ['基盤構築','基本設計／詳細設計','オブジェクト構成・Flow・項目定義・基幹連携項目・帳票レイアウトの設計とドキュメント作成',0,''],
+  ['基盤構築','フロントエンド開発','各オブジェクトの項目・レイアウト・Lightningページ設定、部門別のレイアウト分岐・権限制御',0,''],
+  ['基盤構築','案件オブジェクト構築・進捗管理','案件の器と関連オブジェクトのリレーションを整備し、進捗・粗利・納期の集約ロジックを実装',2,'⑦'],
+  ['基盤構築','自動化フロー開発','商談成約時の案件自動生成、関連ユーザーへの通知、案件ステータスの更新',0,''],
+  ['基盤構築','データインポート開発','商品マスタをCSVで取り込むバッチ（Windows Scheduler＋データローダー、1日1回）',0,''],
+  ['基盤構築','部門横断SNS（Chatter）','案件・商談ごとの会話をChatterへ一本化（標準機能として設定）',1,'②'],
+  ['基盤構築','テスト／リリース','Flow・承認・帳票出力・バッチ処理など主要機能の動作確認と本番反映',0,''],
+  ['業務プロセス整流化','ヒアリングシート電子化','各部門へのヒアリング結果をもとに入力画面を構築し、案件・商談と連携',1,'①'],
+  ['業務プロセス整流化','顧客からの追加要求のチケット管理（追加費用回収フロー）','受注後の追加要求をチケットで起票・通知し、影響範囲の特定から追加費用の請求までを管理',1,'③'],
+  ['業務プロセス整流化','原価予実管理','案件・工数・仕入データで原価・予実を可視化（基幹実績とのTableau連携は予定）',2,'④'],
+  ['業務プロセス整流化','再発防止ナレッジ','Salesforce Knowledgeでトラブル事例・原因と対策・作業手順を記事化',1,'⑤'],
+  ['業務プロセス整流化','変更・問題情報管理','ケースで起票から問題情報管理・クローズまでを実装し、クローズ時にナレッジ化',1,'⑥']];
+/* お客様確認事項（DECISIONS.md「3. 明日お客様に確認する事項」から番号・文言どおり転記。CQ-26 は第1ラウンドのチェックで追加）。末尾は関連画面 [h, role] */
 const RV_CQ = [
   ['CQ-01','①','商談フェーズごとに、どのレイヤー（区分）まで聞くか','引き合いL1／ヒアリングL1〜2／仕様提案L1〜3／見積提出L1〜4／交渉・受注L1〜5','DC-02, REQ-1-05','#/hearing/H001'],
   ['CQ-02','①','「製造依頼書」の様式。p20/21 の「起案書」「仕様提案書発行依頼」と同じものか。出力形式（画面・PDF・帳票）','区分ごとの一覧形式のプレビュー（様式未確定と表示）','DC-03, REQ-1-08','#/mfgdoc/H002'],
@@ -2535,7 +2547,8 @@ const RV_CQ = [
   ['CQ-22','⑦','進捗段階（仕様確認〜納入）と部門別管理オブジェクトの名称・数（p16 は3つ、p18 は加工・機案・設計・製造・調達・工数・依頼）','段階6つ、子5つ＋工数','DC-26, REQ-7-02','#/project/P003'],
   ['CQ-23','⑦','遅延フラグ・ランプ・注意表示の判定ルール','遅延＝未完了の期日超過、注意＝7日以内','DC-27, REQ-7-04','#/projects'],
   ['CQ-24','共通','商談成約時に自動生成する範囲（案件と子レコード、日程の初期値）','案件＋子5つ（標準リードタイムで仮置き）','DC-28, REQ-0-03','#/opp/O009'],
-  ['CQ-25','共通','部門ごとに隠す情報（原価・粗利を技術・製造に見せるか、変更・問題を営業に見せるか）','部門横断の情報は全ロールに表示','DC-29, REQ-0-06','#/home']];
+  ['CQ-25','共通','部門ごとに隠す情報（原価・粗利を技術・製造に見せるか、変更・問題を営業に見せるか）','部門横断の情報は全ロールに表示','DC-29, REQ-0-06','#/home'],
+  ['CQ-26','⑥','仕様変更の理由の選択肢（現状は「顧客理由」のほか（仮）社内理由・（仮）その他を仮置き）','顧客理由／（仮）社内理由／（仮）その他','REQ-6-03','#/project/P003']];
 const RV_REQ0 = [
   ['REQ-0-01','各機能の運用開始ステップ（①②③⑤⑥＝ステップ1で完全運用、④⑦＝ステップ2から運用、自動化フロー等＝共通）を区別して示す','必須'],
   ['REQ-0-02','作り込みの範囲は引き合い〜受注〜設計DR。製造・納入は進捗段階として見える程度にとどめる','レビューで確認'],
@@ -2544,7 +2557,7 @@ const RV_REQ0 = [
   ['REQ-0-05','案件の進捗段階の更新が関係者へ通知され、履歴に残る','必須','#/project/P003'],
   ['REQ-0-06','ロール（企画・営業・技術）でホームの構成・ナビ・表示を切り替える。部門横断で全員が見るべき情報（進捗・原価予実・変更問題）は隠さない','レビューで確認','#/home'],
   ['REQ-0-07','製品機能と分離した「要件レビュー（レビュー用）」画面で、①〜⑦の要件・施策、該当画面への導線、デモ手順、ステップ区分、お客様確認事項を一覧する','必須'],
-  ['REQ-0-08','実在・画像由来の人名・値をモックに出さない','必須'],
+  ['REQ-0-08','実在の人名や参考画面の値をモックに使わない（データはすべて架空）','必須'],
   ['REQ-0-09','版数の誤記を直す（オブジェクト構成の注記を「御見積書 ver2.3」に）','必須','#/objmap']];
 const RV_ROLE = {kikaku:'企画部',eigyo:'営業部',gijutsu:'技術部'};
 const rvKind = k => k==='必須'?'m':k==='推奨'?'r':'c';
@@ -2554,7 +2567,7 @@ function rvText(x){ return Array.isArray(x)?`<ul class="rv-ul">${x.map(s=>`<li>$
 function rvCard(t){
   const [topic,page,step,title]=t, e=EXT.review.filter(r=>r.topic===topic);
   const head=`<div class="rv-ch"><span class="rv-topic">${topic}</span><div class="rv-tt"><b>${esc((e[0]&&e[0].title)||title)}</b><span class="small muted">キックオフ資料 ${(e[0]&&e[0].page)||page}</span></div>${stepBadge(e[0]&&e[0].step!=null?e[0].step:step)}</div>`;
-  if(!e.length) return `<div class="card rv-card">${head}<div class="card-b"><div class="muted small">（このトピックは WP2／WP3 の統合後に表示されます）</div></div></div>`;
+  if(!e.length) return `<div class="card rv-card">${head}<div class="card-b"><div class="muted small">（このトピックの内容は準備中です）</div></div></div>`;
   return e.map(r=>{
     const reqs=r.reqs||[], cnt=k=>reqs.filter(x=>x[2]===k).length;
     return `<div class="card rv-card">${head}<div class="card-b"><div class="rv-body"><div>
@@ -2570,16 +2583,16 @@ function rvCard(t){
 function wp1Review(){
   const topics=[...RV_TOPICS].sort((a,b)=>'①②③④⑤⑥⑦'.indexOf(a[0])-'①②③④⑤⑥⑦'.indexOf(b[0]));
   return `<div class="rv-banner"><div class="rv-banner-t">本画面は要件レビュー用です。製品（Salesforce）の機能ではありません</div>
-    <div class="small">出典：キックオフ資料 p7・p10〜p16。要件ID・区分は要件トレーサビリティ表（RTM）、仮置きの値・確認事項は判断記録（DECISIONS）に基づきます。</div>
+    <div class="small">出典：キックオフ資料 p7・p10〜p16。要件番号・区分は本プロジェクトの要件一覧、仮置きの値・確認事項は判断記録に基づきます。</div>
     <div class="rv-legend small"><span>要件の区分：</span><span class="rv-k m">必須</span><span class="rv-k r">推奨</span><span class="rv-k c">レビューで確認</span><span class="rv-sep">運用開始：</span>${stepBadge(1)}${stepBadge(2)}${stepBadge(0)}</div></div>
   <div class="page-h"><div class="top"><span class="obj-icon i-report">📝</span><div><div class="obj-label">要件レビュー（レビュー用）</div><h1>ソリューションイメージ①〜⑦の要件とデモ手順</h1></div></div></div>
-  <div class="card"><div class="card-h">p7 スコープと運用開始のステップ区分</div><div class="card-b"><div class="tbl-wrap"><table class="wp1-mini rv-steps"><thead><tr><th>区分</th><th>作業項目</th><th>実施内容（p7）</th><th>運用開始</th></tr></thead><tbody>
-    ${RV_STEPS.map(s=>`<tr><td>${s[0]}</td><td><b>${esc(s[1])}</b></td><td>${esc(s[2])}</td><td>${stepBadge(s[3])}</td></tr>`).join('')}</tbody></table></div>
+  <div class="card"><div class="card-h">p7 スコープと運用開始のステップ区分</div><div class="card-b"><div class="rv-scope"><span><b>対象</b>：赤坂工場 ホーニング上流プロセス（引き合い〜受注〜設計DR）</span><span><b>目標</b>：2027年2月下旬 本番リリース</span></div><div class="tbl-wrap"><table class="wp1-mini rv-steps"><thead><tr><th>区分</th><th>作業項目</th><th>実施内容（p7）</th><th>運用開始</th><th>本画面のトピック</th></tr></thead><tbody>
+    ${RV_STEPS.map(s=>`<tr><td>${s[0]}</td><td><b>${esc(s[1])}</b></td><td>${esc(s[2])}</td><td>${stepBadge(s[3])}</td><td class="rv-tp">${s[4]||'—'}</td></tr>`).join('')}</tbody></table></div>
     <div class="small muted mt8">※ 運用開始のステップ区分は、NPSDX導入判断会資料「解決が必要なテーマ」に基づきます（p7）。</div></div></div>
   <div class="rv-cards">${topics.map(rvCard).join('')}</div>
-  <div class="card" id="rv-cqlist"><div class="card-h">お客様確認事項（${RV_CQ.length}件）<span class="right small muted">モック上は仮置きで表示しています</span></div><div class="card-b"><div class="tbl-wrap"><table class="wp1-mini rv-cqt"><thead><tr><th>番号</th><th>トピック</th><th>確認したいこと</th><th>モック上の仮置き</th><th>関連</th><th>関連画面</th></tr></thead><tbody>
-    ${RV_CQ.map(c=>`<tr id="rv-${c[0]}"><td><b>${c[0]}</b></td><td>${c[1]}</td><td>${esc(c[2])}</td><td>${esc(c[3])}</td><td class="small">${esc(c[4])}</td><td>${rvBtn('開く',c[5])}</td></tr>`).join('')}</tbody></table></div></div></div>
-  <div class="card"><div class="card-h">共通要件（REQ-0）</div><div class="card-b"><div class="rv-reqs">
+  <div class="card" id="rv-cqlist"><div class="card-h">お客様確認事項（${RV_CQ.length}件）<span class="right small muted">モック上は仮置きで表示しています</span></div><div class="card-b"><div class="tbl-wrap"><table class="wp1-mini rv-cqt"><thead><tr><th>番号</th><th>トピック</th><th>確認したいこと</th><th>モック上の仮置き</th><th>関連する要件</th><th>関連画面</th></tr></thead><tbody>
+    ${RV_CQ.map(c=>`<tr id="rv-${c[0]}"><td><b>${c[0]}</b></td><td>${c[1]}</td><td>${esc(c[2])}</td><td>${esc(c[3])}</td><td class="small">${esc(String(c[4]).split(/,\s*/).filter(x=>!/^DC-/.test(x)).join(', '))}</td><td>${rvBtn('開く',c[5])}</td></tr>`).join('')}</tbody></table></div></div></div>
+  <div class="card"><div class="card-h">共通要件（全体に関わる要件）</div><div class="card-b"><div class="rv-reqs">
     ${RV_REQ0.map(x=>`<div class="rv-req"><span class="rv-k ${rvKind(x[2])}">${esc(x[2])}</span><span class="rv-id">${x[0]}</span><span>${esc(x[1])}${x[3]?' '+rvBtn('開く',x[3],x[4]):''}</span></div>`).join('')}</div></div></div>
   <div class="card"><div class="card-h">モックの前提</div><div class="card-b"><ul class="rv-ul">
     <li>表示データはすべて架空のデモデータです。ブラウザ内のみで動作し、データは保存されません（再読み込みで初期状態に戻ります）。</li>
@@ -2619,7 +2632,7 @@ EXT.review.push({
     {text:'「製造依頼書プレビュー」で未入力の項目を確認（H001）',h:'#/mfgdoc/H001',role:'eigyo'},
     {text:'入力済みのシート（H002）の製造依頼書を確認',h:'#/mfgdoc/H002',role:'eigyo'},
     {text:'案件 P003 の「関連」タブ → ヒアリングシート H002 → 製造依頼書プレビュー',h:'#/project/P003',role:'gijutsu'},
-    {text:'H004 で「回答完了・加工技術へ連携」を押す',h:'#/hearing/H004',role:'eigyo'},
+    {text:'必須項目がすべて埋まったシート（H021）で「回答完了・加工技術へ連携」を押す',h:'#/hearing/H021',role:'eigyo'},
     {text:'技術部ロールに切り替え、通知（🔔「自分宛て」）に完了の通知が届いていることを確認',h:'#/home',role:'gijutsu'}],
   cq:['CQ-01','CQ-02','CQ-03','CQ-06']
 });
