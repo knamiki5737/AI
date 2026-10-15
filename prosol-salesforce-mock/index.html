@@ -478,6 +478,15 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 /* ===== WPC BEGIN ===== */
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
+.wpp-k{border-top:3px solid #0176d3}
+.wpp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px}
+.wpp-ng{background:#f3f3f3;border:1px dashed #939393;border-radius:4px;padding:8px 10px}
+.wpp-row{display:grid;grid-template-columns:64px 1fr auto;gap:6px;align-items:start;padding:6px 0;border-bottom:1px solid #eee}
+.wpp-row:last-child{border-bottom:0}
+.wpp-src{font-size:11px;color:#706e6b}
+.wpp-tag{display:inline-block;font-size:11px;border-radius:3px;padding:0 6px;line-height:18px;border:1px solid #9ab8d9;background:#eef4ff;color:#014486;white-space:nowrap}
+.wpp-tag.ng{border-color:#c9c9c9;background:#f3f3f3;color:#444}
+@media(max-width:700px){.wpp-row{grid-template-columns:56px 1fr}.wpp-row>div:last-child{grid-column:1/-1}}
 /* ===== WPP END ===== */
 </style>
 </head>
@@ -3667,6 +3676,58 @@ EXT.review.push({
 /* ===== WPC BEGIN ===== */
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
+/* 要件レビュー画面：10/14 キックオフ（キックオフ・営業分科会・技術ヒアリング）反映分の章（PL） */
+const KO_SRC = {営:'営業分科会議事録',技:'技術ヒアリング業務整理',K:'キックオフヒアリング整理',TB:'To-Be業務と仕組み'};
+/* [ID, 区分, 要件, 出典, 確認する画面 h, ロール] — 「作らない」は h なし */
+const KO_ITEMS = [
+  ['K-A01','営業','商談フェーズを4段階（引き合い→検討→正式→受注）に変更','営05','#/opp/O001','eigyo'],
+  ['K-A02','営業','商談ランク（OK／A／B／C）と定義の表示（条件は今後見直し）','営06','#/opp/O006','eigyo'],
+  ['K-A03','営業','フェーズ×ランクの集計（営業会議資料）・Excel出力','営05・06','#/home','eigyo'],
+  ['K-A04','営業','OKランクから受注計画（年度・月別）','営06','#/opps','eigyo'],
+  ['K-A05','営業','入力が起点：キーマン・最近の活動が商談で見える','営07','#/opp/O001','eigyo'],
+  ['K-A06','営業','支払条件：取引先マスター＋案件ごとに確認','営12','#/opp/O001','eigyo'],
+  ['K-A07','営業','案件区分（リピート／新規カスタム）と類似案件の比較','技12・K11','#/opp/O001','eigyo'],
+  ['K-B01','問い合わせ','問い合わせの使い分け（Chatter／ワークフロー）','営09','#/requests','eigyo'],
+  ['K-B02','問い合わせ','Chatterで回答者をメンション指定','営10','#/opp/O001','eigyo'],
+  ['K-B03','問い合わせ','ワークフロー：回答期限・期限超過アラート・エスカレーション・受領／回答の可視化','営10','#/requests','gijutsu'],
+  ['K-B04','問い合わせ','現行帳票の項目（依頼番号／希望回答日／回答部署／回答・確認・承認）','技03','#/requests','gijutsu'],
+  ['K-B05','ヒアリング','未確定事項・追加質問・回答を双方向で管理（先行着手の判断）','技03・K06','#/hearing/H001','eigyo'],
+  ['K-B06','ヒアリング','ヒアリングシート→製造依頼書へ再入力なく連携','営11','#/mfgdoc/H002','eigyo'],
+  ['K-B07','仕様提案','仕様提案書（起案書）の6区分（外観・動き・ユニット/ツール・ワーク・治具・要求精度）','技05・営08','#/opp/O001','gijutsu'],
+  ['K-B08','設計引継ぎ','設計着手時のDR引継ぎ（最新仕様／変更箇所／確認済み範囲、顧客提示と社内参考）','技06','#/project/P003','gijutsu'],
+  ['K-B09','試験・調査','テスト加工・調査の工数と結果を案件にひも付け（有償・無償、別手配）','技09','#/opp/O001','gijutsu'],
+  ['K-B10','試験・調査','進行状況を捉えて試作加工へ自動通知','TB','#/opp/O009','eigyo'],
+  ['K-C01','原価','原価をユニット単位で捉える（ユニット→部品・工数）','技07','#/project/P003','kikaku'],
+  ['K-C02','原価','見積原価の根拠（コストテーブル／類似実績／都度見積）と工数','技08','#/project/P003','kikaku'],
+  ['K-C03','原価','見積時→変更見込→実績の比較と差異理由','技10','#/project/P003','kikaku'],
+  ['K-C04','変更・追加','変更・追加要求の起点（顧客／社内）と影響（原価・納期）、有償・無償','K07','#/requests','eigyo'],
+  ['K-C05','変更・追加','判断・承認ルール（起票者・タイミング・承認者・例外＝未確定のまま先行）','K08','#/requests','eigyo'],
+  ['K-C06','ナレッジ','問題の解決に加え、原価低減・成功事例も蓄積','K09','#/knowledge',''],
+  ['K-C07','システム分担','既存システムとの役割分担（OBIC・技術情報DB）','技11','#/objmap',''],
+  ['K-C08','段階運用','原価予実・案件進捗は段階的に運用','K03・K12','#/costs','kikaku']];
+const KO_NOT = [
+  ['詳細な日程管理（総合日程・納期）','営12・13','次ステップ以降'],
+  ['支給品（ワーク・部品）の期日管理・アラート','営12・13・TB','次ステップ以降'],
+  ['SV（海外据付）の日程管理','営12・13','次ステップ以降'],
+  ['見積書の自動出力','営08・13','次ステップ以降（当面は既存の方法）'],
+  ['手数料（インセンティブ）・ネット利益の管理','営04・13','今回は必須機能としない'],
+  ['補修パーツ・消耗品のネット管理','営08・13','次ステップ以降'],
+  ['製造依頼書の変更の電子化・ワークフロー化、日程変更の項目化と通知','営12','方向性は確認済み。範囲は要確認（CQ-31）'],
+  ['既存データ移行（現行システムの約2年分）','K10','範囲・添付/履歴・切替日は未確定（CQ-32）'],
+  ['納入後の保守・改造履歴、AI活用（Agentによるトラブル初期対応）、他部門・他事業への展開','K12・TB','将来・範囲調整']];
+function wppKoSection(){
+  const groups=[...new Set(KO_ITEMS.map(x=>x[1]))];
+  return `<div class="card wpp-k" id="rv-ko1014"><div class="card-h">10/14 キックオフ反映分（${KO_ITEMS.length}項目）<span class="right small muted">出典：${Object.values(KO_SRC).join('／')}（2026/10/14）</span></div>
+  <div class="card-b"><div class="small muted mb8">10/14 のキックオフ・営業分科会・技術ヒアリングで確認した内容を、画面に反映した項目です。「開く」で該当画面へ移動します（必要に応じてロールを切り替えます）。</div>
+  ${groups.map(g=>`<div class="rv-lab mt12">${esc(g)}</div>${KO_ITEMS.filter(x=>x[1]===g).map(x=>`<div class="wpp-row"><span class="rv-id"><b>${x[0]}</b></span><div>${esc(x[2])}<div class="wpp-src">出典：${esc(x[3])}</div></div><div>${rvBtn('開く',x[4],x[5])}</div></div>`).join('')}`).join('')}
+  <div class="rv-lab mt12">今回は作らないもの（資料で次ステップ以降・範囲外・未確定とされたもの）</div>
+  <div class="wpp-ng">${KO_NOT.map(x=>`<div class="wpp-row"><span class="wpp-tag ng">作らない</span><div>${esc(x[0])}<div class="wpp-src">出典：${esc(x[1])}</div></div><div class="small">${esc(x[2])}</div></div>`).join('')}</div>
+  </div></div>`;
+}
+EXT.routes.review = () => { const h=wp1Review(), k='<div class="rv-cards">'; return h.includes(k)?h.replace(k,wppKoSection()+k):h+wppKoSection(); };
+/* 確認事項の更新：10/14 で確認できたもの（CQ-01・CQ-06）を反映 */
+(()=>{ const c1=RV_CQ.find(c=>c[0]==='CQ-01'); if(c1) c1[3]='（10/14 4段階化に伴い読み替え）引き合いL1〜2／検討L1〜3／正式・受注L1〜5';
+  const c6=RV_CQ.find(c=>c[0]==='CQ-06'); if(c6){ c6[2]='日進ProSOL様の商談フェーズ【10/14 営業分科会で確認：引き合い→検討→正式→受注の4段階＋ランク】。管理の粒度は現場の運用に合わせて今後決定'; c6[3]='4段階＋ランク（OK/A/B/C）に変更済み'; } })();
 /* ===== WPP END ===== */
 
 applyRoleUi();
