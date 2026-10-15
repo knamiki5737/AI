@@ -496,6 +496,7 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpb-spec-s{border:1px solid var(--border-light);border-radius:4px;padding:6px 8px;min-width:0;overflow-wrap:anywhere}
 .wpb-spec-h{font-weight:700;font-size:12.5px;margin-bottom:2px}
 .wpb-autonote{font-size:12px}
+.wpb-inqi{padding:4px 0;border-bottom:1px solid var(--border-light);overflow-wrap:anywhere}
 @media(max-width:700px){.wpb-entry,.wpb-spec{grid-template-columns:1fr}.wpb-flow{grid-template-columns:1fr 1fr}}
 /* ===== WPB END ===== */
 /* ===== WPC BEGIN ===== */
@@ -3696,19 +3697,21 @@ const wpbAddDays = (iso,n) => { const x=new Date(iso); x.setDate(x.getDate()+n);
 const wpbTodayIso = () => TODAY.toISOString().slice(0,10);
 
 /* ---------- K-B01・K-B03・K-B04 問い合わせ（ワークフロー） ----------
-   既存の DB.requests（依頼・チケット）に種別「技術問い合わせ」を追加する。
-   ・既存の「部門対応依頼」は受注後の追加要求（親チケット）の子で、案件（pj）が必須のため、受注前の商談にひも付く問い合わせには使わない
-   ・一覧・ホームの「未完了の依頼」・検索・通知は既存の依頼の仕組みをそのまま使う */
+   新しいオブジェクト「問い合わせ」（DB.wpbInq）として持ち、依頼タブ配下に置く（DB.requests の種別には追加しない）。
+   ・既存の「部門対応依頼」は受注後の追加要求（親チケット）の子で、案件（pj）が必須。問い合わせは受注前の商談にひも付く
+   ・③チケットのフェーズは 起票→受付→対応→完了（承認なし：DC-08）。問い合わせは 受領→回答→確認→承認 の記録が必要で流れが違う */
 const WPB_INQ = '技術問い合わせ';
 const WPB_FLOW = ['受付待ち','対応中','回答確認待ち','回答承認待ち','完了'];
 const WPB_STEPS = ['依頼','受領','回答','確認','承認'];
 const WPB_CATS = ['製品仕様','費用','その他'];          // 問い合わせ区分（仮置き）
 const WPB_DUES = {'3日':3,'5日':5,'任意':null};       // 回答期限（例：3日・5日。暦日で計算＝仮置き）
-const wpbIsInq = r => r&&r.type===WPB_INQ;
+DB.wpbInq = [];
+const wpbIsInq = r => !!r&&DB.wpbInq.includes(r);
+const wpbInqNo = () => 'IQ-2026-'+String(DB.wpbInq.length+1).padStart(4,'0');   // 問い合わせ番号（採番形式は仮置き）
 const wpbOver = r => wpbIsInq(r)&&r.due&&r.status!=='完了'&&daysTo(r.due)<0;
 Object.assign(EXT.pill,{'回答確認待ち':'y','回答承認待ち':'y','未回答':'y','回答済':'g','実施済':'g','予定':''});
 (function(){
-  const I=o=>DB.requests.push(Object.assign({type:WPB_INQ,pj:null,parent:null,lines:[],approvals:[],assignee:'',esc:[],no:tkNewNo(),to:'技術部',approver:'石井 隆'},o));
+  const I=o=>DB.wpbInq.push(Object.assign({type:WPB_INQ,assignee:'',esc:[],no:wpbInqNo(),to:'技術部',approver:'石井 隆'},o));
   I({id:'B01',opp:'O001',name:'多軸仕様での要求精度（真円度0.003mm）の保証可否',cat:'製品仕様',requester:'山田 太郎',created:'2026-10-01',dueKind:'5日',due:'2026-10-06',
     status:'対応中',assignee:'佐藤 健',checker:'木村 拓也',recv:{who:'佐藤 健',at:'2026/10/01 15:20'},
     desc:'多軸タイプでの更新にあたり、前加工の真円度0.008mmから目標0.003mmまでの精度保証が可能か、正式見積の前に判断をお願いします（費用・仕様に影響するためワークフローで依頼）。'});
@@ -3724,10 +3727,8 @@ Object.assign(EXT.pill,{'回答確認待ち':'y','回答承認待ち':'y','未�
   I({id:'B04',opp:'O009',name:'釜内径の要求精度に対する加工可否と仕様の確認',cat:'製品仕様',requester:'山田 太郎',created:'2026-10-07',dueKind:'任意',due:'2026-10-20',
     status:'受付待ち',checker:'井上 亜希',
     desc:'お客様の要求精度（真円度・面粗度）に対して、加工可否と設備仕様（手動機／半自動機）の判断をお願いします。'});
-  DB.notifs.push({t:'【問い合わせ】「釜内径の要求精度に対する加工可否と仕様の確認」が届きました（回答部署：技術部／希望回答日 2026/10/20）',tm:'2026/10/07 10:30',link:'#/request/B04',unread:true,to:{depts:['技術部']}});
+  DB.notifs.push({t:'【問い合わせ】「釜内径の要求精度に対する加工可否と仕様の確認」が届きました（回答部署：技術部／希望回答日 2026/10/20）',tm:'2026/10/07 10:30',link:'#/wpbinq/B04',unread:true,to:{depts:['技術部']}});
 })();
-/* ホームの「未完了の依頼」に、問い合わせの回答確認待ち・回答承認待ちも含める */
-{ const _f=EXT.fn.reqPending; EXT.fn.reqPending=()=>[..._f(),...DB.requests.filter(r=>wpbIsInq(r)&&['回答確認待ち','回答承認待ち'].includes(r.status))]; }
 
 /* 入口：使い分けの案内（Chatterで相談／ワークフローで依頼） */
 function wpbInqEntry(oid){
@@ -3769,39 +3770,39 @@ function wpbNewInq(oid){
     <label>問い合わせ内容<textarea id="wpbInqDesc" rows="3" placeholder="判断してほしいこと・前提条件など"></textarea></label>
     <div class="small muted">起票すると回答部署へ通知します。期限は起票日（2026/10/08）からの暦日で計算します（営業日か暦日かは要確認）。</div></div>`,
     ()=>{ const name=$('#wpbInqName').value.trim()||'（件名未入力）', to=$('#wpbInqTo').value;
-      let n=DB.requests.filter(wpbIsInq).length+1, nid; do{ nid='B'+String(n++).padStart(2,'0'); }while(byId(DB.requests,nid));
-      const r={id:nid,no:tkNewNo(),type:WPB_INQ,pj:null,parent:null,lines:[],approvals:[],esc:[],assignee:'',opp:oid,name,cat:$('#wpbInqCat').value,to,
+      let n=DB.wpbInq.length+1, nid; do{ nid='B'+String(n++).padStart(2,'0'); }while(byId(DB.wpbInq,nid));
+      const r={id:nid,no:wpbInqNo(),type:WPB_INQ,esc:[],assignee:'',opp:oid,name,cat:$('#wpbInqCat').value,to,
         requester:meName(),created:wpbTodayIso(),dueKind:$('#wpbInqDk').value,due:$('#wpbInqDue').value,checker:$('#wpbInqChk').value,approver:wpbHead(to).name,
         status:'受付待ち',desc:$('#wpbInqDesc').value.trim()};
-      DB.requests.push(r);
-      notify(`【問い合わせ】「${name}」が届きました（回答部署：${to}／希望回答日 ${fmtD(r.due)}）`,'#/request/'+nid,tkTo([to],r.requester));
+      DB.wpbInq.push(r);
+      notify(`【問い合わせ】「${name}」が届きました（回答部署：${to}／希望回答日 ${fmtD(r.due)}）`,'#/wpbinq/'+nid,tkTo([to],r.requester));
       toast(`${to}へ問い合わせを起票し、通知しました（希望回答日 ${fmtD(r.due)}）`);
-      go('#/request/'+nid);
+      go('#/wpbinq/'+nid);
     },'起票');
   wpbNewInqDept(); wpbNewInqDue();
 }
 function wpbActor(r){ const c=tkCan(r); return c.ok&&!c.proxy?meName():((wpbDeptUsers(r.to)[0]||wpbHead(r.to)).name||meName()); }
-function wpbRecv(id){ const r=byId(DB.requests,id); if(!r||r.status!=='受付待ち') return; const who=wpbActor(r);
+function wpbRecv(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='受付待ち') return; const who=wpbActor(r);
   r.recv={who,at:nowStr()}; r.assignee=who; r.status='対応中';
-  const u=wpbUid(r.requester); if(u) notify(`【問い合わせ】「${r.name}」を${r.to}（${who}）が受領しました`,'#/request/'+id,{users:[u]});
+  const u=wpbUid(r.requester); if(u) notify(`【問い合わせ】「${r.name}」を${r.to}（${who}）が受領しました`,'#/wpbinq/'+id,{users:[u]});
   toast(`受領しました（受領者：${who}）。依頼者へ通知しました`); route(); }
-function wpbAnswer(id){ const r=byId(DB.requests,id); if(!r||r.status!=='対応中') return;
+function wpbAnswer(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='対応中') return;
   modal('回答を入力',`<div class="form1"><label>回答<textarea id="wpbAns" rows="4">${esc((r.ans||{}).body||'')}</textarea></label>
     <div class="small muted">登録すると確認者（${esc(r.checker||'—')}）へ確認を依頼します。</div></div>`,
     ()=>{ const body=$('#wpbAns').value.trim()||'（回答内容）'; r.ans={who:r.assignee||wpbActor(r),at:nowStr(),body}; r.status='回答確認待ち';
-      const u=wpbUid(r.checker); notify(`【問い合わせ】「${r.name}」の回答の確認をお願いします（回答者：${r.ans.who}）`,'#/request/'+id,u?{users:[u]}:{depts:[r.to]});
+      const u=wpbUid(r.checker); notify(`【問い合わせ】「${r.name}」の回答の確認をお願いします（回答者：${r.ans.who}）`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]});
       toast('回答を登録し、確認者へ通知しました'); },'回答を登録'); }
-function wpbCheck(id){ const r=byId(DB.requests,id); if(!r||r.status!=='回答確認待ち') return;
+function wpbCheck(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='回答確認待ち') return;
   r.chk={who:r.checker,at:nowStr()}; r.status='回答承認待ち';
-  const u=wpbUid(r.approver); notify(`【問い合わせ】「${r.name}」の回答の承認をお願いします（確認者：${r.checker}）`,'#/request/'+id,u?{users:[u]}:{depts:[r.to]});
+  const u=wpbUid(r.approver); notify(`【問い合わせ】「${r.name}」の回答の承認をお願いします（確認者：${r.checker}）`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]});
   toast(`確認済みにしました（確認者：${r.checker}）。承認者へ通知しました`); route(); }
-function wpbApprove(id){ const r=byId(DB.requests,id); if(!r||r.status!=='回答承認待ち') return;
+function wpbApprove(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='回答承認待ち') return;
   r.appr={who:r.approver,at:nowStr()}; r.status='完了';
-  const u=wpbUid(r.requester); if(u) notify(`【問い合わせ】「${r.name}」の回答が承認されました（承認者：${r.approver}）`,'#/request/'+id,{users:[u]});
+  const u=wpbUid(r.requester); if(u) notify(`【問い合わせ】「${r.name}」の回答が承認されました（承認者：${r.approver}）`,'#/wpbinq/'+id,{users:[u]});
   toast('承認しました。依頼者へ回答を通知しました'); route(); }
-function wpbEsc(id){ const r=byId(DB.requests,id); if(!r||!wpbOver(r)) return; const h=r.approver||wpbHead(r.to).name, u=wpbUid(h);
+function wpbEsc(id){ const r=byId(DB.wpbInq,id); if(!r||!wpbOver(r)) return; const h=r.approver||wpbHead(r.to).name, u=wpbUid(h);
   (r.esc=r.esc||[]).push({at:nowStr(),to:h,by:meName()});
-  notify(`【エスカレーション】問い合わせ「${r.name}」が希望回答日（${fmtD(r.due)}）を過ぎています（状況：${r.status}）。対応をお願いします`,'#/request/'+id,u?{users:[u]}:{depts:[r.to]});
+  notify(`【エスカレーション】問い合わせ「${r.name}」が希望回答日（${fmtD(r.due)}）を過ぎています（状況：${r.status}）。対応をお願いします`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]});
   toast(`上長（${h}）へエスカレーションしました`); route(); }
 function wpbInqActions(r){
   const c=tkCan(r), id=r.id, px=c.proxy?'（代理・デモ）':'', hint=`<span class="tk-hint">受領・回答・確認・承認は回答部署（${r.to}）のロールで行います</span>`;
@@ -3822,12 +3823,12 @@ function wpbInqRecCard(r){
 }
 function wpbInqPage(r){
   const o=byId(DB.opps,r.opp)||{}, hs=DB.hearings.find(h=>h.opp===r.opp), cur=Math.max(0,WPB_FLOW.indexOf(r.status)), done=r.status==='完了', over=wpbOver(r);
-  const others=DB.requests.filter(x=>wpbIsInq(x)&&x.opp===r.opp&&x.id!==r.id);
+  const others=DB.wpbInq.filter(x=>x.opp===r.opp&&x.id!==r.id);
   const hl=[['依頼番号',r.no],['種別',r.type],['問い合わせ区分',esc(r.cat)+' '+WPB_KARI()],['状況',stPill(r.status)],['商談',ol(r.opp)],['回答部署',esc(r.to)],
     ['希望回答日',`${tkDue(r)} <span class="small muted">（期限：${esc(r.dueKind||'任意')}）</span>`],['依頼者',ul(r.requester)]];
   const alert=over?`<div class="wpb-alert" role="alert"><b>⚠ 期限超過</b>　希望回答日（${fmtD(r.due)}）を ${-daysTo(r.due)} 日過ぎています（状況：${r.status}）。
     <button class="btn danger" onclick="wpbEsc('${r.id}')">エスカレーション</button><div class="small">「エスカレーション」で回答部署の上長（課長クラス：モックでは ${esc(r.approver)} で代用 ${WPB_KARI()}）へ通知します。</div></div>`:'';
-  return recHeader({icon:'i-req',em:'✉',label:'依頼（チケット）｜問い合わせ（ワークフロー）｜'+r.no,title:esc(r.name),actions:wpbInqActions(r),hl})
+  return recHeader({icon:'i-req',em:'✉',label:'<a href="#/wpbinqs">問い合わせ（ワークフロー）</a>｜'+r.no,title:esc(r.name),actions:wpbInqActions(r),hl})
   +`<div class="path"><ol>${WPB_STEPS.map((s,i)=>`<li class="${i<=cur?'done':i===cur+1?'cur':''}">${i<=cur?'✓ ':''}${s}</li>`).join('')}</ol></div>${alert}
   <div class="grid2"><div>
     <div class="card"><div class="card-h">問い合わせ内容</div><div class="card-b"><div class="fields" style="grid-template-columns:1fr">${fld('問い合わせ内容',esc(r.desc||'—'))}
@@ -3837,26 +3838,40 @@ function wpbInqPage(r){
     ${relCard('i-opp','★','商談',1,`${ol(r.opp)}<div class="small muted">${OPP_STAGES[o.stage]||'—'}｜所有者 ${esc(o.owner||'—')}</div>
       <div class="mt8">${hs?`📋 <a href="#/hearing/${hs.id}">ヒアリングシート ${esc(hs.no)}</a>`:'<span class="muted small">ヒアリングシート未作成</span>'}</div>
       <div class="mt8"><button class="btn" onclick="wpbGoChatter('${r.opp}')">💬 商談のChatterで相談</button></div>`)}
-    ${relCard('i-req','✉','同じ商談の他の問い合わせ',others.length,others.map(x=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/request/${x.id}">${esc(x.name)}</a><div class="small muted">${x.status}｜希望回答日 ${tkDue(x)}</div></div></div>`).join('')||'<div class="muted">なし</div>')}
+    ${relCard('i-req','✉','同じ商談の他の問い合わせ',others.length,others.map(x=>`<div class="feed-item"><span class="obj-icon sm i-req">✉</span><div><a href="#/wpbinq/${x.id}">${esc(x.name)}</a><div class="small muted">${x.status}｜希望回答日 ${tkDue(x)}</div></div></div>`).join('')||'<div class="muted">なし</div>')}
     ${done?'':'<div class="note">回答期限を過ぎると、この画面と依頼一覧に赤いアラートを表示します。</div>'}
   </div></div>`;
 }
-{ const _pg=pgRequest; pgRequest=function(id){ const r=byId(DB.requests,id); return wpbIsInq(r)?wpbInqPage(r):_pg(id); }; }
+function wpbInqRow(r){ return tr([`<a href="#/wpbinq/${r.id}">${r.no}</a>`,`<a href="#/wpbinq/${r.id}">${esc(r.name)}</a>`,ol(r.opp),esc(r.cat),esc(r.to),stPill(r.status),ul(r.requester),tkDue(r)]); }
+function wpbInqList(){
+  const rs=[...DB.wpbInq].sort((a,b)=>(a.status==='完了')-(b.status==='完了')||String(a.due).localeCompare(String(b.due))), ov=rs.filter(wpbOver);
+  return listPage({icon:'i-req',em:'✉',label:'<a href="#/requests">依頼</a>｜問い合わせ（ワークフロー）',title:'すべての問い合わせ',count:rs.length,
+    note:(ov.length?`<span class="tk-over">期限超過 ${ov.length} 件</span>`:'期限超過なし')+' ・ 希望回答日を過ぎた未完了の問い合わせは赤字で表示します',
+    actions:`<button class="btn brand" id="wpbInqBtn2" onclick="wpbInqEntry()">問い合わせを起票</button>`,
+    table:tbl(['問い合わせ番号','件名','商談','区分','回答部署','状況','依頼者','希望回答日'],rs.map(wpbInqRow))
+      +`<div class="small muted mt8">軽い事前確認・相談は商談のChatter、判断・承認が必要なもの（費用・製品仕様）は問い合わせ（ワークフロー）で依頼します。</div>`});
+}
+EXT.routes.wpbinqs = () => wpbInqList();
+EXT.routes.wpbinq = id => { const r=byId(DB.wpbInq,id); return r?wpbInqPage(r):notFound(); };
+EXT.navKeys.wpbinqs = 'requests'; EXT.navKeys.wpbinq = 'requests';
+EXT.recordPages.push('wpbinq');
+EXT.search.push((q,m)=>DB.wpbInq.filter(r=>m(r.name)||m(r.no)).map(r=>['問い合わせ',r.name,'#/wpbinq/'+r.id,'i-req','✉']));
+/* 依頼一覧：問い合わせの入口と未完了の要約（③のビュー・表は変えない） */
 { const _pg=pgRequests; pgRequests=function(){
   let h=_pg(); const k='<button class="btn brand" onclick="EXT.fn.newTicket()">';
   h=h.replace(k,()=>`<button class="btn" id="wpbInqBtn" onclick="wpbInqEntry()">問い合わせを起票</button>`+k);
-  const qs=DB.requests.filter(r=>wpbIsInq(r)&&r.status!=='完了'), ov=qs.filter(wpbOver);
-  const card=`<div class="card wpb-inqsum"><div class="card-h"><span class="obj-icon sm i-req">✉</span>問い合わせ（ワークフロー）未完了 ${qs.length} 件${ov.length?`<span class="pill r" style="margin-left:6px">期限超過 ${ov.length} 件</span>`:''}</div>
-    <div class="card-b tbl-wrap">${tbl(['依頼番号','件名','商談','回答部署','状況','希望回答日'],qs.map(r=>tr([`<a href="#/request/${r.id}">${r.no}</a>`,`<a href="#/request/${r.id}">${esc(r.name)}</a>`,ol(r.opp),esc(r.to),stPill(r.status),tkDue(r)])),'未完了の問い合わせはありません')}
+  const qs=DB.wpbInq.filter(r=>r.status!=='完了'), ov=qs.filter(wpbOver);
+  const card=`<div class="card wpb-inqsum"><div class="card-h"><span class="obj-icon sm i-req">✉</span>問い合わせ（ワークフロー）未完了 ${qs.length} 件${ov.length?`<span class="pill r" style="margin-left:6px">期限超過 ${ov.length} 件</span>`:''}<span class="right"><a href="#/wpbinqs">すべて表示</a></span></div>
+    <div class="card-b">${qs.map(r=>`<div class="wpb-inqi"><a href="#/wpbinq/${r.id}">${r.no} ${esc(r.name)}</a> <span class="small">${stPill(r.status)} 回答部署 ${esc(r.to)}｜希望回答日 ${tkDue(r)}</span></div>`).join('')||'<div class="muted small">未完了の問い合わせはありません</div>'}
     <div class="small muted mt8">軽い事前確認・相談は商談のChatter、判断・承認が必要なもの（費用・製品仕様）は問い合わせ（ワークフロー）で依頼します。</div></div></div>`;
   const t='<div class="card"><div class="card-b tbl-wrap" style="padding-top:12px">', i=h.lastIndexOf(t);
   return i<0?h+card:h.slice(0,i)+card+h.slice(i); }; }
 /* 商談：問い合わせカード（入口） */
 function wpbOppInqCard(o){
-  const rs=DB.requests.filter(r=>wpbIsInq(r)&&r.opp===o.id);
+  const rs=DB.wpbInq.filter(r=>r.opp===o.id);
   return relCard('i-req','✉','問い合わせ（Chatter／ワークフロー）',rs.length,
     `<div class="small mb8">軽い事前確認・相談 → <b>Chatter</b>（@メンションで回答者を指定）／判断・承認が必要なもの（費用・製品仕様） → <b>ワークフロー</b>（回答期限・受領・回答・確認・承認を記録）</div>`
-    +tbl(['依頼番号','件名','区分','回答部署','状況','希望回答日'],rs.map(r=>tr([`<a href="#/request/${r.id}">${r.no}</a>`,`<a href="#/request/${r.id}">${esc(r.name)}</a>`,esc(r.cat),esc(r.to),stPill(r.status),tkDue(r)])),'ワークフローの問い合わせはまだありません'),
+    +tbl(['問い合わせ番号','件名','区分','回答部署','状況','希望回答日'],rs.map(r=>tr([`<a href="#/wpbinq/${r.id}">${r.no}</a>`,`<a href="#/wpbinq/${r.id}">${esc(r.name)}</a>`,esc(r.cat),esc(r.to),stPill(r.status),tkDue(r)])),'ワークフローの問い合わせはまだありません'),
     `<button class="btn" id="wpbOppInq" onclick="wpbInqEntry('${o.id}')">問い合わせ・相談</button>`);
 }
 
