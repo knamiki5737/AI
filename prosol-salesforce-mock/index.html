@@ -4065,8 +4065,11 @@ function wpbGoChatter(oid){
   toast('回答してほしい人を @メンションで指定して投稿してください','info');
 }
 function wpbDeptUsers(d){ return DB.users.filter(u=>u.dept===d&&!/部長/.test(u.title)); }
-function wpbNewInqDept(){ const d=$('#wpbInqTo').value, us=wpbDeptUsers(d), h=wpbHead(d);
-  $('#wpbInqChk').innerHTML=us.map(u=>`<option>${esc(u.name)}</option>`).join('')||`<option>${esc(h.name||'')}</option>`;
+/* 確認者の初期値：回答を担当しそうな人（その部署のロールのユーザー）とは別の人 */
+function wpbDefChecker(d,excl){ const us=wpbDeptUsers(d), role=tkRole(d), rn=role&&(byId(DB.users,ME[role])||{}).name;
+  return (us.find(u=>u.name!==excl&&u.name!==rn)||us.find(u=>u.name!==excl)||{}).name||wpbHead(d).name; }
+function wpbNewInqDept(){ const d=$('#wpbInqTo').value, us=wpbDeptUsers(d), h=wpbHead(d), def=wpbDefChecker(d);
+  $('#wpbInqChk').innerHTML=us.map(u=>`<option ${u.name===def?'selected':''}>${esc(u.name)}</option>`).join('')||`<option>${esc(h.name||'')}</option>`;
   $('#wpbInqAppr').textContent=`${h.name||'—'}（${d}）`; }
 function wpbNewInqDue(){ const k=$('#wpbInqDk').value, n=WPB_DUES[k], el=$('#wpbInqDue');
   if(n!=null){ el.value=wpbAddDays(wpbTodayIso(),n); el.disabled=true; } else { el.disabled=false; if(!el.value) el.value=wpbAddDays(wpbTodayIso(),7); } }
@@ -4076,12 +4079,12 @@ function wpbNewInq(oid){
   modal('問い合わせ（ワークフロー）を起票',`<div class="form1">
     <label>商談<input value="${esc(o.name)}" disabled></label>
     <label>件名<span class="wp2-req">*</span><input id="wpbInqName" placeholder="例：要求精度に対する加工可否の確認"></label>
-    <label>問い合わせ区分 ${WPB_KARI()}<select id="wpbInqCat">${WPB_CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+    <label>問い合わせ区分 ${WPB_KARI('CQ-34')}<select id="wpbInqCat">${WPB_CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
     <label>回答部署<select id="wpbInqTo" onchange="wpbNewInqDept()">${TK_DEPTS.filter(d=>d!=='営業部').map(d=>`<option>${d}</option>`).join('')}</select></label>
-    <div class="tk-2col"><label>回答期限 ${WPB_KARI()}<select id="wpbInqDk" onchange="wpbNewInqDue()">${Object.keys(WPB_DUES).map(k=>`<option>${k}</option>`).join('')}</select></label>
+    <div class="tk-2col"><label>回答期限 ${WPB_KARI('CQ-34')}<select id="wpbInqDk" onchange="wpbNewInqDue()">${Object.keys(WPB_DUES).map(k=>`<option>${k}</option>`).join('')}</select></label>
       <label>希望回答日<input type="date" id="wpbInqDue"></label></div>
-    <label>確認者（回答部署） ${WPB_KARI()}<select id="wpbInqChk"></select></label>
-    <div class="small">承認者（上長・課長クラス）：<b id="wpbInqAppr"></b> ${WPB_KARI()}<div class="muted">モックには課長クラスのユーザーがいないため、回答部署の部長ユーザーで代用しています。</div></div>
+    <label>確認者（回答部署） ${WPB_KARI('CQ-34')}<select id="wpbInqChk"></select></label>
+    <div class="small">承認者（上長・課長クラス）：<b id="wpbInqAppr"></b> ${WPB_KARI('CQ-34')}<div class="muted">モックには課長クラスのユーザーがいないため、回答部署の部長ユーザーで代用しています。</div></div>
     <label>問い合わせ内容<textarea id="wpbInqDesc" rows="3" placeholder="判断してほしいこと・前提条件など"></textarea></label>
     <div class="small muted">起票すると回答部署へ通知します。期限は起票日（2026/10/08）からの暦日で計算します（営業日か暦日かは要確認）。</div></div>`,
     ()=>{ const name=$('#wpbInqName').value.trim()||'（件名未入力）', to=$('#wpbInqTo').value;
@@ -4105,9 +4108,15 @@ function wpbAnswer(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='対応中
   modal('回答を入力',`<div class="form1"><label>回答<textarea id="wpbAns" rows="4">${esc((r.ans||{}).body||'')}</textarea></label>
     <div class="small muted">登録すると確認者（${esc(r.checker||'—')}）へ確認を依頼します。</div></div>`,
     ()=>{ const body=$('#wpbAns').value.trim()||'（回答内容）'; r.ans={who:r.assignee||wpbActor(r),at:nowStr(),body}; r.status='回答確認待ち';
+      let sw=''; if(r.checker===r.ans.who){ const nc=wpbDefChecker(r.to,r.ans.who); if(nc&&nc!==r.checker){ sw=`。確認者が回答者と同じだったため、確認者を ${nc} に変更しました`; r.checker=nc; } }
       const u=wpbUid(r.checker); notify(`【問い合わせ】「${r.name}」の回答の確認をお願いします（回答者：${r.ans.who}）`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]});
-      toast('回答を登録し、確認者へ通知しました'); },'回答を登録'); }
+      toast('回答を登録し、確認者へ通知しました'+sw); },'回答を登録'); }
 function wpbCheck(id){ const r=byId(DB.wpbInq,id); if(!r||r.status!=='回答確認待ち') return;
+  if(r.ans&&r.checker===r.ans.who){ const us=wpbDeptUsers(r.to).filter(u=>u.name!==r.ans.who);
+    modal('確認者を変更してください',`<div class="small mb8">回答者（${esc(r.ans.who)}）本人は確認できません。回答者とは別の人が確認します。</div>
+      <div class="form1"><label>確認者<select id="wpbChkSel">${us.map(u=>`<option>${esc(u.name)}</option>`).join('')}</select></label></div>`,
+      ()=>{ const v=$('#wpbChkSel').value; if(v&&v!==r.ans.who){ r.checker=v; const u=wpbUid(v); notify(`【問い合わせ】「${r.name}」の回答の確認をお願いします（回答者：${r.ans.who}）`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]}); toast(`確認者を ${v} に変更し、通知しました`); } },'確認者を変更');
+    return; }
   r.chk={who:r.checker,at:nowStr()}; r.status='回答承認待ち';
   const u=wpbUid(r.approver); notify(`【問い合わせ】「${r.name}」の回答の承認をお願いします（確認者：${r.checker}）`,'#/wpbinq/'+id,u?{users:[u]}:{depts:[r.to]});
   toast(`確認済みにしました（確認者：${r.checker}）。承認者へ通知しました`); route(); }
@@ -4123,26 +4132,26 @@ function wpbInqActions(r){
   const c=tkCan(r), id=r.id, px=c.proxy?'（代理・デモ）':'', hint=`<span class="tk-hint">受領・回答・確認・承認は回答部署（${r.to}）のロールで行います</span>`;
   const b={'受付待ち':`<button class="btn brand" onclick="wpbRecv('${id}')">受領する${px}</button>`,
     '対応中':`<button class="btn brand" onclick="wpbAnswer('${id}')">回答を入力${px}</button>`,
-    '回答確認待ち':`<button class="btn brand" onclick="wpbCheck('${id}')">確認済にする（${esc(r.checker)}・デモ）</button>`,
+    '回答確認待ち':`<button class="btn brand" onclick="wpbCheck('${id}')">確認済にする（${esc(r.checker)}・デモ）</button>`+(r.ans&&r.checker===r.ans.who?'<span class="tk-hint">確認者が回答者と同じです。別の人が確認します</span>':''),
     '回答承認待ち':`<button class="btn brand" onclick="wpbApprove('${id}')">承認する（${esc(r.approver)}・デモ）</button>`}[r.status]||'';
   return (b&&!c.ok?hint:b)+(wpbOver(r)?`<button class="btn danger" onclick="wpbEsc('${id}')">エスカレーション</button>`:'');
 }
 function wpbInqRecCard(r){
   const R=(st,who,x,ex)=>tr([st,who?ul(who):'<span class="muted">—</span>',x&&x.at?x.at:'<span class="muted">未</span>',ex||'']);
   const rows=[R('依頼',r.requester,{at:fmtD(r.created)},''),R('受領',r.recv&&r.recv.who,r.recv,''),R('回答',r.ans&&r.ans.who,r.ans,''),
-    R('確認',r.checker,r.chk,WPB_KARI()),R('承認（上長・課長クラス）',r.approver,r.appr,WPB_KARI())];
-  return relCard('i-appr','✔','回答・確認・承認の記録',5,tbl(['ステップ','担当（受領者・回答者・確認者・承認者）','日時',''],rows)
+    R('確認',r.checker,r.chk,WPB_KARI('CQ-34')),R('承認（上長・課長クラス）',r.approver,r.appr,WPB_KARI('CQ-34'))];
+  return '<div id="ko-K-B03"><div id="ko-K-B04">'+relCard('i-appr','✔','回答・確認・承認の記録',5,tbl(['ステップ','担当（受領者・回答者・確認者・承認者）','日時',''],rows)
     +((r.esc||[]).length?`<div class="mt8 small"><b>エスカレーション履歴</b>${r.esc.map(e=>`<div>・${e.at} ${esc(e.by||'')} → 上長 ${esc(e.to)}</div>`).join('')}</div>`:'')
     +`<div class="small muted mt8">現行帳票（各種問合せ用紙）と照合する項目：依頼番号／希望回答日／回答部署／回答・確認・承認の記録（10/14 技術ヒアリング）。</div>
-    <div class="small muted">ISO9001 のフロー（QMS）との整合は ${WPB_KAKU}。確認者・承認者の決め方は仮置きです。</div>`);
+    <div class="small muted">ISO9001 のフロー（QMS）との整合は ${WPB_KAKU}。確認者・承認者の決め方は仮置きです。</div>`)+'</div></div>';
 }
 function wpbInqPage(r){
   const o=byId(DB.opps,r.opp)||{}, hs=DB.hearings.find(h=>h.opp===r.opp), cur=Math.max(0,WPB_FLOW.indexOf(r.status)), done=r.status==='完了', over=wpbOver(r);
   const others=DB.wpbInq.filter(x=>x.opp===r.opp&&x.id!==r.id);
-  const hl=[['依頼番号',r.no],['種別',r.type],['問い合わせ区分',esc(r.cat)+' '+WPB_KARI()],['状況',stPill(r.status)],['商談',ol(r.opp)],['回答部署',esc(r.to)],
+  const hl=[['依頼番号',r.no+' '+WPB_KARI('CQ-34')],['種別',r.type],['問い合わせ区分',esc(r.cat)+' '+WPB_KARI('CQ-34')],['状況',stPill(r.status)],['商談',ol(r.opp)],['回答部署',esc(r.to)],
     ['希望回答日',`${tkDue(r)} <span class="small muted">（期限：${esc(r.dueKind||'任意')}）</span>`],['依頼者',ul(r.requester)]];
   const alert=over?`<div class="wpb-alert" role="alert"><b>⚠ 期限超過</b>　希望回答日（${fmtD(r.due)}）を ${-daysTo(r.due)} 日過ぎています（状況：${r.status}）。
-    <button class="btn danger" onclick="wpbEsc('${r.id}')">エスカレーション</button><div class="small">「エスカレーション」で回答部署の上長（課長クラス：モックでは ${esc(r.approver)} で代用 ${WPB_KARI()}）へ通知します。</div></div>`:'';
+    <button class="btn danger" onclick="wpbEsc('${r.id}')">エスカレーション</button><div class="small">「エスカレーション」で回答部署の上長（課長クラス：モックでは ${esc(r.approver)} で代用 ${WPB_KARI('CQ-34')}）へ通知します。</div></div>`:'';
   return recHeader({icon:'i-req',em:'✉',label:'<a href="#/wpbinqs">問い合わせ（ワークフロー）</a>｜'+r.no,title:esc(r.name),actions:wpbInqActions(r),hl})
   +`<div class="path"><ol>${WPB_STEPS.map((s,i)=>`<li class="${i<=cur?'done':i===cur+1?'cur':''}">${i<=cur?'✓ ':''}${s}</li>`).join('')}</ol></div>${alert}
   <div class="grid2"><div>
@@ -4184,17 +4193,17 @@ EXT.search.push((q,m)=>DB.wpbInq.filter(r=>m(r.name)||m(r.no)).map(r=>['問い�
 /* 商談：問い合わせカード（入口） */
 function wpbOppInqCard(o){
   const rs=DB.wpbInq.filter(r=>r.opp===o.id);
-  return relCard('i-req','✉','問い合わせ（Chatter／ワークフロー）',rs.length,
+  return '<div id="ko-K-B01">'+relCard('i-req','✉','問い合わせ（Chatter／ワークフロー）',rs.length,
     `<div class="small mb8">軽い事前確認・相談 → <b>Chatter</b>（@メンションで回答者を指定）／判断・承認が必要なもの（費用・製品仕様） → <b>ワークフロー</b>（回答期限・受領・回答・確認・承認を記録）</div>`
     +tbl(['問い合わせ番号','件名','区分','回答部署','状況','希望回答日'],rs.map(r=>tr([`<a href="#/wpbinq/${r.id}">${r.no}</a>`,`<a href="#/wpbinq/${r.id}">${esc(r.name)}</a>`,esc(r.cat),esc(r.to),stPill(r.status),tkDue(r)])),'ワークフローの問い合わせはまだありません'),
-    `<button class="btn" id="wpbOppInq" onclick="wpbInqEntry('${o.id}')">問い合わせ・相談</button>`);
+    `<button class="btn" id="wpbOppInq" onclick="wpbInqEntry('${o.id}')">問い合わせ・相談</button>`)+'</div>';
 }
 
 /* ---------- K-B02 Chatter：メンションがない投稿に注意を出す（投稿はブロックしない） ---------- */
 { const _feed=EXT.fn.feed;
   EXT.fn.feed=(kind,id)=>{ const h=_feed(kind,id); if(!h) return h; const d=UI.fd[wp2FdKey(kind,id)], to=(d&&d.to)||[];
-    const w=to.length?`<div class="wpb-men ok">✓ 回答者：${to.map(t=>t.t==='user'?esc(wp2ULabel(t.id)):esc(t.id)+'グループ').join('、')}</div>`
-      :`<div class="wpb-men warn" role="note">⚠ 回答者を指定してください（@メンション）。全員宛てでは回答が返りにくくなります。<span class="muted">指定がなくても投稿はできます。</span></div>`;
+    const w=to.length?`<div class="wpb-men ok" id="ko-K-B02">✓ 回答者：${to.map(t=>t.t==='user'?esc(wp2ULabel(t.id)):esc(t.id)+'グループ').join('、')}</div>`
+      :`<div class="wpb-men warn" role="note" id="ko-K-B02">⚠ 回答者を指定してください（@メンション）。全員宛てでは回答が返りにくくなります。<span class="muted">指定がなくても投稿はできます。</span></div>`;
     const k='<div class="small muted mt8">投稿者：'; return h.includes(k)?h.replace(k,()=>w+k):h; }; }
 { const _post=wp2FdPost;
   wp2FdPost=function(kind,id){ const d=wp2FdDraft(kind,id), none=!d.to.length, n0=DB.feeds.length; _post(kind,id);
@@ -4215,8 +4224,8 @@ function wpbUqCard(h){
     ${x.ans?`<div class="small">回答：${esc(x.ans)}</div>`:''}
     <div class="small">先行着手：${esc(x.lead)}${x.leadJ?`（判断：${esc(x.leadJ)}）`:''}</div>
     <div class="small muted">${esc(x.by)}｜${x.at}　<a class="click" onclick="wpbUqAnswer('${x.id}')">${x.st==='未回答'?'回答する':'回答を修正'}</a></div></div>`).join('');
-  return `<div class="card" id="wpbUq"><div class="card-h">❓ 未確定事項・追加質問 (${all.length})<span class="right">${open.length?`<span class="pill y">未回答 ${open.length}</span>`:''}</span></div><div class="card-b">
-    <div class="small muted mb8">記入途中でも営業⇔技術で確認します。不足情報／回答する担当／回答状況／先行着手が必要な場合の判断を管理します。</div>
+  return `<div class="card" id="ko-K-B05"><div class="card-h">❓ 未確定事項・追加質問 (${all.length})<span class="right">${open.length?`<span class="pill y">未回答 ${open.length}</span>`:''}</span></div><div class="card-b">
+    <div class="small muted mb8">記入途中でも営業⇔技術で確認します。不足情報／回答する担当／回答状況／先行着手が必要な場合の判断を管理します。先行着手の判断者・記録項目は ${WPB_KARI('CQ-38')}</div>
     ${rows||'<div class="muted small">未確定事項はありません</div>'}
     <button class="btn mt8" id="wpbUqAdd" onclick="wpbUqAdd('${h.id}')">質問・未確定事項を追加</button></div></div>`;
 }
@@ -4225,7 +4234,7 @@ function wpbUqAdd(hid){
   modal('未確定事項・追加質問を追加',`<div class="form1"><label>質問・不足情報<span class="wp2-req">*</span><textarea id="wpbUqQ" rows="2"></textarea></label>
     <label>起票側<select id="wpbUqS">${['営業','技術'].map(s=>`<option ${s===side?'selected':''}>${s}</option>`).join('')}</select></label>
     <label>回答担当<select id="wpbUqW">${DB.users.map(u=>`<option value="${esc(u.name)}">${esc(u.name)}（${esc(u.dept)}）</option>`).join('')}</select></label>
-    <label>先行着手の要否<select id="wpbUqL"><option>未定</option><option>要</option><option>不要</option></select></label>
+    <label>先行着手の要否 ${WPB_KARI('CQ-38')}<select id="wpbUqL"><option>未定</option><option>要</option><option>不要</option></select></label>
     <label>先行着手の判断（要の場合）<input id="wpbUqJ" placeholder="例：構想を先行し、確定後に見直す"></label>
     <div class="small muted">追加すると回答担当へ通知します。</div></div>`,
     ()=>{ const q=$('#wpbUqQ').value.trim(); if(!q){ toast('質問を入力してください','info'); return; }
@@ -4238,13 +4247,13 @@ function wpbUqAdd(hid){
 function wpbUqAnswer(id){
   const x=DB.wpbUq.find(y=>y.id===id); if(!x) return;
   modal('未確定事項に回答',`<div class="small mb8">${esc(x.q)}</div><div class="form1"><label>回答<textarea id="wpbUqA" rows="3">${esc(x.ans)}</textarea></label>
-    <label>先行着手の要否<select id="wpbUqL2">${['未定','要','不要'].map(s=>`<option ${s===x.lead?'selected':''}>${s}</option>`).join('')}</select></label>
+    <label>先行着手の要否 ${WPB_KARI('CQ-38')}<select id="wpbUqL2">${['未定','要','不要'].map(s=>`<option ${s===x.lead?'selected':''}>${s}</option>`).join('')}</select></label>
     <label>先行着手の判断<input id="wpbUqJ2" value="${esc(x.leadJ)}"></label></div>`,
     ()=>{ const a=$('#wpbUqA').value.trim(); x.lead=$('#wpbUqL2').value; x.leadJ=$('#wpbUqJ2').value.trim();
       if(a){ x.ans=a; x.st='回答済'; const u=wpbUid(x.by); if(u&&x.by!==meName()) notify(`【未確定事項】質問「${x.q.slice(0,30)}」に回答がありました（${meName()}）`,'#/hearing/'+x.hs,{users:[u]}); toast('回答を登録し、質問者へ通知しました'); }
       else toast('先行着手の判断を更新しました'); },'保存');
 }
-extRec('hearing').side.push(h=>wpbUqCard(h)+wpbTestNote(true));
+extRec('hearing').side.push(h=>wpbUqCard(h)+wpbTestNote(byId(DB.opps,h.opp)));
 
 /* ---------- K-B06 製造依頼書プレビュー：連携元（ヒアリングシート）と流れ ---------- */
 function wpbMfgFlow(h){
@@ -4252,7 +4261,7 @@ function wpbMfgFlow(h){
   const won=o.stage>=OPP_WON, cur=won?3:h.status==='完了'?2:(fd||uq.length)?1:0;
   const S=[['問い合わせ内容をシートに集約',`ヒアリングシート ${esc(h.no)}（${esc(h.status)}）`],['Chatterで確認し回答で埋める',`商談のフィード ${fd} 件／未確定事項 未回答 ${uqo} 件`],
     ['受注（承認）',`商談フェーズ：${OPP_STAGES[o.stage]||'—'}`],['製造依頼書へ情報を連携','このプレビュー（再入力なし）']];
-  return `<div class="card wpb-mfg"><div class="card-h">🔗 連携元：ヒアリングシート <a href="#/hearing/${h.id}" style="margin-left:6px">${esc(h.no)}</a></div><div class="card-b">
+  return `<div class="card wpb-mfg" id="ko-K-B06"><div class="card-h">🔗 連携元：ヒアリングシート <a href="#/hearing/${h.id}" style="margin-left:6px">${esc(h.no)}</a></div><div class="card-b">
     <ol class="wpb-flow">${S.map(([t,s],i)=>`<li class="${i<cur?'done':i===cur?'cur':''}"><b>${i+1}. ${t}</b><span class="small">${s}</span></li>`).join('')}</ol>
     <div class="small muted mt8">ヒアリングシートの情報を、受注後に再入力なしで製造依頼書へ連携します（10/14 営業分科会）。<b>製造依頼書として最低限必要な項目は次回以降に決定</b>します ${WPB_KAKU}。</div></div></div>`;
 }
@@ -4274,12 +4283,12 @@ function wpbSpecCard(o){
   const h=DB.hearings.find(x=>x.opp===o.id), a=h?h.ans:{}, fs=DB.wpbSpecFiles[o.id]||[];
   const sec=WPB_SPEC.map(([t,ks])=>`<div class="wpb-spec-s"><div class="wpb-spec-h">${t}</div>${ks.map(k=>{ const v=wpbSpecVal(k,a);
     return `<div class="small"><span class="muted">${k==='QM'?'品質特性（要求加工精度）':esc((DEF[k]||{}).n||k)}：</span>${v==null?'<span class="muted">—</span>':v}</div>`; }).join('')}</div>`).join('');
-  return relCard('i-quote','📐','仕様提案書（起案書）',fs.length,
+  return '<div id="ko-K-B07">'+relCard('i-quote','📐','仕様提案書（起案書）',fs.length,
     `<div class="small mb8">顧客と社内の関係者が同じ設備イメージと要求条件を参照するための内容です。${h?`ヒアリングシート <a href="#/hearing/${h.id}">${esc(h.no)}</a> の該当回答を表示しています。`:'<span class="muted">ヒアリングシート未作成のため回答はありません。</span>'}</div>
     <div class="wpb-spec">${sec}</div>
     <div class="section-title">添付</div>${fs.length?tbl(['版','ファイル名','更新日','作成者'],fs.map(f=>tr([f.v==='正式版'?'<span class="pill g">正式版</span>':'<span class="pill">先行版</span>',`📄 ${esc(f.n)}`,f.dt,ul(f.by)]))):'<div class="muted small">添付はありません</div>'}
-    <div class="small muted mt8">正式版はDocuWorks（.xdw）、先行版はExcel（.xlsx）で作成（ファイルはデモ用のダミー）。ヒアリング項目との対応づけは ${WPB_KARI()}。<b>仕様提案書の保持先（Salesforce／技術情報DB など）は未確定</b>です。</div>`,
-    `<button class="btn" onclick="wpbSpecAdd('${o.id}','先行版')">先行版を添付</button><button class="btn" onclick="wpbSpecAdd('${o.id}','正式版')">正式版を添付</button>`);
+    <div class="small muted mt8">正式版はDocuWorks（.xdw）、先行版はExcel（.xlsx）で作成（ファイルはデモ用のダミー）。ヒアリング項目との対応づけは ${WPB_KARI('CQ-36')}。<b>仕様提案書の保持先（Salesforce／技術情報DB など）は未確定</b>です ${WPB_KARI('CQ-36')}。</div>`,
+    `<button class="btn" onclick="wpbSpecAdd('${o.id}','先行版')">先行版を添付</button><button class="btn" onclick="wpbSpecAdd('${o.id}','正式版')">正式版を添付</button>`)+'</div>';
 }
 function wpbSpecAdd(oid,v){ const o=byId(DB.opps,oid), fs=DB.wpbSpecFiles[oid]=DB.wpbSpecFiles[oid]||[], n=fs.filter(f=>f.v===v).length+1;
   fs.push({v,n:`仕様提案書_${v}_${o.name.replace(/\s+/g,'')}${n>1?'_rev'+n:''}.${v==='正式版'?'xdw':'xlsx'}`,dt:'2026/10/08',by:meName()});
@@ -4293,22 +4302,23 @@ DB.wpbTests = [
   {id:'TT03',opp:'O003',type:'加工テスト',h:24,res:'5ランク判定に必要な測定の繰返し性を確認',paid:'有償',ext:false,dt:'2026-07-05',by:'佐藤 健'},
   {id:'TT04',opp:'O003',type:'その他の試験',h:8,res:'材料硬度の確認試験（外部機関へ別手配）',paid:'有償',ext:true,dt:'2026-07-08',by:'佐藤 健'}
 ];
-function wpbTestNote(hs){
-  return `<div class="note wpb-autonote mt8"><b>試作加工（加工技術）への自動通知（デモ）</b><br>次の操作で、技術部（加工技術・設計）へ通知が飛びます。
+function wpbTestNote(o){
+  const st=o?(o.wpbTtAt?`<br><span class="pill g">この商談：通知済み（${o.wpbTtAt}）</span> <span class="small">同じ商談への通知は1回だけです（2回目以降は送りません）</span>`:'<br><span class="pill">この商談：未通知</span>'):'';
+  return `<div class="note wpb-autonote mt8" id="ko-K-B10"><b>試作加工（加工技術）への自動通知（デモ）</b>${st}<br>次の操作で、技術部（加工技術・設計）へ通知が飛びます（同じ商談には1回だけ）。
     <br>① 商談のフェーズを「検討」にしたとき、ヒアリングシートの「加工精度達成可否（A-316）」が「テスト予定」の場合
     <br>② フェーズが「検討」の商談で、ヒアリングシートの A-316 を「テスト予定」にしたとき
-    <br><span class="small">「テスト予定」＝テスト加工の要否「あり」として扱う解釈と、宛先（加工技術・設計＝技術部）は ${WPB_KARI('DC-23')}</span></div>`;
+    <br><span class="small">「テスト予定」＝テスト加工の要否「あり」として扱う解釈と、宛先（加工技術・設計＝技術部）は ${WPB_KARI('CQ-35')}</span></div>`;
 }
 function wpbTestCard(o){
   const ts=DB.wpbTests.filter(t=>t.opp===o.id), sum=ts.reduce((a,t)=>a+t.h,0), paid=ts.filter(t=>t.paid==='有償').reduce((a,t)=>a+t.h,0);
-  return relCard('i-kakou','🧪','テスト加工・調査',ts.length,
+  return '<div id="ko-K-B09">'+relCard('i-kakou','🧪','テスト加工・調査',ts.length,
     tbl(['実施日','種別','#工数(h)','結果','有償／無償','別手配','担当'],ts.map(t=>tr([fmtD(t.dt),esc(t.type),[t.h],esc(t.res),t.paid,t.ext?'☑ 別手配':'—',ul(t.by)])),'まだ登録はありません')
     +`<div class="mt8"><span class="pill b">合計工数 <b id="wpbTtSum">${sum}</b> h</span> <span class="small muted">（有償 ${paid} h／無償 ${sum-paid} h）</span></div>
-    <div class="small muted mt8">受注前の確認・テスト加工の工数と結果を案件に結びつけ、次の見積に生かします。有償・無償の区分、別手配の試験のひも付け方は ${WPB_KARI()}</div>${wpbTestNote()}`,
-    `<button class="btn" id="wpbTtAdd" onclick="wpbTestAdd('${o.id}')">追加</button>`);
+    <div class="small muted mt8">受注前の確認・テスト加工の工数と結果を案件に結びつけ、次の見積に生かします。有償・無償の区分、別手配の試験のひも付け方は ${WPB_KARI('CQ-35')}</div>${wpbTestNote(o)}`,
+    `<button class="btn" id="wpbTtAdd" onclick="wpbTestAdd('${o.id}')">追加</button>`)+'</div>';
 }
 function wpbTestAdd(oid){
-  modal('テスト加工・調査を追加',`<div class="form1"><div class="tk-2col"><label>種別<select id="wpbTtT">${WPB_TT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></label>
+  modal('テスト加工・調査を追加',`<div class="small mb8">種別・有償／無償・別手配の区分は ${WPB_KARI('CQ-35')}</div><div class="form1"><div class="tk-2col"><label>種別<select id="wpbTtT">${WPB_TT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></label>
     <label>実施日<input type="date" id="wpbTtD" value="${wpbTodayIso()}"></label></div>
     <div class="tk-2col"><label>工数(h)<input type="number" id="wpbTtH" value="4" min="0"></label><label>有償／無償<select id="wpbTtP"><option>無償</option><option>有償</option></select></label></div>
     <label class="wp2-chk"><input type="checkbox" id="wpbTtE"> 別手配の試験</label>
@@ -4321,14 +4331,15 @@ extRec('opp').main.push(o=>wpbOppInqCard(o)+wpbSpecCard(o)+wpbTestCard(o));
 
 /* ---------- K-B10 進行状況を捉えて試作加工（加工技術）へ自動通知 ---------- */
 function wpbTestNotify(o,h,why){
-  notify(`【試作加工の準備】商談「${o.name}」が「検討」フェーズで、ヒアリングシートのテスト加工が「テスト予定」です（${why}）。加工技術・設計で試作加工の準備をお願いします`,'#/opp/'+o.id,{depts:['技術部']});
+  if(o.wpbTtAt) return false; o.wpbTtAt=nowStr();
+  notify(`【試作加工の準備】商談「${o.name}」が「検討」フェーズで、ヒアリングシートのテスト加工が「テスト予定」です（${why}）。加工技術・設計で試作加工の準備をお願いします`,'#/opp/'+o.id,{depts:['技術部']}); return true;
 }
 { const _set=setOppStage; setOppStage=function(id,i){ const o=byId(DB.opps,id), prev=o?o.stage:null; _set(id,i);
   if(!o||prev===1||o.stage!==1) return; const h=DB.hearings.find(x=>x.opp===id);
-  if(h&&h.ans['A-316']==='テスト予定'){ wpbTestNotify(o,h,'フェーズ変更'); toast('フェーズを「検討」に更新しました。テスト加工「あり」のため、技術部（加工技術・設計）へ自動通知しました'); } }; }
+  if(h&&h.ans['A-316']==='テスト予定'){ toast(wpbTestNotify(o,h,'フェーズ変更')?'フェーズを「検討」に更新しました。テスト加工「あり」のため、技術部（加工技術・設計）へ自動通知しました':`フェーズを「検討」に更新しました（試作加工への通知は ${o.wpbTtAt} に送信済みのため、再送しません）`); route(); } }; }
 { const _hs=hsSet; hsSet=function(hid,k,v){ const h=byId(DB.hearings,hid), prev=h&&h.ans['A-316']; _hs(hid,k,v);
   if(!h||prev==='テスト予定'||h.ans['A-316']!=='テスト予定') return; const o=byId(DB.opps,h.opp);
-  if(o&&o.stage===1){ wpbTestNotify(o,h,'ヒアリングシート更新'); toast('テスト加工「あり」（テスト予定）のため、技術部（加工技術・設計）へ自動通知しました'); } }; }
+  if(o&&o.stage===1){ toast(wpbTestNotify(o,h,'ヒアリングシート更新')?'テスト加工「あり」（テスト予定）のため、技術部（加工技術・設計）へ自動通知しました':`試作加工への通知は ${o.wpbTtAt} に送信済みのため、再送しません`); const y=window.scrollY; route(); window.scrollTo(0,y); } }; }
 
 /* ---------- K-B08 DR引継ぎ（案件タブ） ---------- */
 const WPB_DR_KINDS = ['最新の仕様','変更した箇所','確認済みの範囲'];
@@ -4357,12 +4368,12 @@ function wpbDrTab(p){
   const chips=[['all','すべて'],['顧客提示','顧客提示'],['社内参考','社内参考']].map(([k,l])=>`<button class="btn ${f===k?'brand':''}" onclick="UI.wpbDrF='${k}';route()">${l}</button>`).join('');
   const secs=WPB_DR_KINDS.map(k=>{ const r=items.filter(x=>x.k===k);
     return `<div class="section-title">${k}（${r.length}）</div><div class="tbl-wrap">${tbl(['内容','区分','出典','更新日'],r.map(x=>tr([esc(x.t),`<span class="pill ${x.c==='顧客提示'?'b':''}">${x.c}</span>`,x.src?`<a href="${x.src}">${/request/.test(x.src)?'依頼 '+(byId(DB.requests,x.src.split('/').pop())||{}).no:'商談'}</a>`:'—',x.dt])),'登録はありません')}</div>`; }).join('');
-  return `<div class="small mb8">設計着手時のDRで、最新の仕様／変更した箇所／確認済みの範囲をそろえ、同じ確認の繰り返しを減らします（10/14 技術ヒアリング）。</div>
+  return `<div id="ko-K-B08"><div class="small mb8">設計着手時のDRで、最新の仕様／変更した箇所／確認済みの範囲をそろえ、同じ確認の繰り返しを減らします（10/14 技術ヒアリング）。</div>
     <div class="flex mb8">${chips}<span style="margin-left:auto"><button class="btn" id="wpbDrAdd" onclick="wpbDrAdd('${p.id}')">引継ぎ項目を追加</button></span></div>
     ${secs}
     <div class="section-title">DR記録</div>
     <div class="tbl-wrap">${tbl(['DR','日付','議事録','確認者','承認者','状況',''],d.dr.map((x,i)=>tr([x.n,x.dt?fmtD(x.dt):'—',x.file?`📎 ${esc(x.file)}`:'<span class="muted">—</span>',x.chk?ul(x.chk):'—',x.appr?ul(x.appr):'—',stPill(x.st),`<button class="btn" onclick="wpbDrRec('${p.id}',${i})">記録する</button>`])))}</div>
-    <div class="small muted mt8">DRの区分（DR1：構想設計、DR2・3：治具）は To-Be 業務フローによる。議事録の保管先、確認者・承認者の記録は QMS との整合を含めて検討します ${WPB_KAKU}。添付はデモ用のダミーです。</div>`;
+    <div class="small muted mt8">DRの区分（DR1：構想設計、DR2・3：治具）は To-Be 業務フローによる。議事録の保管先、確認者・承認者の記録は QMS との整合を含めて検討します ${WPB_KARI('CQ-37')}。添付はデモ用のダミーです。</div></div>`;
 }
 function wpbDrAdd(pid){
   modal('引継ぎ項目を追加',`<div class="form1"><label>種類<select id="wpbDrK">${WPB_DR_KINDS.map(k=>`<option>${k}</option>`).join('')}</select></label>
@@ -4375,7 +4386,7 @@ function wpbDrRec(pid,i){
   const opt=v=>`<option value="">—</option>`+us.map(u=>`<option ${u.name===v?'selected':''} value="${esc(u.name)}">${esc(u.name)}（${esc(u.title)}）</option>`).join('');
   modal(x.n+'の記録',`<div class="form1"><label>日付<input type="date" id="wpbDrD" value="${x.dt||wpbTodayIso()}"></label>
     <label>議事録（添付・ダミー）<input id="wpbDrF" value="${esc(x.file||x.n.replace(/（.*/,'')+'_議事録.pdf')}"></label>
-    <label>確認者 ${WPB_KARI()}<select id="wpbDrCk">${opt(x.chk)}</select></label><label>承認者 ${WPB_KARI()}<select id="wpbDrAp">${opt(x.appr)}</select></label></div>`,
+    <label>確認者 ${WPB_KARI('CQ-37')}<select id="wpbDrCk">${opt(x.chk)}</select></label><label>承認者 ${WPB_KARI('CQ-37')}<select id="wpbDrAp">${opt(x.appr)}</select></label></div>`,
     ()=>{ if(!x.id) x.id=wpbDrNewId(); Object.assign(x,{dt:$('#wpbDrD').value,file:$('#wpbDrF').value.trim(),chk:$('#wpbDrCk').value,appr:$('#wpbDrAp').value,st:'実施済'}); toast(x.n+'の記録を保存しました'); },'保存');
 }
 extRec('project').tabs.push({k:'wpbdr',label:'DR引継ぎ',roles:['kikaku','eigyo','gijutsu'],render:p=>wpbDrTab(p),before:'detail'});
