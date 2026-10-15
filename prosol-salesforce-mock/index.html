@@ -2226,7 +2226,7 @@ function pgOpp(id){
   const o=byId(DB.opps,id); if(!o) return notFound();
   const hs=DB.hearings.find(h=>h.opp===id), items=oppItems(o), q=DB.quotes.find(x=>x.opp===id), cs=DB.contacts.filter(c=>c.acc===o.acc);
   return recHeader({icon:'i-opp',em:'★',label:'商談',title:esc(o.name),
-    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`go('#/hearing/${hs.id}')`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="go('#/quote/${q.id}');setTimeout(()=>quotePreview('${q.id}'),50)">見積書プレビュー（参考）</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`+hk('opp','actions',o),
+    actions:followBtn('opp:'+id)+`<div class="btn-group"><button class="btn" onclick="${hs?`go('#/hearing/${hs.id}')`:`newHearing('${o.id}')`}">${hs?'ヒアリングシートを開く':'ヒアリングシート作成'}</button><button class="btn" onclick="go('#/quote/${q.id}');setTimeout(()=>quotePreview('${q.id}'),50)">見積書（参考）</button><button class="btn" onclick="editRec('opp','${o.id}')">編集</button></div>`+hk('opp','actions',o),
     hl:[['取引先',al(o.acc)],['金額',yen(o.amount)],['完了予定日',fmtD(o.close)],['確度',o.prob+'%'],['商談所有者',ul(o.owner)],['案件',o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'未生成'],...hkArr('opp','hl',o)]})
   +`${pathHtml(OPP_STAGES,o.stage,`setOppStage('${o.id}',`,o.stage>=OPP_WON?'受注済み':'フェーズを完了としてマーク')}
   ${o.stage<OPP_WON?`<div class="note mb8">デモ：フェーズを「受注」にすると、自動化フローが<b>案件を自動生成</b>し、関係者へ通知します。</div>`:''}${hk('opp','top',o)}
