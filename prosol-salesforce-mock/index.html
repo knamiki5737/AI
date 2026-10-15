@@ -527,6 +527,7 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpc-sw{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .wpc-ut .wpc-urow td{background:#f3f2f2;border-top:2px solid #c9c7c5}
 .wpc-ut .wpc-lrow td:first-child{padding-left:18px}
+.wpc-ut td.num,.wpc-ut th.num{white-space:nowrap}.wpc-ut .wpc-lrow td:first-child{white-space:nowrap}
 .wpc-rs{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .pill.wpc-why0{background:#fef1cd;color:#5c4400}.pill.wpc-why1{background:#feded8;color:#8e030f}.pill.wpc-why2{background:#e5d7fb;color:#3d0e7a}.pill.wpc-why3{background:#cdefc4;color:#194e31}
 .wpc-empty{border:1px dashed #c9c7c5;border-radius:6px;padding:16px;text-align:center;background:#fafaf9}
@@ -546,6 +547,8 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpc-sf{border:2px solid var(--brand);border-radius:6px;padding:8px;background:#eef4ff}
 .wpc-sys{border:2px dashed #706e6b;border-radius:6px;padding:8px;background:#fff}
 .wpc-sys.wpc-q{border-color:#dd7a01;background:#fff8ee}
+.wpc-warn{background:#fef1ee;border:1px solid #ea001e;border-radius:4px;padding:6px 10px;font-size:12px;color:#8e030f;margin:6px 0}
+.wpc-chkrow{display:grid;gap:3px;background:#fafaf9;border:1px solid #e5e5e5;border-radius:4px;padding:6px 10px}
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
 .wpp-k{border-top:3px solid #0176d3}
@@ -4390,7 +4393,7 @@ const WPC_KB_KINDS = ['問題・解決','原価低減','成功事例'];         
 UI.wpcCv = UI.wpcCv || {};       // 原価画面の表示切替（'proc'＝工程別／'unit'＝ユニット別）。キーは案件ID、ダッシュボードは 'all'
 UI.wpcKbKind = UI.wpcKbKind || 'すべて';
 /* K-C08：段階運用の注記帯（原価・進捗の画面） */
-function wpcBand(){ return `<div class="wpc-band" role="note"><b>段階運用</b>：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）</div>`; }
+function wpcBand(){ return `<div class="wpc-band" id="ko-K-C08" role="note"><b>段階運用</b>：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）</div>`; }
 
 /* ---------- K-C01〜C03：ユニット別の原価（架空のデモデータ） ----------
    見積時の合計＝案件の予算原価、実績の合計＝工程別の実績原価（仕入実績＋実績工数×工数単価）にそろえている。
@@ -4399,36 +4402,36 @@ DB.units = [
   {id:'UC01',pj:'P003',name:'ユニットA',label:'ホーニング本体（主軸・ヘッド）',basis:'コストテーブル',lines:[
     {t:'部品・材料',n:'ベース・コラム（加工品）',v:[6800000,6800000,0]},
     {t:'購入品',n:'主軸モーター・サーボ',v:[5400000,5400000,1200000],note:'長納期品を先行手配'},
-    {t:'工数',n:'設計',h:[60,60,0]},{t:'工数',n:'組立',h:[60,60,0]},{t:'工数',n:'加工立会い',h:[20,20,0]}]},
+    {t:'工数',n:'設計',sub:'sekkei',h:[45,45,0]},{t:'工数',n:'組立',sub:'seizou',h:[45,45,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[15,15,0]}]},
   {id:'UC02',pj:'P003',name:'ユニットB',label:'ロボット搬送・ワーク治具',basis:'過去の類似実績',ref:'P005',lines:[
     {t:'購入品',n:'ロボット・ハンド',v:[12500000,12500000,0]},
     {t:'部品・材料',n:'ワーク治具・シュート',v:[2600000,2300000,0],why:'原価を減らせた工夫',note:'既存治具の設計を流用'},
-    {t:'工数',n:'設計',h:[40,40,0]},{t:'工数',n:'組立',h:[40,40,0]},{t:'工数',n:'加工立会い',h:[10,10,0]}]},
+    {t:'工数',n:'設計',sub:'sekkei',h:[45,45,0]},{t:'工数',n:'組立',sub:'seizou',h:[30,30,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[10,10,0]}]},
   {id:'UC03',pj:'P003',name:'ユニットC',label:'計測・ランクセレクト',basis:'新規の都度見積',lines:[
     {t:'購入品',n:'エアゲージ・ランクセレクト装置',v:[5600000,6800000,0],why:'設計の変更',link:'R010',note:'3ランク→5ランク'},
-    {t:'部品・材料',n:'NG排出部',v:[1000000,1300000,0],why:'設計の変更',link:'R010'},
-    {t:'工数',n:'設計',h:[30,50,0],why:'設計の変更',link:'R010'},{t:'工数',n:'組立',h:[20,20,0]},{t:'工数',n:'加工立会い',h:[10,10,0]}]},
+    {t:'部品・材料',n:'NG排出部',v:[1000000,1330000,0],why:'設計の変更',link:'R010'},
+    {t:'工数',n:'設計',sub:'sekkei',h:[10,30,0],why:'設計の変更',link:'R010'},{t:'工数',n:'組立',sub:'seizou',h:[15,15,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[5,5,0]}]},
   {id:'UC04',pj:'P003',name:'共通',label:'ユニットに割り付けない費用・工数',basis:'',common:true,lines:[
-    {t:'購入品',n:'安全柵・CE対応部材',v:[3860000,3860000,0]},
-    {t:'工数',n:'試作加工・調整',h:[200,220,220],why:'追加の作業',note:'新規材質への対応'},
-    {t:'工数',n:'機案書・規格調査',h:[150,156,94],why:'見積条件の違い',note:'CE（機械指令）適合範囲の確認'},
-    {t:'工数',n:'見積取得・手配',h:[15,15,10]}]},
+    {t:'購入品',n:'安全柵・CE対応部材',v:[4860000,5870000,0],why:'見積条件の違い',note:'CE（機械指令）の適合範囲が見積時の想定より広い'},
+    {t:'工数',n:'試作加工・調整（加工）',sub:'kakou',h:[200,210,220],why:'追加の作業',note:'新規材質への対応'},
+    {t:'工数',n:'機案書・規格調査（機案見積）',sub:'kian',h:[94,104,94],why:'見積条件の違い',note:'CE（機械指令）適合範囲の確認を追加'},
+    {t:'工数',n:'見積取得・手配（調達）',sub:'chou',h:[16,16,10]}]},
   {id:'UC11',pj:'P002',name:'ユニットA',label:'本体・主軸',basis:'過去の類似実績',ref:'P007',lines:[
-    {t:'部品・材料',n:'ベース・コラム（加工品）',v:[3200000,3200000,0]},
+    {t:'部品・材料',n:'ベース・コラム（加工品）',v:[3200000,3700000,0],why:'見積条件の違い',note:'材料単価の上昇'},
     {t:'購入品',n:'主軸ユニット・サーボ',v:[4100000,4050000,4050000],why:'原価を減らせた工夫',note:'購入先の見直し'},
-    {t:'工数',n:'設計',h:[30,30,0]},{t:'工数',n:'組立',h:[20,20,0]},{t:'工数',n:'加工立会い',h:[10,10,0]}]},
+    {t:'工数',n:'設計',sub:'sekkei',h:[30,30,0]},{t:'工数',n:'組立',sub:'seizou',h:[12,12,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[6,6,0]}]},
   {id:'UC12',pj:'P002',name:'ユニットB',label:'ワーク治具・クランプ',basis:'新規の都度見積',lines:[
     {t:'部品・材料',n:'ワーク治具',v:[1300000,1300000,630000]},
     {t:'購入品',n:'油圧クランプ',v:[600000,600000,0]},
-    {t:'工数',n:'設計',h:[15,15,0]},{t:'工数',n:'組立',h:[8,8,0]},{t:'工数',n:'加工立会い',h:[4,4,0]}]},
+    {t:'工数',n:'設計',sub:'sekkei',h:[15,15,0]},{t:'工数',n:'組立',sub:'seizou',h:[5,5,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[3,3,0]}]},
   {id:'UC13',pj:'P002',name:'ユニットC',label:'計測（エアゲージ）・制御盤',basis:'コストテーブル',lines:[
-    {t:'購入品',n:'エアゲージ・制御機器',v:[2300000,2300000,0]},
-    {t:'工数',n:'設計',h:[5,5,0]},{t:'工数',n:'組立',h:[2,2,0]},{t:'工数',n:'加工立会い',h:[4,4,0]}]},
+    {t:'購入品',n:'エアゲージ・制御機器',v:[2684000,3310000,0],why:'見積条件の違い',note:'お客様指定メーカーの制御機器に変更'},
+    {t:'工数',n:'設計',sub:'sekkei',h:[5,5,0]},{t:'工数',n:'組立',sub:'seizou',h:[2,2,0]},{t:'工数',n:'加工立会い',sub:'seizou',h:[2,2,0]}]},
   {id:'UC14',pj:'P002',name:'共通',label:'ユニットに割り付けない費用・工数',basis:'',common:true,lines:[
     {t:'部品・材料',n:'試作用治具材',v:[468000,540000,520000],why:'設計の変更',note:'ワーク固定方法を変更'},
-    {t:'工数',n:'試作加工・測定',h:[120,120,84]},
-    {t:'工数',n:'要求仕様確認',h:[16,16,6]},
-    {t:'工数',n:'長納期品手配',h:[20,20,12]}]}
+    {t:'工数',n:'試作加工・測定（加工）',sub:'kakou',h:[90,100,84],why:'追加の作業',note:'試作治具の作り直し'},
+    {t:'工数',n:'要求仕様確認（機案見積）',sub:'kian',h:[16,16,6]},
+    {t:'工数',n:'長納期品手配（調達）',sub:'chou',h:[20,20,12]}]}
 ];
 const wpcAmt = (l,i) => l.h ? l.h[i]*RATE : (l.v[i]||0);
 const wpcUSum = (u,i) => u.lines.reduce((a,l)=>a+wpcAmt(l,i),0);
@@ -4436,16 +4439,21 @@ const wpcUnitsOf = pid => DB.units.filter(u=>u.pj===pid);
 const wpcSgn = n => (n>0?'+':n<0?'−':'±')+yen(Math.abs(n));
 const wpcSgnM = n => (n>0?'+':n<0?'−':'±')+man(Math.abs(n));
 const WPC_KARI = '<span class="tent kari">仮置き・要確認</span>';
+const wpcCq = n => `<span class="tent kari">仮置き・要確認（CQ-${n}）</span>`;
+const WPC_TABLEAU = '基幹実績との Tableau 連携は予定（p7）。10/14 時点で連携方式・範囲は未確定です <span class="tent kari">仮置き・要確認（CQ-42）</span>。';
+const wpcFixTableau = h => h.split('基幹実績との Tableau 連携は予定です（ステップ2）。').join(WPC_TABLEAU);
+/* 案件の原価タブをユニット別で開く（要件レビュー画面などから）：UI.pjTab[pid]='cost'; UI.wpcCv[pid]='unit' */
+EXT.fn.wpcOpenUnit = (pid,role) => { UI.pjTab[pid]='cost'; UI.wpcCv[pid]='unit'; goAs('#/project/'+pid,role); };
 const WPC_NOTE_EST = '見積根拠は3区分（コストテーブル／過去の類似実績／新規の都度見積）です。設計・組立・加工立会い等の工数も見積原価の対象です。<b>原価の更新時期、材料費・工数レートの反映方法、更新責任は今後整理します</b>（技術ヒアリング p08）。';
-const WPC_NOTE_CMP = '差異＝変更見込−見積時（完了時は実績と見積時を比べて振り返る想定）。<b>比較する粒度・時点・実績の取得方法は要件定義で決めます。実績の自動連携（OBIC 等）の方式は未確定です</b>（技術ヒアリング p10）。';
-const WPC_NOTE_DEMO = `ユニット構成・部品・金額はすべて架空のデモデータです。工数は工数単価 ${yen(RATE)}/h で金額に換算しています（単価は仮置き：CQ-10）。「共通」はユニットに割り付けない費用・工数（試作加工・機案・手配など）で、扱いは要確認です。`;
+const WPC_NOTE_CMP = '差異＝変更見込−見積時。参考として「実績−見積時」の列も表示します（製作中の案件では実績は途中の値です）。<b>比較する粒度・時点・実績の取得方法は要件定義で決めます。実績の自動連携（OBIC 等）の方式は未確定です</b>（技術ヒアリング p10）。';
+const WPC_NOTE_DEMO = `ユニット構成・部品・金額はすべて架空のデモデータです。見積時の合計＝予算原価、変更見込の合計＝工程別の予定原価、実績の合計＝工程別の実績原価にそろえています。工数行の時間は工程別の工数（設計＝設計管理、組立・加工立会い＝製造管理、共通の各行＝加工・機案見積・調達）と同じ筋です。工数は工数単価 ${yen(RATE)}/h で金額に換算しています（単価は仮置き：CQ-10）。「共通」はユニットに割り付けない費用・工数で、扱いは要確認です。`;
 function wpcWhy(l){
   if(!l.why) return '<span class="muted">—</span>';
   const r=l.link&&byId(DB.requests,l.link);
   return `<span class="pill wpc-why${WPC_REASONS.indexOf(l.why)}">${l.why}</span>${l.note?`<div class="small muted">${esc(l.note)}</div>`:''}${r?`<div class="small"><a href="#/request/${r.id}">${r.no}</a></div>`:''}`;
 }
 function wpcBasis(u){
-  if(u.common) return `<span class="small muted">—（扱いは要確認）</span>`;
+  if(u.common) return `<span class="small muted">—</span> ${wpcCq(39)}`;
   const rp=u.ref&&byId(DB.projects,u.ref);
   return `<span class="pill b">見積根拠：${u.basis}</span>${rp?`<div class="small">参照：<a href="#/project/${rp.id}">${rp.no}</a></div>`:''}`;
 }
@@ -4462,33 +4470,44 @@ function wpcReasonPills(units){
   return `<div class="wpc-rs">${wpcReasonSum(units).map(x=>`<span class="pill wpc-why${x.i}">${x.w}：${x.n} 件 ${x.n?wpcSgn(x.d):''}</span>`).join('')}</div>`;
 }
 /* 案件の原価タブ：ユニット別 */
+const wpcAE = (a,e) => a===e?'<span class="muted">—</span>':wpcSgn(a-e);
+function wpcCheck(p,us){
+  const T=i=>us.reduce((a,u)=>a+wpcUSum(u,i),0), pc=procCost(p), pp=pc.reduce((a,x)=>a+x.plan,0), pa=pc.reduce((a,x)=>a+x.act,0);
+  const ok=(a,b)=>a===b?'<span class="pill g">一致</span>':`<span class="pill y">差 ${wpcSgn(a-b)}</span>`;
+  const hs={}; us.flatMap(u=>u.lines).filter(l=>l.h&&l.sub).forEach(l=>{ const x=hs[l.sub]||(hs[l.sub]=[0,0,0]); l.h.forEach((v,i)=>x[i]+=v); });
+  const hrs=pc.map(x=>{ const h=hs[x.sub]||[0,0,0], m=h[1]===x.ph&&h[2]===x.ah; return `${x.s.label.replace('管理','')} ${h[1]}h/${h[2]}h${m?'':' <span class="pill y">差あり</span>'}`; }).join('、');
+  return `<div class="small mt8 wpc-chkrow"><div><b>照合</b>（ユニット別 ／ 工程別）</div>
+    <div>見積時の合計 ${yen(T(0))} ／ 予算原価 ${yen(p.budget)} ${ok(T(0),p.budget)}</div>
+    <div>変更見込の合計 ${yen(T(1))} ／ 工程別の予定原価（見込原価） ${yen(pp)} ${ok(T(1),pp)}</div>
+    <div>実績の合計 ${yen(T(2))} ／ 工程別の実績原価 ${yen(pa)} ${ok(T(2),pa)}</div>
+    <div class="muted">工数（変更見込／実績）：${hrs}　※工数の追加などで差が出た場合、ユニットへの割り付けは登録時点の値です</div></div>`;
+}
 function wpcUnitView(p){
   const us=wpcUnitsOf(p.id); if(!us.length) return wpcNoUnit();
   const T=i=>us.reduce((a,u)=>a+wpcUSum(u,i),0), E=T(0), C=T(1), A=T(2);
-  const procAct=procCost(p).reduce((a,x)=>a+x.act,0);
   const amtCell=(l,i)=>`<td class="num">${yen(wpcAmt(l,i))}${l.h?`<div class="small muted">${l.h[i]}h</div>`:''}</td>`;
   const body=us.map(u=>{
     const e=wpcUSum(u,0), c=wpcUSum(u,1), a=wpcUSum(u,2), ws=[...new Set(u.lines.map(l=>l.why).filter(Boolean))];
     return `<tr class="wpc-urow"><td colspan="2"><b>${u.common?'':'▼ '}${esc(u.name)}</b> <span class="small">${esc(u.label)}</span><div style="margin-top:4px">${wpcBasis(u)}</div></td>
       <td class="num"><b>${yen(e)}</b></td><td class="num"><b>${yen(c)}</b></td><td class="num"><b>${yen(a)}</b></td><td class="num ${c>e?'tk-over':''}"><b>${wpcSgn(c-e)}</b></td>
-      <td>${ws.map(w=>`<span class="pill wpc-why${WPC_REASONS.indexOf(w)}">${w}</span>`).join(' ')||'<span class="muted">—</span>'}</td></tr>`
+      <td>${ws.map(w=>`<span class="pill wpc-why${WPC_REASONS.indexOf(w)}">${w}</span>`).join(' ')||'<span class="muted">—</span>'}</td><td class="num small">${wpcAE(a,e)}</td></tr>`
     + u.lines.map(l=>`<tr class="wpc-lrow"><td class="small">${l.t}</td><td>${esc(l.n)}</td>${amtCell(l,0)}${amtCell(l,1)}${amtCell(l,2)}
-      <td class="num ${wpcAmt(l,1)>wpcAmt(l,0)?'tk-over':''}">${wpcAmt(l,1)===wpcAmt(l,0)?'<span class="muted">—</span>':wpcSgn(wpcAmt(l,1)-wpcAmt(l,0))}</td><td>${wpcWhy(l)}</td></tr>`).join('');
+      <td class="num ${wpcAmt(l,1)>wpcAmt(l,0)?'tk-over':''}">${wpcAmt(l,1)===wpcAmt(l,0)?'<span class="muted">—</span>':wpcSgn(wpcAmt(l,1)-wpcAmt(l,0))}</td><td>${wpcWhy(l)}</td><td class="num small">${wpcAE(wpcAmt(l,2),wpcAmt(l,0))}</td></tr>`).join('');
   }).join('');
-  return `<div class="flex mb8"><b>ユニット別の原価予実</b> <span class="small muted">案件・設備 → ユニット → 部品・工数</span>${stepBadge(2)}</div>
-  <div class="tbl-wrap"><table class="tbl wpc-ut"><thead><tr><th>区分</th><th>ユニット／部品・工数</th><th class="num">見積時</th><th class="num">変更見込</th><th class="num">実績</th><th class="num">差異</th><th>差異理由</th></tr></thead>
-  <tbody>${body}</tbody><tfoot><tr><td colspan="2">合計</td><td class="num">${yen(E)}</td><td class="num">${yen(C)}</td><td class="num">${yen(A)}</td><td class="num">${wpcSgn(C-E)}</td><td></td></tr></tfoot></table></div>
-  <div class="small mt8">差異理由の内訳：${wpcReasonPills(us)}</div>
-  <div class="small muted mt8">照合：見積時の合計 ${yen(E)}／予算原価 ${yen(p.budget)}${E===p.budget?'（一致）':'（差あり）'}　実績の合計 ${yen(A)}／工程別の実績原価 ${yen(procAct)}${A===procAct?'（一致）':'（工数の追加などで差が出ています。ユニットへの割り付けは登録時点の値です）'}</div>
-  <div class="note mt8">${WPC_NOTE_EST}</div><div class="note mt8">${WPC_NOTE_CMP}</div><div class="note mt8">${WPC_NOTE_DEMO} ${WPC_KARI}</div>`;
+  return `<div id="ko-K-C01"><div class="flex mb8"><b>ユニット別の原価予実</b> <span class="small muted">案件・設備 → ユニット → 部品・工数</span>${wpcCq(39)}</div>
+  <div class="tbl-wrap"><table class="tbl wpc-ut"><thead><tr><th>区分</th><th>ユニット／部品・工数</th><th class="num">見積時</th><th class="num">変更見込</th><th class="num">実績</th><th class="num">差異</th><th>差異理由</th><th class="num">（参考）実績−見積時</th></tr></thead>
+  <tbody>${body}</tbody><tfoot><tr><td colspan="2">合計</td><td class="num">${yen(E)}</td><td class="num">${yen(C)}</td><td class="num">${yen(A)}</td><td class="num">${wpcSgn(C-E)}</td><td></td><td class="num">${wpcSgn(A-E)}</td></tr></tfoot></table></div></div>
+  <div class="small mt8" id="ko-K-C03">差異理由の内訳：${wpcReasonPills(us)}</div>
+  ${wpcCheck(p,us)}
+  <div class="note mt8" id="ko-K-C02">${WPC_NOTE_EST}</div><div class="note mt8">${WPC_NOTE_CMP}</div><div class="note mt8">${WPC_NOTE_DEMO} ${wpcCq(39)}</div>`;
 }
 /* 案件の原価タブ（WP3 の pjCost をラップして切替を追加） */
 const _wpcPjCost = pjCost;
-pjCost = function(p,c){ const v=UI.wpcCv[p.id]||'proc'; return wpcSwitch(p.id)+(v==='unit'?wpcUnitView(p):_wpcPjCost(p,c)); };
+pjCost = function(p,c){ const v=UI.wpcCv[p.id]||'proc'; return wpcSwitch(p.id)+(v==='unit'?wpcUnitView(p):wpcFixTableau(_wpcPjCost(p,c))); };
 /* 原価予実ダッシュボード（WP3 の pgCosts をラップ：段階運用の帯と切替を追加） */
 const _wpcPgCosts = pgCosts;
 pgCosts = function(){
-  const h=_wpcPgCosts(), k=h.indexOf('<div class="note mb8">');
+  const h=wpcFixTableau(_wpcPgCosts()), k=h.indexOf('<div class="note mb8">');
   const head=k>=0?h.slice(0,k):'', rest=k>=0?h.slice(k):h;
   return head+wpcBand()+wpcSwitch('all')+((UI.wpcCv.all||'proc')==='unit'?wpcCostsUnit():rest);
 };
@@ -4496,21 +4515,22 @@ function wpcCostsUnit(){
   const reg=DB.projects.filter(p=>wpcUnitsOf(p.id).length), un=DB.projects.filter(p=>!wpcUnitsOf(p.id).length), us=DB.units.filter(u=>reg.some(p=>p.id===u.pj));
   const T=i=>us.reduce((a,u)=>a+wpcUSum(u,i),0), E=T(0), C=T(1), A=T(2);
   const rows=reg.map(p=>{ const xs=wpcUnitsOf(p.id), s=i=>xs.reduce((a,u)=>a+wpcUSum(u,i),0);
-    return `<tr class="wpc-urow"><td colspan="2"><a href="#/project/${p.id}">${esc(p.name)}</a></td><td class="num"><b>${man(s(0))}</b></td><td class="num"><b>${man(s(1))}</b></td><td class="num"><b>${man(s(2))}</b></td><td class="num ${s(1)>s(0)?'tk-over':''}"><b>${wpcSgnM(s(1)-s(0))}</b></td><td></td></tr>`
-      + xs.map(u=>{ const e=wpcUSum(u,0), c=wpcUSum(u,1), ws=[...new Set(u.lines.map(l=>l.why).filter(Boolean))];
-        return `<tr class="wpc-lrow"><td>${esc(u.name)} <span class="small">${esc(u.label)}</span></td><td>${wpcBasis(u)}</td><td class="num">${man(e)}</td><td class="num">${man(c)}</td><td class="num">${man(wpcUSum(u,2))}</td><td class="num ${c>e?'tk-over':''}">${c===e?'<span class="muted">—</span>':wpcSgnM(c-e)}</td><td>${ws.map(w=>`<span class="pill wpc-why${WPC_REASONS.indexOf(w)}">${w}</span>`).join(' ')||'<span class="muted">—</span>'}</td></tr>`; }).join(''); }).join('')
-    + un.map(p=>`<tr><td colspan="2"><a href="#/project/${p.id}">${esc(p.name)}</a></td><td colspan="5" class="muted">ユニット別データ未登録（段階運用）</td></tr>`).join('');
+    return `<tr class="wpc-urow"><td colspan="2"><a href="#/project/${p.id}">${esc(p.name)}</a></td><td class="num"><b>${man(s(0))}</b></td><td class="num"><b>${man(s(1))}</b></td><td class="num"><b>${man(s(2))}</b></td><td class="num ${s(1)>s(0)?'tk-over':''}"><b>${wpcSgnM(s(1)-s(0))}</b></td><td></td><td class="num small">${wpcSgnM(s(2)-s(0))}</td></tr>`
+      + xs.map(u=>{ const e=wpcUSum(u,0), c=wpcUSum(u,1), a=wpcUSum(u,2), ws=[...new Set(u.lines.map(l=>l.why).filter(Boolean))];
+        return `<tr class="wpc-lrow"><td>${esc(u.name)} <span class="small">${esc(u.label)}</span></td><td>${wpcBasis(u)}</td><td class="num">${man(e)}</td><td class="num">${man(c)}</td><td class="num">${man(a)}</td><td class="num ${c>e?'tk-over':''}">${c===e?'<span class="muted">—</span>':wpcSgnM(c-e)}</td><td>${ws.map(w=>`<span class="pill wpc-why${WPC_REASONS.indexOf(w)}">${w}</span>`).join(' ')||'<span class="muted">—</span>'}</td><td class="num small">${a===e?'<span class="muted">—</span>':wpcSgnM(a-e)}</td></tr>`; }).join(''); }).join('')
+    + un.map(p=>`<tr><td colspan="2"><a href="#/project/${p.id}">${esc(p.name)}</a></td><td colspan="6" class="muted">ユニット別データ未登録（段階運用）</td></tr>`).join('');
   return `<div class="grid4">
     <div class="card kpi"><div class="l">見積時の原価</div><div class="v">${man(E)}</div><div class="s">ユニット別データ登録済み ${reg.length} 案件</div></div>
     <div class="card kpi"><div class="l">変更見込</div><div class="v">${man(C)}</div><div class="s">増減と理由を記録</div></div>
     <div class="card kpi"><div class="l">実績（現時点）</div><div class="v">${man(A)}</div><div class="s">部品・材料・購入費・作業工数</div></div>
     <div class="card kpi"><div class="l">差異（変更見込−見積時）</div><div class="v">${wpcSgnM(C-E)}</div><div class="s">理由は4区分で振り返る</div></div></div>
-  <div class="card"><div class="card-h">差異が出た理由（4区分）</div><div class="card-b">${wpcReasonPills(us)}</div></div>
-  <div class="card"><div class="card-h">案件別・ユニット別 原価予実</div><div class="card-b tbl-wrap"><table class="tbl wpc-ut"><thead><tr><th>ユニット</th><th>見積根拠</th><th class="num">見積時</th><th class="num">変更見込</th><th class="num">実績</th><th class="num">差異</th><th>差異理由</th></tr></thead><tbody>${rows}</tbody></table></div></div>
-  <div class="note mt8">${WPC_NOTE_EST}</div><div class="note mt8">${WPC_NOTE_CMP}</div><div class="note mt8">${WPC_NOTE_DEMO} ${WPC_KARI}</div>`;
+  <div class="card" id="ko-K-C03"><div class="card-h">差異が出た理由（4区分）</div><div class="card-b">${wpcReasonPills(us)}</div></div>
+  <div class="card" id="ko-K-C01"><div class="card-h">案件別・ユニット別 原価予実 ${wpcCq(39)}</div><div class="card-b tbl-wrap"><table class="tbl wpc-ut"><thead><tr><th>ユニット</th><th>見積根拠</th><th class="num">見積時</th><th class="num">変更見込</th><th class="num">実績</th><th class="num">差異</th><th>差異理由</th><th class="num">（参考）実績−見積時</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+  <div class="note mt8" id="ko-K-C02">${WPC_NOTE_EST}</div><div class="note mt8">${WPC_NOTE_CMP}</div><div class="note mt8">${WPC_NOTE_DEMO} ${wpcCq(39)}</div>`;
 }
 /* K-C08：案件ページ（パスの下）と案件一覧・子レコードに段階運用の帯 */
 extRec('project').top.push(()=>wpcBand());
+EXT.home.kpi.push(()=>ROLE==='kikaku'?wpcBand():'');   // 企画部ホーム（案件進捗の俯瞰）
 EXT.after.push(page=>{ if(!['projects','sub'].includes(page)) return; const m=document.getElementById('main'); if(!m||m.querySelector('.wpc-band')) return;
   const ph=m.querySelector('.page-h'); if(ph) ph.insertAdjacentHTML('afterend',wpcBand()); });
 
@@ -4523,27 +4543,37 @@ function wpcTk(r){ return r.wpc||(r.wpc={origin:'顧客',reason:'',due:'確認�
 /* 既存の追加要求チケット（架空）に値を設定 */
 [['R010',{origin:'顧客',reason:'お客様の品質管理方針の変更（選別ランクの細分化）',due:'確認中',dueNote:'購入品（ランクセレクト装置）の納期を調達部で確認中',paidReason:'お客様要望による仕様変更で、当社の責任範囲外のため'}],
  ['R012',{origin:'顧客',reason:'お客様のライン延長計画による仕様追加',due:'あり',dueNote:'組立完了が遅れる可能性あり（お客様と調整中：部門対応依頼で対応）',paidReason:'お客様要望による仕様追加のため',
-   ahead:true,aheadCond:'正式な追加請求の承認前に、長納期の連結コンベアのみ見積取得・仮手配を先行する（キャンセル時の費用負担はお客様と確認中）',aheadRec:{by:'松本 翔',at:'2026/10/06 10:30'}}],
+   ahead:true,aheadCond:'正式な追加請求の承認前に、長納期の連結コンベアのみ見積取得・仮手配を先行する（キャンセル時の費用負担はお客様と確認中）',aheadRec:{judge:'石井 隆',by:'松本 翔',at:'2026/10/06 10:30'}}],
  ['R014',{origin:'顧客',reason:'お客様のワーク形状変更',due:'なし',dueNote:'設計・手配とも納期内で対応',paidReason:'お客様のワーク形状変更に起因するため'}],
  ['R020',{origin:'顧客',reason:'お客様の品質保証要求の追加',due:'確認中',dueNote:'',paidReason:''}]
 ].forEach(([id,v])=>{ const r=byId(DB.requests,id); if(r) r.wpc=Object.assign({origin:'顧客',reason:'',due:'確認中',dueNote:'',paidReason:'',ahead:false,aheadCond:'',aheadRec:null},v); });
+/* 社内起点のサンプル（K07「社内の変更・問題、想定を超える工数」）：P003 の試作加工の工数超過（工程別の加工 実績220h／予定210h、+10h×単価＝見込額） */
+if(!byId(DB.requests,'UCR01')) DB.requests.push({id:'UCR01',no:tkNewNo(),name:'試作工数の超過（新規材質対応）による原価・納期への影響確認',pj:'P003',type:'追加要求',parent:null,cat:'その他',to:'企画部',impact:['加工技術','企画'],
+  status:'対応中',requester:'佐藤 健',assignee:'森田 浩',created:'2026-10-05',due:'2026-10-09',
+  desc:'試作加工で新規材質への対応が必要になり、加工の工数が予定を超えました（社内起点）。原価と後工程の日程への影響を確認し、お客様への相談の要否を判断してください。',
+  cost:{est:80000,need:'不要',bill:'未請求'},lines:[],approvals:[],
+  log:[{st:'起票中',at:'2026-10-05T09:00'},{st:'受付待ち',at:'2026-10-05T09:10'},{st:'対応中',at:'2026-10-05T13:00'}],
+  wpc:{origin:'社内',reason:'新規材質への対応で、試作加工の工数が想定を超えた（社内の変更・問題）',due:'なし',dueNote:'試作加工は完了。後工程の日程への影響はなし',
+    paidReason:'見積時の材質確認が不足しており当社の責任範囲と判断（お客様への請求なし）',ahead:false,aheadCond:'',aheadRec:null}});
 function wpcRuleBox(){
   const rows=[['誰が起票するか','営業・技術・その他部門の担当範囲'],['いつ判断するか','着手前・変更発生時などの確認タイミング'],['誰が承認するか','販売に関する基準、金額・利益への影響、承認者'],['例外をどう扱うか','未確定でも先行する場合の条件と記録（この画面の「先行着手」欄）']];
-  return `<div class="wpc-rule mt8"><div class="small"><b>判断・承認ルール</b> <span class="tent ph">顧客確認事項</span></div>
+  return `<div class="wpc-rule mt8"><div class="small"><b>判断・承認ルール</b> <span class="tent ph">顧客確認</span></div>
     <div class="tbl-wrap"><table class="tbl"><tbody>${rows.map(([a,b])=>`<tr><td class="small"><b>${a}</b></td><td class="small">${b}</td><td><span class="small muted">確認中</span></td></tr>`).join('')}</tbody></table></div>
     <div class="small muted">金額の閾値・承認者・判断の時期は資料にないため、本モックでは設定していません（現行の承認基準・業務ルールをお客様に確認します：キックオフ資料 p08）。</div></div>`;
 }
+const wpcPendClaims = r => DB.requests.filter(x=>x.parent===r.id&&x.type==='追加請求'&&['申請前','承認待ち'].includes(x.status));
 function wpcTicketCard(r){
-  const w=wpcTk(r), paid=wpcPaid(r), c=r.cost||{};
-  return `<div class="card wpc-tk"><div class="card-h"><span class="obj-icon sm i-req">⇄</span>起点・影響・判断<span class="right"><button class="btn" onclick="wpcTkEdit('${r.id}')">起点・判断を編集</button></span></div><div class="card-b">
+  const w=wpcTk(r), paid=wpcPaid(r), c=r.cost||{}, pend=paid==='無償'?wpcPendClaims(r):[], rec=w.aheadRec;
+  return `<div class="card wpc-tk" id="ko-K-C04"><div class="card-h"><span class="obj-icon sm i-req">⇄</span>起点・影響・判断<span class="right"><button class="btn" onclick="wpcTkEdit('${r.id}')">起点・判断を編集</button></span></div><div class="card-b">
     <div class="fields" style="grid-template-columns:1fr">
-      ${fld('起点',wpcOriginPill(w.origin))}
+      ${fld('起点',wpcOriginPill(w.origin)+' '+wpcCq(40))}
       ${fld('変更・追加の理由',esc(w.reason)||'<span class="muted">未入力</span>')}
       ${fld('原価への影響',`見込額 ${yen(c.est||0)} <span class="small muted">（費用の詳細は下のカード・原価見積依頼で確認）</span>`)}
       ${fld('納期への影響',`<span class="pill ${w.due==='あり'?'r':w.due==='なし'?'g':'y'}">${w.due}</span>${w.dueNote?` <span class="small">${esc(w.dueNote)}</span>`:''}`)}
-      ${fld('有償／無償',`<span class="pill ${paid==='有償'?'b':paid==='無償'?'g':''}">${paid}</span> <span class="small muted">（請求要否と連動）</span>${w.paidReason?`<div class="small">判断理由：${esc(w.paidReason)}</div>`:'<div class="small muted">判断理由：未入力</div>'}`)}
-      ${fld('先行着手',`${w.ahead?'<span class="pill y">☑ 未確定のまま先行</span>':'<span class="muted">☐ なし</span>'}${w.ahead?`<div class="small">条件：${esc(w.aheadCond)||'—'}</div><div class="small muted">記録：${w.aheadRec?`${esc(w.aheadRec.by)}（${esc(w.aheadRec.at)}）`:'—'}</div>`:''}`)}
-      ${fld('必要な承認','追加請求の承認で記録します（承認者は仮置き：CQ-12）')}
+      ${fld('有償／無償',`<span class="pill ${paid==='有償'?'b':paid==='無償'?'g':''}">${paid}</span> <span class="small muted">（請求要否と連動）</span> ${wpcCq(40)}${w.paidReason?`<div class="small">判断理由：${esc(w.paidReason)}</div>`:'<div class="small muted">判断理由：未入力</div>'}`)}
+      ${pend.length?`<div class="wpc-warn" role="alert">⚠ 無償と判断されていますが、追加請求 ${pend.map(x=>`<a href="#/request/${x.id}">${x.no}</a>（${x.status}）`).join('、')} が残っています。取り下げ・却下は追加請求の画面で行ってください（自動では取り消しません）。</div>`:''}
+      <div id="ko-K-C05">${fld('先行着手',`${w.ahead?'<span class="pill y">☑ 未確定のまま先行</span>':'<span class="muted">☐ なし</span>'} ${wpcCq(38)}${w.ahead?`<div class="small">条件：${esc(w.aheadCond)||'—'}</div><div class="small">判断者：${rec&&rec.judge?ul(rec.judge):'—'}</div><div class="small muted">記録者：${rec?`${esc(rec.by)}（${esc(rec.at)}）`:'—'}</div>`:''}`)}</div>
+      ${fld('必要な承認','追加請求の承認で記録します（承認者） <span class="tent kari">仮置き・要確認（CQ-12）</span>')}
     </div>
     <div class="small muted mt8">有償・無償や顧客への相談は、変更理由と責任範囲を踏まえて判断します（キックオフ資料 p07）。</div>
     ${wpcRuleBox()}</div></div>`;
@@ -4557,20 +4587,24 @@ function wpcTkFields(w,paid,needSync){
     ${needSync?`<div class="tk-2col"><label>有償／無償<select id="wpcPaid">${o(['未判断','有償','無償'],paid)}</select></label><label>判断理由<input id="wpcPaidReason" value="${esc(w.paidReason||'')}" placeholder="変更理由と責任範囲"></label></div>
       <div class="small muted">有償／無償は「請求要否」と連動します（有償＝要、無償＝不要、未判断＝未定）。</div>`:''}
     <label class="wpc-chk"><input type="checkbox" id="wpcAhead" ${w.ahead?'checked':''}> 先行着手（未確定のまま先行する）</label>
+    <label>判断者（先行着手を判断した人）<select id="wpcAheadJudge">${DB.users.map(u=>`<option ${u.name===((w.aheadRec&&w.aheadRec.judge)||meName())?'selected':''}>${u.name}</option>`).join('')}</select></label>
     <label>先行する条件・記録<textarea id="wpcAheadCond" rows="2" placeholder="先行する範囲・条件、判断の経緯">${esc(w.aheadCond||'')}</textarea></label>
-    <div class="small muted">判断・承認ルール（誰が起票・いつ判断・誰が承認・例外の条件）は顧客確認事項です。金額の閾値などは設定していません。</div></div>`;
+    <div class="small muted">記録者・記録日時は保存した人・日時を自動で残します。判断者・記録項目は ${wpcCq(38)}　判断・承認ルール（誰が起票・いつ判断・誰が承認・例外の条件）は顧客確認です。金額の閾値などは設定していません。</div></div>`;
 }
 function wpcTkRead(prev){
   const v=id=>($('#'+id)||{}).value, ahead=!!($('#wpcAhead')||{}).checked;
   const w={origin:v('wpcOrigin')||'顧客',reason:v('wpcReason')||'',due:v('wpcDue')||'確認中',dueNote:v('wpcDueNote')||'',paidReason:v('wpcPaidReason')??(prev&&prev.paidReason)??'',ahead,aheadCond:v('wpcAheadCond')||'',
-    aheadRec:ahead?((prev&&prev.ahead&&prev.aheadRec)||{by:meName(),at:nowStr()}):null};
+    aheadRec:null};
+  if(ahead){ const judge=v('wpcAheadJudge')||meName(), pr=prev&&prev.ahead&&prev.aheadRec;
+    w.aheadRec=(pr&&pr.judge===judge&&prev.aheadCond===w.aheadCond)?pr:{judge,by:meName(),at:nowStr()}; }
   return w;
 }
 function wpcTkEdit(id){
   const r=byId(DB.requests,id); if(!r) return; const w=wpcTk(r);
   modal('起点・影響・判断を編集',`<div class="form1">${wpcTkFields(w,wpcPaid(r),true)}</div>`,()=>{
     const n=wpcTkRead(w), pv=$('#wpcPaid').value; r.wpc=n; r.cost=r.cost||{est:0,need:'未定',bill:'未請求'}; r.cost.need=wpcPaidNeed(pv);
-    toast(n.ahead&&!w.ahead?'先行着手を記録しました（判断者・日時を記録）':'起点・影響・判断を保存しました');
+    const pend=pv==='無償'?wpcPendClaims(r):[];
+    toast(pend.length?`保存しました。無償と判断しましたが、追加請求（${pend.map(x=>x.no).join('、')}）が${pend[0].status}のまま残っています。取り下げは追加請求の画面で行ってください`:n.ahead&&!w.ahead?'先行着手を記録しました（判断者・記録者・日時）':'起点・影響・判断を保存しました',pend.length?'info':'');
   });
 }
 /* 追加要求チケットの画面（WP3 の tkTicketPage をラップ：左列の先頭にカードを追加） */
@@ -4586,11 +4620,11 @@ tkNewTicket = function(pid){
 };
 
 /* 変更・問題情報（ケース）に起点 */
-[['CS01','社内'],['CS02','顧客'],['CS03','社内'],['CS04','社内'],['CS05','顧客'],['CS06','社内']].forEach(([id,o])=>{ const c=byId(DB.cases,id); if(c&&!c.origin) c.origin=o; });
-DB.cases.forEach(c=>{ if(!c.origin) c.origin=c.type==='変更'&&!/社内/.test(c.reason||'')?'顧客':'社内'; });
+[['CS01','社内'],['CS02','顧客'],['CS03','社内'],['CS04','社内'],['CS05','顧客'],['CS06','社内']].forEach(([id,o])=>{ const c=byId(DB.cases,id); if(c&&!c.origin){ c.origin=o; c.originKari=true; } });
+DB.cases.forEach(c=>{ if(!c.origin){ c.origin=c.type==='変更'&&!/社内/.test(c.reason||'')?'顧客':'社内'; c.originKari=true; } });   // 既存ケースの初期値は仮置き
 EDIT.case.f.push(['origin','起点（顧客／社内）','sel:顧客,社内']);
-onEvt('fieldChange',e=>{ if(e.kind==='case'&&e.field==='origin'&&typeof wp2CaseHist==='function') wp2CaseHist(e.rec,'起点',e.from,e.to); });
-extRec('case').hl.push(c=>[['起点',wpcOriginPill(c.origin)]]);
+onEvt('fieldChange',e=>{ if(e.kind==='case'&&e.field==='origin'){ e.rec.originKari=false; if(typeof wp2CaseHist==='function') wp2CaseHist(e.rec,'起点',e.from,e.to); } });
+extRec('case').hl.push(c=>[['起点',wpcOriginPill(c.origin)+(c.originKari?' <span class="tent kari">初期値は仮置き・要確認（CQ-40）</span>':'')]]);
 function wpcOriginSel(def){ return `<label>起点<select id="wpcCsOrigin">${Object.entries(WPC_ORIGIN).map(([k,l])=>`<option value="${k}" ${k===def?'selected':''}>${l}</option>`).join('')}</select></label>`; }
 function wpcCaseHook(after,def){
   const a=document.querySelector(after); if(a) a.closest('label,fieldset').insertAdjacentHTML('afterend',wpcOriginSel(def));
@@ -4626,17 +4660,17 @@ pgKnowledge = function(){
   const cats=['すべて','トラブル事例','原因と対策','作業手順'], kinds=['すべて',...WPC_KB_KINDS];
   const rows=DB.knowledge.filter(k=>(UI.kbCat==='すべて'||k.cat===UI.kbCat)&&(UI.wpcKbKind==='すべて'||(k.kind||'問題・解決')===UI.wpcKbKind));
   return listPage({icon:'i-know',em:'📖',label:'ナレッジ（再発防止）',title:'記事一覧',count:rows.length,actions:`<button class="btn brand" onclick="newKb()">新規記事</button>`,
-    table:`<div class="flex mb8 wpc-kbf"><span class="small muted">種別：</span>${kinds.map(c=>`<a class="pill ${UI.wpcKbKind===c?'b':''} click" onclick="UI.wpcKbKind='${c}';route()">${c}</a>`).join('')}</div>
+    table:`<div class="flex mb8 wpc-kbf" id="ko-K-C06"><span class="small muted">種別 ${wpcCq(41)}：</span>${kinds.map(c=>`<a class="pill ${UI.wpcKbKind===c?'b':''} click" onclick="UI.wpcKbKind='${c}';route()">${c}</a>`).join('')}</div>
       <div class="flex mb8"><span class="small muted">カテゴリ：</span>${cats.map(c=>`<a class="pill ${UI.kbCat===c?'b':''} click" onclick="UI.kbCat='${c}';route()">${c}</a>`).join('')}</div>`+
       tbl(['タイトル','種別','カテゴリ','案件','設備（商品）','#閲覧数','#役に立った','元ケース','最終更新'],rows.map(k=>{const c=wpcKbCase(k);return tr([`<a href="#/kb/${k.id}">${esc(k.title)}</a>`,wpcKindPill(k),k.cat,wpcPjLink(wpcKbPj(k)),wpcPrLink(wpcKbProd(k)),[k.views],[k.votes],c?`<a href="#/case/${c.id}">${c.no}</a>`:'—',fmtD(k.updated)]);}))
-      +`<div class="small muted mt8">問題の解決だけでなく、原価低減やうまくいった工夫も蓄積します（キックオフ資料 p09）。どの単位で登録し、どこから検索・参照するかは、具体例と画面で確認します。種別の区分は ${WPC_KARI}</div>`});
+      +`<div class="small muted mt8">問題の解決だけでなく、原価低減やうまくいった工夫も蓄積します（キックオフ資料 p09）。どの単位で登録し、どこから検索・参照するかは、具体例と画面で確認します。種別の区分は ${wpcCq(41)}</div>`});
 };
 /* 記事画面（WP1 の pgKb をラップ：種別と、案件・設備のひも付けを表示） */
 const _wpcPgKb = pgKb;
 pgKb = function(id){
   const h=_wpcPgKb(id), k=byId(DB.knowledge,id); if(!k) return h;
   const strip=`<div class="card wpc-kbs"><div class="card-b"><div class="fields">
-    ${fld('種別',`<select class="role-select" aria-label="種別" onchange="byId(DB.knowledge,'${id}').kind=this.value;toast('種別を「'+this.value+'」にしました');route()">${WPC_KB_KINDS.map(x=>`<option ${x===(k.kind||'問題・解決')?'selected':''}>${x}</option>`).join('')}</select>`)}
+    ${fld('種別 '+wpcCq(41),`<select class="role-select" aria-label="種別" onchange="byId(DB.knowledge,'${id}').kind=this.value;toast('種別を「'+this.value+'」にしました');route()">${WPC_KB_KINDS.map(x=>`<option ${x===(k.kind||'問題・解決')?'selected':''}>${x}</option>`).join('')}</select>`)}
     ${fld('ひも付け：案件',wpcPjLink(wpcKbPj(k)))}${fld('ひも付け：設備（商品）',wpcPrLink(wpcKbProd(k)))}</div>
     <div class="small muted">ひも付ける切り口：案件・設備・問題や改善の事例（キックオフ資料 p09）。登録の単位と検索の入口は要確認です。</div></div></div>`;
   const i=h.indexOf('<div class="grid2">'); return i<0?h+strip:h.slice(0,i)+strip+h.slice(i);
@@ -4654,7 +4688,7 @@ newKb = function(){
 const _wpcObjMap = pgObjMap;
 pgObjMap = function(){
   const h=_wpcObjMap(), m='<div class="note mt12">', i=h.indexOf(m);
-  const box=`<div class="wpc-ext mt12"><div class="wpc-ext-h">既存システムとの役割分担（技術ヒアリング p11） <span class="tent ph">保持先・連携方式は未確定</span></div>
+  const box=`<div class="wpc-ext mt12" id="ko-K-C07"><div class="wpc-ext-h">既存システムとの役割分担（技術ヒアリング p11） <span class="tent ph">保持先・連携方式は未確定</span></div>
     <div class="wpc-ext-g">
       <div class="wpc-sf"><b>Salesforce</b><div class="small">顧客・商談・案件の情報（上の構成）</div></div>
       <div class="wpc-sys"><b>OBIC</b><div class="small">購入費・工数等の実績</div><div class="small muted">実績の使い方を確認</div></div>
