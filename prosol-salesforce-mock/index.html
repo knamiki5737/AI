@@ -4791,6 +4791,7 @@ const KO_NOT = [
 /* 「開く」：必要ならタブ等を指定してから遷移し、該当機能（id="ko-<ID>"）までスクロールして強調する */
 const KO_PRE = {};   // ID → 遷移前に UI 状態を整える関数（各WPの指定方法に合わせて PL が登録）
 KO_PRE['K-B08'] = ()=>{ UI.pjTab=UI.pjTab||{}; UI.pjTab['P003']='wpbdr'; };
+['K-C01','K-C02','K-C03'].forEach(k=>KO_PRE[k]=()=>{ UI.pjTab=UI.pjTab||{}; UI.wpcCv=UI.wpcCv||{}; UI.pjTab['P003']='cost'; UI.wpcCv['P003']='unit'; });
 function wppOpen(id){
   const x=KO_ITEMS.find(r=>r[0]===id); if(!x) return;
   try{ KO_PRE[id]&&KO_PRE[id](); }catch(e){}
