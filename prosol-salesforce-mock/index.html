@@ -561,6 +561,9 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpp-tag{display:inline-block;font-size:11px;border-radius:3px;padding:0 6px;line-height:18px;border:1px solid #9ab8d9;background:#eef4ff;color:#014486;white-space:nowrap}
 .wpp-tag.ng{border-color:#c9c9c9;background:#f3f3f3;color:#444}
 @media(max-width:700px){.wpp-row{grid-template-columns:56px 1fr}.wpp-row>div:last-child{grid-column:1/-1}}
+.omni-band{border:1px solid #9ab8d9;background:#eef4ff;color:#032d60;border-radius:4px;padding:8px 12px;margin-bottom:10px;font-size:13px}
+.omni-band b{color:#014486}
+.omni-tag{display:inline-block;font-size:11px;border-radius:3px;padding:0 6px;line-height:18px;border:1px solid #9ab8d9;background:#eef4ff;color:#014486;margin-left:6px;white-space:nowrap}
 .wpp-hl{outline:3px solid #dd7a01!important;outline-offset:2px;transition:outline-color .3s}
 /* ===== WPP END ===== */
 </style>
@@ -4833,6 +4836,18 @@ EXT.routes.review = () => { const h=wp1Review(), k='<div class="rv-cards">'; ret
 /* 確認事項の更新：10/14 で確認できたもの（CQ-01・CQ-06）を反映 */
 (()=>{ const c1=RV_CQ.find(c=>c[0]==='CQ-01'); if(c1) c1[3]='（10/14 4段階化に伴い読み替え）引き合いL1〜2／検討L1〜3／正式・受注L1〜5';
   const c6=RV_CQ.find(c=>c[0]==='CQ-06'); if(c6){ c6[2]='日進ProSOL様の商談フェーズ【10/14 営業分科会で確認：引き合い→検討→正式→受注の4段階＋ランク】。管理の粒度は現場の運用に合わせて今後決定'; c6[3]='4段階＋ランク（OK/A/B/C）に変更済み'; } })();
+/* 10/16 ご連絡：ヒアリングシートは Manufacturing Cloud の OmniStudio（OmniScript）で構築予定。
+   モックの画面構成は変えず、OmniScript での構成イメージ（ステップチャート・前へ／次へ・Data Mapper 等）を注記する。実現方式の詳細は CQ-46 */
+const OMNI_BAND = `<div class="omni-band" id="ko-K-P04"><b>構築方式：</b>ヒアリングシートは <b>Manufacturing Cloud の OmniStudio（OmniScript）</b>で構築する予定です（10/16 ご連絡）。本画面は OmniScript での構成イメージです。
+  <span class="small">区分＝ステップ（左のステップチャート）、「前へ／次へ」で進む、分岐は条件付き表示、回答の保存は Data Mapper（Load）／Integration Procedure を想定。保存先・一時保存の方式・右側パネル（項目定義・類似ナレッジ）の配置は要確認</span><span class="tent kari">仮置き・要確認（CQ-46）</span></div>`;
+{ const _pgH=pgHearing; pgHearing=function(id){ let h=_pgH.apply(this,arguments);
+    h=h.replace('<div class="card-h">レイヤー</div>','<div class="card-h">ステップ<span class="omni-tag">OmniScript ステップチャート</span></div>');
+    return OMNI_BAND+h; }; }
+{ const _mf=EXT.routes.mfgdoc; EXT.routes.mfgdoc=(id,sub)=>{ const h=_mf(id,sub);
+    return h+`<div class="omni-band small mt12"><b>OmniStudio 構築時の想定：</b>OmniScript の回答を Data Mapper（Load）で Salesforce に保存し、製造依頼書は保存したデータから作成します。帳票の出力方式は未確定です<span class="tent kari">仮置き・要確認（CQ-46）</span></div>`; }; }
+{ const _om=pgObjMap; pgObjMap=function(){ return _om.apply(this,arguments)+`<div class="omni-band small mt12"><b>ヒアリングシート（10/16 ご連絡）：</b>Manufacturing Cloud の OmniStudio で構築予定。入力画面＝OmniScript、保存＝Data Mapper（Load）／Integration Procedure。保存先のオブジェクト（本モックの「ヒアリングシート」）の持ち方は要確認<span class="tent kari">仮置き・要確認（CQ-46）</span></div>`; }; }
+KO_ITEMS.push(['K-P04','構築方式','ヒアリングシートは Manufacturing Cloud の OmniStudio（OmniScript）で構築（10/16 ご連絡）','10/16 ご連絡','#/hearing/H001','eigyo']);
+RV_CQ.push(["CQ-46","ヒアリング","ヒアリングシートを OmniStudio（OmniScript）で構築する際の詳細：回答の保存先オブジェクト（カスタムか、Manufacturing Cloud の標準オブジェクトか）、Data Mapper／Integration Procedure の分担、一時保存（途中保存・再開）の方式、項目定義・類似ナレッジ・未確定事項の右側パネルを OmniScript 内に置くか同じ Lightning ページの別コンポーネントにするか、タイル式の入力内容選択の実現方法、製造依頼書の出力方式","画面構成は従来どおり（OmniScript のイメージとして注記）","K-P04, REQ-1-04, REQ-1-07, K-B06","#/hearing/H001"]);
 /* ===== WPP END ===== */
 
 applyRoleUi();
