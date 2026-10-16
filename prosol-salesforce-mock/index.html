@@ -5088,7 +5088,7 @@ wp2SpecChange = function(pid){
   const ok=modalOk; modalOk=()=>{ const v=(document.querySelector('#overlay input[name=wpcCostImp]:checked')||{}).value||'未判断', n=DB.cases.length; ok(); if(DB.cases.length>n) DB.cases[0].costImpact=v; };
 };
 EDIT.case.f.push(['costImpact','コスト影響（仕様変更）','sel:'+WPC_COST_IMP.join(',')]);
-onEvt('fieldChange',e=>{ if(e.kind==='case'&&e.field==='costImpact'&&typeof wp2CaseHist==='function') wp2CaseHist(e.rec,'コスト影響',e.from||'未判断',e.to); });
+onEvt('fieldChange',e=>{ if(e.kind==='case'&&e.field==='costImpact'&&typeof wp2CaseHist==='function') { const f=e.from||'未判断', t=e.to||'未判断'; if(f!==t) wp2CaseHist(e.rec,'コスト影響',f,t); } });
 function wpcSetCostImp(cid,v){ const c=byId(DB.cases,cid); if(!c) return; const from=c.costImpact||'未判断'; if(from===v) return; c.costImpact=v; if(typeof wp2CaseHist==='function') wp2CaseHist(c,'コスト影響',from,v); toast(`コスト影響を「${v}」にしました`); route(); }
 function wpcCaseTicket(cid){
   const c=byId(DB.cases,cid); if(!c) return;
@@ -5277,6 +5277,8 @@ RV_CQ.push(["CQ-47", "共通", "ライセンス配布対象とロールの単位
   ["CQ-53", "ナレッジ", "ナレッジの領域（加工・起案・設計）と既存の種別・カテゴリの関係、起案・加工のノウハウをナレッジで持つかオブジェクトのレコードタイプで持つか、登録基準とレビュー方法", "領域・種別・カテゴリを併存（仮置き）", "M-C01〜M-C04, CQ-41", "#/knowledge"],
   ["CQ-54", "共通", "画面の可読性（見づらさ）の改善：対象の画面と優先度", "未着手（次の対応事項）", "M-P03", "#/review"]);
 (()=>{ const c=RV_CQ.find(c=>c[0]==='CQ-32'); if(c) c[2]="既存データ移行の範囲、添付・履歴の扱い、切替日（会議メモ：移行元はグループウェア（アルゴス）の案件・商談データ。アルゴスは来年5月頃に解約予定で、販売元パートナーがデータ払い出しを支援）"; })();
+RV_CQ.push(["CQ-55", "ヒアリング", "「図面は Salesforce で保持しない」（会議メモ）に、ヒアリングシートで受け取るお客様のワーク指示図・客先図面の添付（A-028 前加工 基準面、A-033 把持禁止部位：定義書ではファイル添付）も含めるか（PDM へのリンクにするか）", "定義書どおり添付欄を残す", "M-A05, REQ-1-01", "#/hearing/H001"],
+  ["CQ-56", "仕様変更", "仕様変更のコスト影響（あり／なし）を誰がいつ判断するか（審議の決め方）、判断後の承認・周知の範囲", "起票時は「未判断」、ケース画面で判断（仮置き）", "M-C05, CQ-09", "#/cases"]);
 /* ===== WPP END ===== */
 
 applyRoleUi();
