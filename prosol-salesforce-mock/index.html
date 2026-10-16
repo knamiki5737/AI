@@ -494,6 +494,17 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpa-kpi{margin-bottom:12px}
 .wpa-matrix tr.wpa-sum th,.wpa-matrix tr.wpa-sum td{font-weight:700;background:#fafaf9}.wpa-matrix tr.wpa-won td{background:#f3f9ff}
 @media(max-width:700px){.wpa-stdesc{grid-template-columns:1fr 1fr}.wpa-matrix,.wpa-plan{min-width:0}.wpa-dash .card-h{flex-wrap:wrap}.wpa-dash .card-h .right{margin-left:0;flex-wrap:wrap}}
+/* 10/16 会議メモ：対象外・注記の帯、オブジェクト構成の検討中の関連 */
+.wpa-band{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff8e6;border:1px solid #f2c94c;border-left:4px solid #dd7a01;border-radius:4px;padding:8px 12px;margin-bottom:10px;font-size:12.5px}
+.wpa-band.info{background:#eef4ff;border-color:#a9c5f5;border-left-color:#0176d3}
+.wpa-band-tag{font-weight:700;font-size:11.5px;background:#fff;border:1px solid currentColor;border-radius:10px;padding:0 8px;color:#8c4b02;white-space:nowrap}
+.wpa-band.info .wpa-band-tag{color:#014486}
+.wpa-pdm{margin-top:6px;color:#3e3e3c}
+.wpa-objrel{border:1px dashed #888;border-radius:6px;padding:10px 12px;background:#fff}
+.wpa-objrel-h{font-weight:700;font-size:13px;margin-bottom:8px}
+.wpa-objrel-g{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.wpa-ob{border:1px solid #888;border-radius:6px;padding:6px 10px;background:#cfe7fd;text-align:center;font-size:12.5px;min-width:0}.wpa-ob.cus{background:#dcebd7}
+.wpa-ln{color:#706e6b;letter-spacing:1px}.wpa-ln:not(.solid){border-bottom:2px dashed #706e6b;padding:0 4px}
 /* ===== WPA END ===== */
 /* ===== WPB BEGIN ===== */
 .wpb-alert{background:var(--red-bg);border:1px solid var(--red);color:#8e030f;border-radius:4px;padding:8px 10px;margin:0 0 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -4038,6 +4049,64 @@ EXT.routes.wpaplan = ()=>{
 };
 EXT.navKeys.wpaplan='opps';
 EXT.launch.push(['wpasales','営業会議ダッシュボード','i-report','📊'],['wpaplan','受注計画','i-report','📈']);
+
+/* ---------------------------------------------------------------
+   10/16 会議メモ反映（M-A01〜M-A05）。既存の画面は削除せず、帯・注記で示す
+   --------------------------------------------------------------- */
+const WPA_OUT = '今回対象外（箱のみ／範囲は再確認）';
+const wpaBand = (id,html,cls) => `<div class="wpa-band ${cls||''}" id="${id}"><span class="wpa-band-tag">${cls==='info'?'会議メモ（10/16）':WPA_OUT}</span><span>${html}</span></div>`;
+// M-A01 ライセンスの配布対象（部署単位。加工技術・設計はモック上「技術部」に含む）
+const WPA_LICENSE = {'営業部':'対象','技術部':'対象','企画部':'ほぼ対象外','製造部':'対象外','調達部':'対象外'};
+const WPA_LIC_PILL = {'対象':'g','ほぼ対象外':'y','対象外':''};
+const wpaLic = u => WPA_LICENSE[(u||{}).dept]||'—';
+const wpaLicPill = u => { const v=wpaLic(u); return `<span class="pill ${WPA_LIC_PILL[v]||''} wpa-lic">${v}</span>`; };
+// M-A05 図面ファイルは Salesforce で保持しない：Chatter の添付候補・サンプルの図面ファイルを PDM へのリンクに改める
+const WPA_PDM_LINK = n => `${n}（PDMへのリンク）`;
+if(typeof WP2_FILES!=='undefined'){ const i=WP2_FILES.indexOf('図面_rev2.pdf'); if(i>=0) WP2_FILES[i]=WPA_PDM_LINK('図面 rev2'); }
+(DB.feeds||[]).forEach(f=>{ if(Array.isArray(f.files)) f.files=f.files.map(n=>/図面/.test(n)&&/\.(pdf|dwg|dxf)$/i.test(n)?WPA_PDM_LINK(n.replace(/_rev(\d+)\.\w+$/,' rev$1')):n); });
+
+EXT.after.push((page,id)=>{
+  const main=document.querySelector('#main'); if(!main) return;
+  const top=[];
+  // M-A01：企画部ロールの帯（全画面の上部）
+  if(ROLE==='kikaku') top.push(wpaBand('ko-M-A01','<b>企画部：今回はほぼライセンス配布対象外（会議メモ）</b>。配布対象は営業部・技術部（加工技術）・技術部（設計）。製造・購買調達は今回のプロジェクト対象外 '+WPA_KARI('CQ-47'),'info'));
+  // M-A02：受注後の案件進捗管理（案件一覧・案件詳細・子レコード・企画部ホーム）
+  if(['projects','project','sub'].includes(page)||(page==='home'&&ROLE==='kikaku'))
+    top.push(wpaBand('ko-M-A02','<b>受注後の案件進捗管理：今回は実装しない認識</b>（箱のみ／対象外、範囲は再確認 '+WPA_KARI('CQ-48')+'）。受注前（商談・ヒアリングシート・Chatter）を中心に実装します。画面はイメージとして残しています'));
+  if(top.length) main.insertAdjacentHTML('afterbegin',top.join(''));
+  // M-A01：ユーザー一覧・ユーザー詳細に「ライセンス配布」
+  if(page==='users'){
+    const t=main.querySelector('table.tbl'); if(t&&!t.querySelector('.wpa-lic-h')){
+      t.querySelector('thead tr').insertAdjacentHTML('beforeend','<th class="wpa-lic-h">ライセンス配布</th>');
+      t.querySelectorAll('tbody tr').forEach(r=>{ const a=r.querySelector('a[href^="#/user/"]'); const u=a&&byId(DB.users,a.getAttribute('href').split('/')[2]); r.insertAdjacentHTML('beforeend',`<td>${u?wpaLicPill(u):'—'}</td>`); });
+      t.closest('.card').insertAdjacentHTML('afterend',`<div class="small muted mt8" id="ko-M-A01-users">ライセンス配布（会議メモ 10/16）：営業部・技術部（加工技術・設計）＝対象、企画部＝ほぼ対象外、製造部・調達部＝対象外。部署単位の判定と、加工技術・設計を技術部にまとめている点は ${WPA_KARI('CQ-47')}</div>`);
+    }
+  }
+  if(page==='user'){ const u=byId(DB.users,id), hl=main.querySelector('.highlights'); if(u&&hl) hl.insertAdjacentHTML('beforeend',fld('ライセンス配布',wpaLicPill(u)+' '+WPA_KARI('CQ-47'))); }
+  // M-A03：製造依頼書プレビュー・見積
+  if(page==='mfgdoc'){ const h=main.querySelector('.page-h'); const html=`<div class="note mb8 wpa-ma03" id="ko-M-A03"><b>製造依頼書：受注確定後、営業が作成し企画部へ連携</b>（契約情報＝商談・見積の合意内容から生成）。企画部は基幹システムへの登録と日程計画を行います（会議メモ 10/16）。</div>`;
+    h?h.insertAdjacentHTML('afterend',html):main.insertAdjacentHTML('afterbegin',html); }
+  if(page==='quote'||page==='quotes'){ const h=main.querySelector('.page-h'); const html=`<div class="note mb8 wpa-ma03" id="ko-M-A03"><b>見積は別システム／Excel で運用</b>（会議メモ 10/16）。この画面の見積・帳票プレビューはイメージで、見積書の自動出力は今回の範囲外です。</div>`;
+    h?h.insertAdjacentHTML('afterend',html):main.insertAdjacentHTML('afterbegin',html); }
+  // M-A04・M-A05：オブジェクト構成
+  if(page==='objmap'){
+    const pdm=[...main.querySelectorAll('.wpc-sys')].find(x=>/PDM/.test(x.textContent));
+    const pdmNote='<div class="small wpa-pdm"><b>図面ファイルは Salesforce で保持しない</b>（PDM 等で管理し、Salesforce はリンク・進捗・議事録などを持つ）／外部の図面管理ソフトとの連携は今回スコープ外</div>';
+    if(pdm){ pdm.id='ko-M-A05'; pdm.insertAdjacentHTML('beforeend',pdmNote); }
+    const map=main.querySelector('.obj-map');
+    const box=`<div class="wpa-objrel mt12" id="ko-M-A04"><div class="wpa-objrel-h">加工管理・起案管理を商談にもひも付ける構成を検討中 ${WPA_KARI('CQ-49')}</div>
+      <div class="wpa-objrel-g"><div class="wpa-ob">商談<div class="small muted">受注前</div></div><div class="wpa-ln" title="検討中のひも付け">┄┄▶</div>
+        <div class="wpa-ob cus">加工管理<br>起案管理<div class="small muted">モック上は「加工管理」「機案見積管理」</div></div><div class="wpa-ln solid" title="現在のひも付け">◀──</div><div class="wpa-ob cus">案件管理<div class="small muted">受注後</div></div></div>
+      <div class="small muted mt8">点線＝検討中。受注前（商談フェーズ）でも加工管理・起案管理の情報が必要なため、商談側と案件管理側の双方にひも付ける構成を検討します（会議メモ 10/16）。現在のモックは案件管理の子オブジェクトのままで、新しい機能は作っていません。</div>
+      ${pdm?'':`<div class="wpc-sys mt8" id="ko-M-A05"><b>PDM</b>${pdmNote}</div>`}</div>`;
+    map?map.insertAdjacentHTML('afterend',box):main.insertAdjacentHTML('beforeend',box);
+  }
+});
+// M-A03：受注時の自動化フローの案内（モーダル）に、製造依頼書の流れを追記
+{ const _won2=runWonFlow; runWonFlow=function(o){ const r=_won2(o);
+  const b=document.querySelector('#overlay .modal-b');
+  if(b&&!b.querySelector('.wpa-ma03')) b.insertAdjacentHTML('beforeend',`<div class="note mt8 wpa-ma03" id="ko-M-A03-won"><b>次の業務：受注確定後、営業が製造依頼書を作成し企画部へ連携</b>（契約情報＝商談・見積の合意内容から生成）。見積は別システム／Excel で運用します（会議メモ 10/16）。</div>`);
+  return r; }; }
 /* ===== WPA END ===== */
 /* ===== WPB BEGIN ===== */
 /* 10/14 反映（WP-B）：問い合わせの使い分け（Chatter／ワークフロー）・Chatterのメンション注意・ヒアリングの未確定事項・
