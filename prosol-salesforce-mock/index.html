@@ -4848,6 +4848,46 @@ const OMNI_BAND = `<div class="omni-band" id="ko-K-P04"><b>構築方式：</b>�
 { const _om=pgObjMap; pgObjMap=function(){ return _om.apply(this,arguments)+`<div class="omni-band small mt12"><b>ヒアリングシート（10/16 ご連絡）：</b>Manufacturing Cloud の OmniStudio で構築予定。入力画面＝OmniScript、保存＝Data Mapper（Load）／Integration Procedure。保存先のオブジェクト（本モックの「ヒアリングシート」）の持ち方は要確認<span class="tent kari">仮置き・要確認（CQ-46）</span></div>`; }; }
 KO_ITEMS.push(['K-P04','構築方式','ヒアリングシートは Manufacturing Cloud の OmniStudio（OmniScript）で構築（10/16 ご連絡）','10/16 ご連絡','#/hearing/H001','eigyo']);
 RV_CQ.push(["CQ-46","ヒアリング","ヒアリングシートを OmniStudio（OmniScript）で構築する際の詳細：回答の保存先オブジェクト（カスタムか、Manufacturing Cloud の標準オブジェクトか）、Data Mapper／Integration Procedure の分担、一時保存（途中保存・再開）の方式、項目定義・類似ナレッジ・未確定事項の右側パネルを OmniScript 内に置くか同じ Lightning ページの別コンポーネントにするか、タイル式の入力内容選択の実現方法、製造依頼書の出力方式","画面構成は従来どおり（OmniScript のイメージとして注記）","K-P04, REQ-1-04, REQ-1-07, K-B06","#/hearing/H001"]);
+/* ===== 10/16 会議メモ反映分（PL） ===== */
+const MEMO_ITEMS = [
+  ['M-A01','範囲・ライセンス','ライセンス配布対象（営業・加工技術・設計。企画部はほぼ対象外、製造・購買は対象外）','#/users','kikaku'],
+  ['M-A02','範囲・ライセンス','受注後の案件進捗管理は今回は実装しない認識（画面は残し、範囲は再確認）','#/projects','kikaku'],
+  ['M-A03','範囲・ライセンス','受注確定後、営業が製造依頼書を作成し企画部へ連携（契約情報から生成、見積は別システム／Excel）','#/mfgdoc/H002','eigyo'],
+  ['M-A04','範囲・ライセンス','商談と案件管理の双方に加工管理・起案管理をひも付ける構成を検討','#/objmap',''],
+  ['M-A05','範囲・ライセンス','図面ファイルは Salesforce で保持しない（PDM。外部連携は今回スコープ外）','#/objmap',''],
+  ['M-B01','ヒアリングシート','ヒアリングシート（仕様提案依頼書）の正式提出で承認','#/hearing/H001','eigyo'],
+  ['M-B02','ヒアリングシート','類似案件のコピー','#/hearing/H001','eigyo'],
+  ['M-B03','ヒアリングシート','未確定情報の暫定管理','#/hearing/H001','eigyo'],
+  ['M-B04','ヒアリングシート','期日（締切）の設定と超過時の通知','#/hearing/H001','eigyo'],
+  ['M-B05','ヒアリングシート','登録後に Chatter で ToDo を生成し、部門横断で状況を見える化','#/hearing/H001','eigyo'],
+  ['M-C01','ナレッジ','領域別の「箱」（加工・起案・設計）','#/knowledge','eigyo'],
+  ['M-C02','ナレッジ','加工の過去データ（設備仕様・加工精度・加工時間）で営業も可否を判断','#/knowledge','eigyo'],
+  ['M-C03','ナレッジ','起案（見積判断・価格感）・設計（不具合・手戻り）のナレッジ','#/knowledge','gijutsu'],
+  ['M-C04','ナレッジ','ナレッジかレコードタイプかの管理方式は検討中','#/knowledge',''],
+  ['M-C05','仕様変更','仕様変更の起票→周知→コスト影響ありは追加請求／なしは変更のみ','#/cases','gijutsu'],
+  ['M-C06','原価','原価予実は本フェーズでは「箱の用意」（詳細は後続）','#/costs','kikaku']];
+const MEMO_PRE = {};   // ID → 遷移前の UI 設定（SE の報告をもとに PL が登録）
+function wppOpenM(id){ const x=MEMO_ITEMS.find(r=>r[0]===id); if(!x) return; try{ MEMO_PRE[id]&&MEMO_PRE[id](); }catch(e){} goAs(x[3],x[4]);
+  let n=0; const t=setInterval(()=>{ const el=document.getElementById('ko-'+id); n++;
+    if(el){ clearInterval(t); el.scrollIntoView({block:'center'}); el.classList.add('wpp-hl'); setTimeout(()=>el.classList.remove('wpp-hl'),2200); } else if(n>15) clearInterval(t); },80); }
+function wppMemoSection(){
+  const groups=[...new Set(MEMO_ITEMS.map(x=>x[1]))];
+  return `<div class="card wpp-k" id="rv-memo1016"><div class="card-h">10/16 会議メモ反映分（${MEMO_ITEMS.length}項目）<span class="right small muted">出典：会議メモ（業務フロー・ライセンス・ステップ範囲）</span></div>
+  <div class="card-b"><div class="note mb8"><b>現時点のステップ1の理解（会議メモ）：</b>Chatter、ケース（変更・問題管理）、ヒアリングシート、再発防止ナレッジ、原価予実の一部（企画向けの箱）。受注前を中心に実装し、受注後の案件進捗管理は今回は実装しない認識です。ステップごとの範囲は再確認します<span class="tent kari">仮置き・要確認（CQ-48）</span></div>
+  <div class="small muted mb8">既存の画面は削除せず、今回の対象外となったものには「今回対象外」の帯を付けています。</div>
+  ${groups.map(g=>`<div class="rv-lab mt12">${esc(g)}</div>${MEMO_ITEMS.filter(x=>x[1]===g).map(x=>`<div class="wpp-row"><span class="rv-id"><b>${x[0]}</b></span><div>${esc(x[2])}</div><div><button class="btn brand" onclick="wppOpenM('${x[0]}')">開く${x[4]?`<span class="rv-role">（${RV_ROLE[x[4]]||x[4]}ロール）</span>`:''}</button></div></div>`).join('')}`).join('')}
+  </div></div>`;
+}
+{ const _rv=EXT.routes.review; EXT.routes.review=(...a)=>{ const h=_rv(...a), k='<div class="rv-cards">'; return h.includes(k)?h.replace(k,wppMemoSection()+k):h+wppMemoSection(); }; }
+RV_CQ.push(["CQ-47", "共通", "ライセンス配布対象とロールの単位：営業部・技術部（加工技術）・技術部（設計）が対象、企画部はほぼ対象外、製造・購買調達は対象外（会議メモ）。モックの3ロール（企画・営業・技術）と、加工技術／設計を分けるか", "企画部ロールは「ほぼ対象外」と表示して残す。技術部は1ロール", "M-A01, CQ-19", "#/users"],
+  ["CQ-48", "共通", "ステップ1/2/3の範囲：受注後の案件進捗管理を「箱のみ」とするか「対象外」とするか、原価予実の「企画向けの箱」の範囲、追加要求チケットのステップ", "画面は残し「今回は実装しない認識（範囲は再確認）」と表示", "M-A02, M-C06", "#/projects"],
+  ["CQ-49", "共通", "商談・案件管理のオブジェクト構成：受注前でも必要な加工管理・起案管理の情報を、商談と案件管理の双方にひも付ける構成と、データ連携の仕様", "オブジェクト構成に注記のみ", "M-A04", "#/objmap"],
+  ["CQ-50", "ヒアリング", "ヒアリングシート（仕様提案依頼書）の正式提出時の承認者・段数・承認後の扱い（CQ-03「承認プロセスは必要か」には、会議メモで「正式提出の段階で承認が発生」と回答あり）", "正式提出→承認待ち→承認済の1段（承認者は仮置き）", "M-B01, CQ-03", "#/hearing/H001"],
+  ["CQ-51", "ヒアリング", "類似案件コピーで引き継ぐ項目・引き継がない項目と、コピー元の選び方", "案件番号・顧客・納期などはコピーしない（仮置き）", "M-B02", "#/hearings"],
+  ["CQ-52", "ヒアリング", "ヒアリングシートの期日（締切）の決め方、期日超過・未入力時の通知（自動／手動）とエスカレーション先、入力責任者", "期日を設定し、超過時は関係者へ通知（仮置き）", "M-B03, M-B04, M-B05, CQ-43", "#/hearing/H001"],
+  ["CQ-53", "ナレッジ", "ナレッジの領域（加工・起案・設計）と既存の種別・カテゴリの関係、起案・加工のノウハウをナレッジで持つかオブジェクトのレコードタイプで持つか、登録基準とレビュー方法", "領域・種別・カテゴリを併存（仮置き）", "M-C01〜M-C04, CQ-41", "#/knowledge"],
+  ["CQ-54", "共通", "画面の可読性（見づらさ）の改善：対象の画面と優先度", "未着手（次の対応事項）", "M-P03", "#/review"]);
+(()=>{ const c=RV_CQ.find(c=>c[0]==='CQ-32'); if(c) c[2]="既存データ移行の範囲、添付・履歴の扱い、切替日（会議メモ：移行元はグループウェア（アルゴス）の案件・商談データ。アルゴスは来年5月頃に解約予定で、販売元パートナーがデータ払い出しを支援）"; })();
 /* ===== WPP END ===== */
 
 applyRoleUi();
