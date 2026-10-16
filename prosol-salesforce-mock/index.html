@@ -531,23 +531,21 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpb-autonote{font-size:12px}
 .wpb-inqi{padding:4px 0;border-bottom:1px solid var(--border-light);overflow-wrap:anywhere}
 @media(max-width:700px){.wpb-entry,.wpb-spec{grid-template-columns:1fr}.wpb-flow{grid-template-columns:1fr 1fr}}
-.wpb-hsstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:6px}
-.wpb-hsbox{background:#fff;border:1px solid var(--border);border-radius:6px;padding:8px 10px;min-width:0;overflow-wrap:anywhere}
-.wpb-hsbox-h{font-weight:700;font-size:13px;margin-bottom:4px}
-.wpb-substeps{list-style:none;margin:0 0 6px;padding:0;display:flex;flex-wrap:wrap;gap:4px}
-.wpb-substeps li{font-size:11.5px;border:1px solid var(--border);border-radius:10px;padding:1px 8px;color:var(--text-weak)}
-.wpb-substeps li.done{background:var(--green-bg);color:#194e31;border-color:transparent}
-.wpb-substeps li.cur{background:var(--brand);color:#fff;border-color:var(--brand)}
-.wpb-due-near{border-color:#f2b45b;background:#fff8ec}
-.wpb-due-over{border-color:var(--red);background:var(--red-bg)}
+.wpb-hsbar{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;background:#fff;border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:6px}
+.wpb-seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;min-width:0;border-radius:4px}
+.wpb-seg.wpb-due-near{background:#fff8ec;outline:1px solid #f2b45b;padding:2px 6px}
+.wpb-seg.wpb-due-over{background:var(--red-bg);outline:1px solid var(--red);padding:2px 6px}
 .wpb-due-over .wpb-duest,.wpb-duetxt-over{color:var(--red);font-weight:700}
 .wpb-due-near .wpb-duest,.wpb-duetxt-near{color:#8c4b02;font-weight:700}
-.wpb-dueinp{border:1px solid var(--border);border-radius:4px;padding:4px 6px;max-width:100%}
+.wpb-dueinp{border:1px solid var(--border);border-radius:4px;padding:3px 6px;max-width:100%}
+.wpb-hsdet{margin:0 0 10px;font-size:12px}
+.wpb-hsdet>summary{cursor:pointer;color:var(--brand);font-size:12px}
+.wpb-hsdet>div{background:#fff;border:1px solid var(--border-light);border-radius:4px;padding:8px 10px;margin-top:4px;overflow-wrap:anywhere}
+.wpb-chips{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0}
+.wpb-chip{display:inline-block;border:1px solid var(--border);border-radius:10px;padding:0 8px;font-size:11.5px;background:#f3f3f3}
 .wpb-provbtn{margin-left:8px;font-size:11px;color:var(--text-weak);cursor:pointer;white-space:nowrap}
 .wpb-provbtn.on{color:#8c4b02;font-weight:700}
 .q.wpb-prov{background:#fff8ec;border-left:3px solid #f2b45b}
-@media(max-width:1100px){.wpb-hsstrip{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:600px){.wpb-hsstrip{grid-template-columns:1fr}}
 /* ===== WPB END ===== */
 /* ===== WPC BEGIN ===== */
 /* K-C08 段階運用の帯 */
@@ -4560,11 +4558,12 @@ function wpbSubReq(hid){
   const h=byId(DB.hearings,hid), s=wpbSub(h); if(s.st==='承認待ち'||s.st==='承認済（正式提出）') return;
   const miss=wpbMiss(h), prov=wpbProvOf(h).length;
   modal('正式提出（承認依頼）',`<div class="small">ヒアリングシート（仕様提案依頼書）を正式に提出し、承認を依頼します。問い合わせの段階では承認は不要です（10/16 会議メモ）。</div>
+    <div class="small muted mt8">承認者への ToDo の期日は今日＋2日 ${WPB_KARI('CQ-52')}</div>
     <div class="fields mt8">${fld('承認者',`${esc(WPB_SUB_APPR)}（営業部長） ${WPB_KARI('CQ-50')}`)}${fld('未入力の必須項目',miss?`<span class="tk-over">${miss} 件</span>`:'0 件')}${fld('暫定の項目',prov+' 件')}</div>
     ${miss||prov?'<div class="note mt8">未入力・暫定の項目があります。このまま提出するかは承認者が判断します（提出の条件は要確認：CQ-50）。</div>':''}`,
     ()=>{ Object.assign(s,{st:'承認待ち',by:meName(),reqAt:nowStr(),appr:WPB_SUB_APPR,aprAt:''});
       notify(`【承認依頼】ヒアリングシート（仕様提案依頼書）「${h.name}」の正式提出の承認をお願いします（申請：${meName()}）`,'#/hearing/'+hid,{users:[wpbUid(WPB_SUB_APPR)].filter(Boolean)});
-      wpbMkTodo(h,WPB_SUB_APPR,`【ヒアリング】正式提出の承認：${h.name}`,wpbAddDays(wpbTodayIso(),2));
+      wpbMkTodo(h,WPB_SUB_APPR,`【ヒアリング】正式提出の承認：${h.name}`,wpbTodoDue(h,'appr'));
       toast(`承認者（${WPB_SUB_APPR}）へ承認を依頼しました。ToDo を作成し、商談のChatterに投稿しました`); },'承認を依頼');
 }
 function wpbSubAct(hid,ok){
@@ -4575,15 +4574,6 @@ function wpbSubAct(hid,ok){
   const u=wpbUid(s.by); if(u) notify(`ヒアリングシート（仕様提案依頼書）「${h.name}」の正式提出が${ok?'承認されました':'差し戻されました'}（${WPB_SUB_APPR}）`,'#/hearing/'+hid,{users:[u]});
   toast(ok?'承認しました（正式提出）。申請者へ通知しました':'差し戻しました（作成中に戻ります）。申請者へ通知しました'); route();
 }
-function wpbSubBox(h){
-  const s=wpbSub(h), cur=WPB_SUB_ST.indexOf(s.st), canAppr=ROLE!=='gijutsu';
-  const btn=s.st==='作成中'?`<button class="btn brand" id="wpbSubBtn" onclick="wpbSubReq('${h.id}')">正式提出（承認依頼）</button>`
-    :s.st==='承認待ち'?(canAppr?`<div class="btn-group"><button class="btn success" id="wpbSubOk" onclick="wpbSubAct('${h.id}',true)">営業部長として承認（デモ）</button><button class="btn danger" onclick="wpbSubAct('${h.id}',false)">差し戻し</button></div>`:'<span class="tk-hint">承認は営業部・企画部ロールで代行できます（デモ）</span>'):'';
-  return `<div class="wpb-hsbox" id="ko-M-B01"><div class="wpb-hsbox-h">正式提出（仕様提案依頼書）</div>
-    <ol class="wpb-substeps">${WPB_SUB_ST.map((x,i)=>`<li class="${i<cur?'done':i===cur?'cur':''}">${x}</li>`).join('')}</ol>
-    <div class="small">承認者：${esc(s.appr||WPB_SUB_APPR)} ${WPB_KARI('CQ-50')}${s.reqAt?`<br>申請：${esc(s.by||'')} ${s.reqAt}`:''}${s.aprAt?`<br>承認：${s.aprAt}`:''}</div>
-    <div class="mt8">${btn}</div><div class="small muted mt8">問い合わせの段階では決裁なし。正式に提出する段階で承認（10/16 会議メモ）。</div></div>`;
-}
 
 /* ---------- M-B02 類似案件からコピー ---------- */
 function wpbCopyDlg(srcId){
@@ -4592,7 +4582,7 @@ function wpbCopyDlg(srcId){
   modal('類似案件からコピー',`<div class="form1">
     <label>コピー元のヒアリングシート（類似案件）<select id="wpbCpSrc">${DB.hearings.map(h=>`<option value="${h.id}" ${h.id===srcId?'selected':''}>${esc(h.no)} ${esc(h.name)}</option>`).join('')}</select></label>
     <label>新しいシートを作る商談（シート未作成の受注前商談）<select id="wpbCpOpp">${targets.map(o=>`<option value="${o.id}">${esc(o.name)}（${esc(acc(o.acc).name)}）</option>`).join('')}</select></label>
-    <div class="small"><b>コピーしない項目</b> ${WPB_KARI('CQ-51')}<br>${WPB_NOCOPY.map(k=>esc((DEF[k]||{}).n||k)).join('／')}<br>
+    <div class="small"><b>コピーしない項目</b> ${WPB_KARI('CQ-51')}<br>${wpbChips(WPB_NOCOPY)}<br>
       <span class="muted">顧客・案件ごとに異なる項目は空欄のまま新しいシートを作ります。提出状態・回答期日・暫定の印もコピーしません。</span></div></div>`,
     ()=>{ const src=byId(DB.hearings,$('#wpbCpSrc').value), o=byId(DB.opps,$('#wpbCpOpp').value); if(!src||!o) return;
       const ans=JSON.parse(JSON.stringify(src.ans)); WPB_NOCOPY.forEach(k=>delete ans[k]);
@@ -4600,13 +4590,6 @@ function wpbCopyDlg(srcId){
       DB.hearings.unshift({id,no:'SF-2026-00'+(900+DB.hearings.length),name:`${acc(o.acc).name.replace('株式会社','')} ${o.name}`,opp:o.id,acc:o.acc,status:'回答中',updated:'2026-10-08',ans,wpbCopy:src.id});
       o.hearing=id; UI.hsLayer=1; UI.hsFocus=null; UI.hsGroup=null; UI.hsCtx=id;
       toast(`「${src.no}」の回答をコピーして新しいシートを作成しました（コピーしない項目 ${WPB_NOCOPY.length} 件は空欄）`); go('#/hearing/'+id); },'コピーして作成');
-}
-function wpbCopyBox(h){
-  const src=h.wpbCopy&&byId(DB.hearings,h.wpbCopy);
-  return `<div class="wpb-hsbox" id="ko-M-B02"><div class="wpb-hsbox-h">類似案件からコピー</div>
-    <div class="small">既存のシートの回答をコピーして、新しいシートを作ります。案件番号・顧客・納期などはコピーしません ${WPB_KARI('CQ-51')}</div>
-    ${src?`<div class="small mt8">コピー元：<a href="#/hearing/${src.id}">${esc(src.no)}</a></div>`:''}
-    <div class="mt8"><button class="btn" id="wpbCopyBtn" onclick="wpbCopyDlg('${h.id}')">類似案件からコピー</button></div></div>`;
 }
 { const _pg=pgHearings; pgHearings=function(){ return _pg.apply(this,arguments)
     .replace('<div class="obj-label">ヒアリングシート</div>','<div class="obj-label">ヒアリングシート（仕様提案依頼書）</div>')
@@ -4619,12 +4602,6 @@ function wpbProv(hid,k){ const h=byId(DB.hearings,hid), p=wpbProvOf(h), i=p.inde
   const on=wpbProvOf(h).includes(q.id);
   s=s.replace('定義を見る</a></div>',()=>`定義を見る</a><a class="wpb-provbtn ${on?'on':''}" title="暫定値として入力（確定前）" onclick="event.stopPropagation();wpbProv('${h.id}','${q.id}')">${on?'◆ 暫定':'◇ 暫定にする'}</a></div>`);
   return on?s.replace('<div class="q ','<div class="q wpb-prov '):s; }; }
-function wpbProvBox(h){
-  const p=wpbProvOf(h), uq=(DB.wpbUq||[]).filter(x=>x.hs===h.id&&x.st==='未回答').length;
-  return `<div class="wpb-hsbox" id="ko-M-B03"><div class="wpb-hsbox-h">暫定の項目 <span class="pill ${p.length?'y':''}" id="wpbProvN">${p.length} 件</span></div>
-    <div class="small">${p.length?p.map(k=>esc((DEF[k]||{}).n||k)).join('／'):'暫定の項目はありません'}</div>
-    <div class="small muted mt8">各項目の「◇ 暫定にする」で、確定前の値（暫定値）として印を付けます。<br>関係：暫定＝値は入っているが確定前。確認が必要な質問は「未確定事項・追加質問」パネル（未回答 ${uq} 件）で回答担当・先行着手と合わせて管理します。</div></div>`;
-}
 
 /* ---------- M-B04 回答期日（締切） ---------- */
 function wpbSetDue(hid,v){ const h=byId(DB.hearings,hid); h.wpbDue=v||''; toast(v?`回答期日を ${fmtD(v)} にしました`:'回答期日を解除しました','info'); const y=window.scrollY; route(); window.scrollTo(0,y); }
@@ -4634,20 +4611,11 @@ function wpbDueNotify(hid){
   notify(`【回答期日超過】ヒアリングシート「${h.name}」の回答期日（${fmtD(h.wpbDue)}）を過ぎています。未入力の必須項目 ${miss} 件`,'#/hearing/'+hid,{users,depts:['技術部']});
   (h.wpbDueN=h.wpbDueN||[]).push(nowStr()); toast('関係者（商談所有者・未確定事項の回答担当・技術部）へ通知しました'); route();
 }
-function wpbDueBox(h){
-  const st=wpbDueSt(h), miss=wpbMiss(h), canN=st.k==='over'&&miss>0;
-  return `<div class="wpb-hsbox wpb-due-${st.k}" id="ko-M-B04"><div class="wpb-hsbox-h">回答期日（締切）</div>
-    <input type="date" class="wpb-dueinp" id="wpbDue" value="${esc(h.wpbDue||'')}" onchange="wpbSetDue('${h.id}',this.value)">
-    <div class="small mt8"><b class="wpb-duest">${st.t}</b>　未入力の必須 ${miss} 件</div>
-    ${canN?`<div class="mt8"><button class="btn danger" id="wpbDueBtn" onclick="wpbDueNotify('${h.id}')">関係者へ通知</button></div>`:''}
-    ${(h.wpbDueN||[]).length?`<div class="small muted">通知済み：${h.wpbDueN.join('、')}</div>`:''}
-    <div class="small muted mt8">予算の都合に応じた締切を設定します。期日の${WPB_DUE_NEAR}日前から「近い」、過ぎると「超過」。未入力の必須項目があるまま超過したら関係者へ通知（今回は手動。自動にするか・宛先は ${WPB_KARI('CQ-52')}）</div></div>`;
-}
 
 /* ---------- M-B05 ToDo の生成と Chatter への投稿 ---------- */
 function wpbMkTodo(h,owner,subject,date){
   let n=1, id; do{ id='BT'+String(n++).padStart(2,'0'); }while(byId(DB.activities,id));
-  const a={id,type:'ToDo',subject,date:date||h.wpbDue||wpbAddDays(wpbTodayIso(),3),what:['opp',h.opp],owner,status:'未着手',memo:`ヒアリングシート ${h.no} から生成`,wpbHs:h.id};
+  const a={id,type:'ToDo',subject,date:date||wpbTodoDue(h),what:['opp',h.opp],owner,status:'未着手',memo:`ヒアリングシート ${h.no} から生成`,wpbHs:h.id};
   DB.activities.push(a);
   const me=myUser().id, uid=wpbUid(owner), fn=DB.feeds.reduce((m,f)=>Math.max(m,+String(f.id).slice(2)||0),0)+1;
   const body=`ToDo を作成しました：${subject}（担当：${owner}、期日：${fmtD(a.date)}）ヒアリングシート ${h.no}`;
@@ -4658,7 +4626,7 @@ function wpbMkTodo(h,owner,subject,date){
 function wpbTodoDlg(hid){
   const h=byId(DB.hearings,hid), us=DB.users.filter(u=>['営業部','技術部'].includes(u.dept));
   modal('ToDo を生成（担当者ごと）',`<div class="form1"><label>件名<input id="wpbTdS" value="【ヒアリング】未入力項目の回答・確認"></label>
-    <label>期日<input type="date" id="wpbTdD" value="${h.wpbDue||wpbAddDays(wpbTodayIso(),3)}"></label>
+    <label>期日 ${WPB_KARI('CQ-52')}<input type="date" id="wpbTdD" value="${wpbTodoDue(h)}"></label><div class="small muted">${WPB_TODO_DUE_NOTE}</div>
     <div class="small">担当者（複数可）</div><div>${us.map(u=>`<label class="wp2-chk"><input type="checkbox" class="wpbTdU" value="${esc(u.name)}"> ${esc(u.name)}（${esc(u.dept)}）</label>`).join('')}</div>
     <div class="small muted">担当者ごとに ToDo（活動）を作り、商談のChatterに「ToDo を作成しました」と投稿します。</div></div>`,
     ()=>{ const ws=[...document.querySelectorAll('.wpbTdU:checked')].map(x=>x.value); if(!ws.length){ toast('担当者を選んでください','info'); return; }
@@ -4668,18 +4636,46 @@ function wpbTodoCard(h){
   const ts=DB.activities.filter(a=>a.wpbHs===h.id).sort((a,b)=>(a.status==='完了')-(b.status==='完了')||a.date.localeCompare(b.date));
   return `<div class="card" id="ko-M-B05"><div class="card-h">☑ このシートの ToDo (${ts.length})<span class="right"><button class="btn" id="wpbTdBtn" onclick="wpbTodoDlg('${h.id}')">ToDo を生成</button></span></div><div class="card-b">
     ${ts.length?ts.map(a=>`<div class="wpb-uq"><a href="#/activity/${a.id}">${esc(a.subject)}</a><div class="small">担当：${ul(a.owner)}｜期日：${(a.status!=='完了'&&daysTo(a.date)<0)?`<span class="tk-over">${fmtD(a.date)}</span>`:fmtD(a.date)}｜状態：${stPill(a.status)}</div></div>`).join(''):'<div class="muted small">ToDo はありません</div>'}
-    <div class="small muted mt8">未確定事項の追加・正式提出の承認依頼・「ToDo を生成」で担当者ごとの ToDo を作り、商談のChatterに投稿します。部門を横断して状況を確認できます。</div></div></div>`;
+    <div class="small muted mt8">未確定事項の追加・正式提出の承認依頼・「ToDo を生成」で担当者ごとの ToDo を作り、商談のChatterに投稿します。部門を横断して状況を確認できます。</div><div class="small muted">${WPB_TODO_DUE_NOTE} ${WPB_KARI('CQ-52')}</div></div></div>`;
 }
 
+/* ---------- ヒアリングシート画面への組み込み ---------- */
+/* ToDo の期日の既定値（仮置き：CQ-52）：承認＝今日＋2日、それ以外＝回答期日（過ぎていれば今日＋3日） */
+const WPB_TODO_DUE_NOTE = 'ToDo の期日の既定値：承認依頼は今日＋2日、それ以外は回答期日（未設定・期日超過のときは今日＋3日）';
+function wpbTodoDue(h,kind){ const t=wpbTodayIso(); if(kind==='appr') return wpbAddDays(t,2); return h.wpbDue&&h.wpbDue>=t?h.wpbDue:wpbAddDays(t,3); }
+const wpbChips = ks => ks.map(k=>`<span class="wpb-chip">${esc((DEF[k]||{}).n||k)}</span>`).join('');
+UI.wpbHsOpen = UI.wpbHsOpen || {};
+/* 1行の操作バー（正式提出／コピー／回答期日／暫定の件数）＋説明（折りたたみ） */
+function wpbHsBar(h){
+  const s=wpbSub(h), st=wpbDueSt(h), miss=wpbMiss(h), p=wpbProvOf(h), uq=(DB.wpbUq||[]).filter(x=>x.hs===h.id&&x.st==='未回答').length, src=h.wpbCopy&&byId(DB.hearings,h.wpbCopy);
+  const sub=s.st==='作成中'?`<button class="btn brand" id="wpbSubBtn" onclick="wpbSubReq('${h.id}')">正式提出（承認依頼）</button>`
+    :s.st==='承認待ち'?(ROLE==='eigyo'?`<button class="btn success" id="wpbSubOk" onclick="wpbSubAct('${h.id}',true)">営業部長として承認（デモ）</button><button class="btn danger" onclick="wpbSubAct('${h.id}',false)">差し戻し</button>`
+      :`<span class="pill y">承認待ち</span><span class="tk-hint">承認は営業部ロールで行います（デモ）</span>`):`<span class="pill g">✓ 承認済（正式提出）</span>`;
+  const open=!!UI.wpbHsOpen[h.id];
+  return `<div class="wpb-hsbar">
+    <div class="wpb-seg" id="ko-M-B01">${sub}</div>
+    <div class="wpb-seg" id="ko-M-B02"><button class="btn" id="wpbCopyBtn" onclick="wpbCopyDlg('${h.id}')">類似案件からコピー</button>${src?`<span class="small">コピー元：<a href="#/hearing/${src.id}">${esc(src.no)}</a></span>`:''}</div>
+    <div class="wpb-seg wpb-due-${st.k}" id="ko-M-B04"><label class="small" for="wpbDue">回答期日</label><input type="date" class="wpb-dueinp" id="wpbDue" value="${esc(h.wpbDue||'')}" onchange="wpbSetDue('${h.id}',this.value)">
+      <b class="small wpb-duest">${st.t}</b>${st.k==='over'&&miss>0?`<button class="btn danger" id="wpbDueBtn" onclick="wpbDueNotify('${h.id}')">関係者へ通知</button>`:''}</div>
+    <div class="wpb-seg" id="ko-M-B03"><span class="small">暫定の項目</span><span class="pill ${p.length?'y':''}" id="wpbProvTop">${p.length} 件</span></div>
+  </div>
+  <details class="wpb-hsdet" ${open?'open':''} ontoggle="UI.wpbHsOpen['${h.id}']=this.open"><summary>説明・仮置きの値（正式提出・コピー・回答期日・暫定・ToDo）</summary><div class="small">
+    <div><b>正式提出</b>：問い合わせの段階では決裁なし。正式に提出する段階で承認（10/16 会議メモ）。承認者：${esc(s.appr||WPB_SUB_APPR)}（営業部長） ${WPB_KARI('CQ-50')}${s.reqAt?`／申請：${esc(s.by||'')} ${s.reqAt}`:''}${s.aprAt?`／承認：${s.aprAt}`:''}</div>
+    <div class="mt8"><b>類似案件からコピー</b>：既存のシートの回答をコピーして新しいシートを作ります。コピーしない項目 ${WPB_KARI('CQ-51')}<div class="wpb-chips">${wpbChips(WPB_NOCOPY)}</div></div>
+    <div class="mt8"><b>回答期日</b>：予算の都合に応じた締切。期日の${WPB_DUE_NEAR}日前から「期日が近い」 ${WPB_KARI('CQ-52')}、過ぎると「超過」。未入力の必須項目（現在 ${miss} 件）があるまま超過したら関係者へ通知（今回は手動。自動にするか・宛先は ${WPB_KARI('CQ-52')}）${(h.wpbDueN||[]).length?`／通知済み：${h.wpbDueN.join('、')}`:''}</div>
+    <div class="mt8"><b>暫定の項目</b>：各項目の「◇ 暫定にする」で確定前の値（暫定値）に印を付けます。<div class="wpb-chips">${p.length?wpbChips(p):'<span class="muted">なし</span>'}</div>
+      関係：暫定＝値は入っているが確定前。確認が必要な質問は「未確定事項・追加質問」パネル（未回答 ${uq} 件）で回答担当・先行着手と合わせて管理します。</div>
+    <div class="mt8"><b>ToDo</b>：${WPB_TODO_DUE_NOTE} ${WPB_KARI('CQ-52')}</div>
+    <div class="mt8 muted">この操作バーは OmniScript のステップ上のボタン・条件付き表示で構成する想定です（実現方式は ${WPB_KARI('CQ-46')}）。</div></div></details>`;
+}
 /* ---------- ヒアリングシート画面への組み込み ---------- */
 { const _pg=pgHearing; pgHearing=function(id){ let s=_pg.apply(this,arguments); const h=byId(DB.hearings,id); if(!h) return s;
   const sub=wpbSub(h), st=wpbDueSt(h);
   s=s.replace(`<div class="obj-label">ヒアリングシート｜`,()=>`<div class="obj-label">ヒアリングシート（仕様提案依頼書）｜`);
-  s=s.replace('<div class="highlights">',()=>`<div class="highlights">${fld('提出状態',stPill(sub.st))}${fld('暫定の項目',`<span id="wpbProvTop">${wpbProvOf(h).length} 件</span>`)}${fld('回答期日',h.wpbDue?`<span class="wpb-duetxt-${st.k}">${fmtD(h.wpbDue)}（${st.t}）</span>`:'未設定')}`);
-  const strip=`<div class="wpb-hsstrip">${wpbSubBox(h)}${wpbProvBox(h)}${wpbDueBox(h)}${wpbCopyBox(h)}</div>
-    <div class="small muted mb8">上の4つは OmniScript のステップ上のボタン・条件付き表示で構成する想定です（実現方式は ${WPB_KARI('CQ-46')}）。</div>`;
+  s=s.replace('<div class="highlights">',()=>`<div class="highlights">${fld('提出状態',stPill(sub.st))}${fld('回答期日',h.wpbDue?`<span class="wpb-duetxt-${st.k}">${fmtD(h.wpbDue)}（${st.t}）</span>`:'未設定')}`);
+  const bar=wpbHsBar(h);
   const j=s.indexOf('準拠</div>'), e='</div></div></div></div>', i=j<0?-1:s.indexOf(e,j);   // ページ見出し（page-h）の直後に置く
-  return i<0?s+strip:s.slice(0,i+e.length)+strip+s.slice(i+e.length); }; }
+  return i<0?s+bar:s.slice(0,i+e.length)+bar+s.slice(i+e.length); }; }
 extRec('hearing').side.push(h=>wpbTodoCard(h));
 /* ===== WPB END ===== */
 /* ===== WPC BEGIN ===== */
