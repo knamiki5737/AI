@@ -550,6 +550,19 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpc-sys.wpc-q{border-color:#dd7a01;background:#fff8ee}
 .wpc-warn{background:#fef1ee;border:1px solid #ea001e;border-radius:4px;padding:6px 10px;font-size:12px;color:#8e030f;margin:6px 0}
 .wpc-chkrow{display:grid;gap:3px;background:#fafaf9;border:1px solid #e5e5e5;border-radius:4px;padding:6px 10px}
+/* 10/16 M-C01〜C06 */
+.wpc-boxes{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.wpc-box{display:block;border:1px solid #c9c7c5;border-radius:6px;padding:8px 10px;background:#fff;color:var(--text);text-decoration:none}
+.wpc-box.on{border:2px solid var(--brand);background:#eef4ff}
+.wpc-box-h{font-weight:700}.wpc-box-n{font-size:20px;font-weight:300}
+.pill.wpc-ar0{background:#fde2c6;color:#7a3a00}.pill.wpc-ar1{background:#e5d7fb;color:#3d0e7a}.pill.wpc-ar2{background:#cfe7fd;color:#014486}
+.wpc-kbq{flex-wrap:wrap;gap:6px}.wpc-kbq input{flex:1 1 200px;min-width:0}
+.wpc-fl{list-style:none;margin:0 0 8px;padding:0;display:grid;gap:6px}
+.wpc-fs{border-left:4px solid #c9c7c5;padding:4px 8px;background:#fafaf9;border-radius:0 4px 4px 0}
+.wpc-fs.done{border-color:#2e844a}.wpc-fs.cur{border-color:var(--brand);background:#eef4ff}
+.wpc-fs-h{font-weight:700;font-size:12.5px}
+.wpc-from{background:#eef4ff;border:1px solid #9cc3f5;border-radius:4px;padding:6px 10px;margin-bottom:8px}
+.wpc-band-c{display:grid;gap:4px}
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
 .wpp-k{border-top:3px solid #0176d3}
@@ -4746,6 +4759,142 @@ pgObjMap = function(){
     <div class="small muted mt8">点線の枠は Salesforce の外にあるシステム・情報です。どの情報をどこに持ち、どう参照・連携するかは今後の確認事項です（自動連携の方式は未確定）。</div></div>`;
   return i<0?h+box:h.slice(0,i)+box+h.slice(i);
 };
+
+/* ===================================================================
+   WPC：10/16 会議メモ反映（M-C01〜M-C06）ナレッジの領域別の箱／加工データの構造化／起案・設計のサンプル／管理方式の注記／仕様変更のコスト影響の分岐／原価予実は箱の用意
+   =================================================================== */
+const WPC_AREAS = ['加工','起案','設計'];                 // ナレッジの領域（会議メモ「ナレッジ管理」）
+const WPC_AREA_DESC = {'加工':'加工技術の過去データ（設備仕様・加工精度・加工時間）。営業でも可否を判断できるように','起案':'見積の判断・価格感','設計':'設計の不具合・手戻り事例'};
+UI.wpcKbArea = UI.wpcKbArea || 'すべて';
+UI.wpcKbQ = UI.wpcKbQ || '';
+/* 既存記事の領域（初期値はすべて仮置き：CQ-53） */
+[['KB01','設計'],['KB02','起案'],['KB03','設計'],['KB04','加工'],['KB05','設計'],['KB06','設計'],['KB07','起案'],['KB08','設計'],['KB21','起案'],['KB22','加工'],['UCKB01','設計'],['UCKB02','設計'],['UCKB03','起案']]
+  .forEach(([id,a])=>{ const k=byId(DB.knowledge,id); if(k&&!k.area){ k.area=a; k.areaKari=true; } });
+/* M-C02：加工の過去データ（構造化項目）。M-C03：起案・設計のサンプル。すべて架空 */
+DB.knowledge.push(
+  {id:'UCKB11',area:'加工',kind:'成功事例',title:'【加工データ】コンロッド大端部の縦型ホーニング（単軸）',cat:'作業手順',views:5,votes:1,status:'公開済',updated:'2026-10-10',pj:'P002',prod:'PR01',
+    proc:{設備仕様:'縦型ホーニング盤（単軸）／インプロセス エアゲージ付き',ワーク:'コンロッド大端部（鍛造鋼・焼入れなし）',加工径:'φ52（加工長 22mm）',要求精度:'真円度 3µm／円筒度 4µm／面粗度 Rz1.6',達成精度:'真円度 2µm／円筒度 3µm／面粗度 Rz1.2',加工時間:'サイクルタイム 38 秒／個',可否:'可（試作で確認済み）'},
+    body:{概要:'試作加工の結果をもとに、設備仕様・加工精度・加工時間を記録した。',注意:'ワーク固定方法を変更した後のデータ。固定方法が異なる場合は再確認する。'}},
+  {id:'UCKB12',area:'加工',kind:'問題・解決',title:'【加工データ】モーターハウジング（アルミ薄肉）の自動ホーニング',cat:'原因と対策',views:4,votes:0,status:'公開済',updated:'2026-09-12',pj:'P003',prod:'PR04',
+    proc:{設備仕様:'自動ホーニングセル（ロボット搬送）／ポスト計測・ランクセレクト',ワーク:'モーターハウジング（アルミダイカスト・薄肉）',加工径:'φ120（加工長 95mm）',要求精度:'真円度 5µm／円筒度 8µm／面粗度 Rz2.0',達成精度:'真円度 6µm（条件見直し後 4µm）／円筒度 7µm／面粗度 Rz1.8',加工時間:'サイクルタイム 75 秒／個（条件見直し後）',可否:'条件付きで可（クランプ力の調整が必要）'},
+    body:{概要:'薄肉ワークのクランプ歪みで真円度が不足したため、クランプ力と加工条件を見直した。',注意:'新規材質・薄肉ワークは試作の工数が増えやすい。'}},
+  {id:'UCKB13',area:'加工',kind:'問題・解決',title:'【加工データ】バルブボディ小径穴の多軸ホーニング',cat:'作業手順',views:2,votes:0,status:'公開済',updated:'2026-08-05',pj:'P004',prod:'PR02',
+    proc:{設備仕様:'縦型ホーニング盤（多軸）',ワーク:'バルブボディ（鋳鉄）',加工径:'φ12（加工長 40mm・止まり穴）',要求精度:'真円度 1µm／円筒度 2µm／面粗度 Rz0.8',達成精度:'真円度 1µm／円筒度 2.5µm／面粗度 Rz0.8',加工時間:'サイクルタイム 52 秒／個（4穴同時）',可否:'要検討（円筒度は追加テストが必要）'},
+    body:{概要:'止まり穴の奥側で円筒度が出にくい。ストローク条件の追加テストが必要。',注意:'営業での可否判断は「要検討」。加工技術へ照会する。'}},
+  {id:'UCKB21',area:'起案',kind:'成功事例',title:'見積の判断：類似実績のユニット原価から積み上げて価格感をそろえた事例',cat:'作業手順',views:3,votes:1,status:'公開済',updated:'2026-09-25',pj:'P009',prod:'PR03',
+    body:{目的:'売値を決めるときに、過去の実績を参照して判断をそろえる。',手順:'①類似案件（機種・型式、構成ユニット、ワーク・要求精度）を探す ②ユニット別の実績原価を確認する ③今回の差分（仕向地・顧客条件など）を加減して見積原価を出す',注意:'顧客別の提示価格でも原価は同じ。価格の調整は売値を決める段階で行う。'}},
+  {id:'UCKB31',area:'設計',kind:'問題・解決',title:'設計の手戻り：治具クランプとロボットハンドの干渉を組立時に発見した事例',cat:'トラブル事例',views:6,votes:2,status:'公開済',updated:'2026-09-02',pj:'P005',prod:'PR03',
+    body:{現象:'組立時に、治具のクランプとロボットハンドが干渉し、ハンドの再設計が必要になった。',原因:'構想設計の段階で、ワーク受け渡し位置での干渉確認をしていなかった。',対策:'ハンドの形状を見直し、受け渡し位置を変更した。',再発防止:'着手時のDRで、治具とハンドの干渉確認を確認項目に入れる。'}}
+);
+const wpcArea = k => k.area||'';
+function wpcAreaPill(k){ const a=wpcArea(k); return a?`<span class="pill wpc-ar${WPC_AREAS.indexOf(a)}">${a}</span>${k.areaKari?' <span class="tent kari" title="既存記事の領域は初期値（仮置き）">仮</span>':''}`:'<span class="muted">未分類</span>'; }
+const WPC_PROC_KEYS = ['設備仕様','ワーク','加工径','要求精度','達成精度','加工時間','可否'];
+const wpcKbText = k => [k.title,k.cat,k.kind,wpcArea(k),...Object.values(k.body||{}),...Object.values(k.proc||{})].join(' ');
+const WPC_MC04 = `<div class="note mt8" id="ko-M-C04"><b>管理方式</b>：起案管理・加工管理のノウハウや過去の失敗事例を、Salesforce ナレッジで管理するか、オブジェクトのレコードタイプで管理するかは検討中です（会議メモ）。本モックの「領域」は箱のイメージです ${wpcCq(53)}</div>`;
+function wpcProcTable(rows){
+  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>記事</th><th>設備仕様</th><th>ワーク・加工径</th><th>要求精度</th><th>達成精度</th><th>加工時間</th><th>可否</th></tr></thead><tbody>${rows.map(k=>{const p=k.proc;
+    return `<tr><td><a href="#/kb/${k.id}">${esc(k.title.replace('【加工データ】',''))}</a></td><td class="small">${esc(p.設備仕様)}</td><td class="small">${esc(p.ワーク)}<div>${esc(p.加工径)}</div></td><td class="small">${esc(p.要求精度)}</td><td class="small">${esc(p.達成精度)}</td><td class="small">${esc(p.加工時間)}</td>
+      <td><span class="pill ${/^可/.test(p.可否)?'g':/^条件付き/.test(p.可否)?'y':'r'}">${esc(p.可否)}</span></td></tr>`;}).join('')}</tbody></table></div>`;
+}
+/* 記事一覧（領域の箱＋検索を追加。既存の種別・カテゴリの絞り込みはそのまま） */
+pgKnowledge = function(){
+  const cats=['すべて','トラブル事例','原因と対策','作業手順'], kinds=['すべて',...WPC_KB_KINDS], q=(UI.wpcKbQ||'').trim();
+  const base=DB.knowledge.filter(k=>(UI.kbCat==='すべて'||k.cat===UI.kbCat)&&(UI.wpcKbKind==='すべて'||(k.kind||'問題・解決')===UI.wpcKbKind)&&(!q||q.split(/\s+/).every(w=>wpcKbText(k).includes(w))));
+  const rows=base.filter(k=>UI.wpcKbArea==='すべて'||wpcArea(k)===UI.wpcKbArea);
+  const tile=(a,label,desc)=>`<a class="wpc-box ${UI.wpcKbArea===a?'on':''} click" onclick="UI.wpcKbArea='${a}';route()"><div class="wpc-box-h">${label}</div><div class="wpc-box-n">${base.filter(k=>a==='すべて'||wpcArea(k)===a).length}<span class="small"> 件</span></div><div class="small muted">${desc}</div></a>`;
+  const procs=rows.filter(k=>k.proc);
+  return listPage({icon:'i-know',em:'📖',label:'ナレッジ（再発防止）',title:'記事一覧',count:rows.length,actions:`<button class="btn brand" onclick="newKb()">新規記事</button>`,
+    table:`<div id="ko-M-C01"><div class="small mb8"><b>領域別の箱</b>（会議メモ：加工・起案・設計の領域別にナレッジを蓄積） ${wpcCq(53)}</div>
+      <div class="wpc-boxes mb8">${tile('すべて','すべて','全領域')}${WPC_AREAS.map(a=>tile(a,a,WPC_AREA_DESC[a])).join('')}</div></div>
+      <div class="flex mb8 wpc-kbq"><input id="wpcKbQ" class="role-select" placeholder="キーワード（例：真円度、アルミ、多軸）" value="${esc(UI.wpcKbQ||'')}" onkeydown="if(event.key==='Enter'){UI.wpcKbQ=this.value;route()}">
+        <button class="btn" onclick="UI.wpcKbQ=$('#wpcKbQ').value;route()">検索</button>${q?`<button class="btn" onclick="UI.wpcKbQ='';route()">クリア</button>`:''}<span class="small muted">タイトル・本文・加工データ（設備仕様・精度・時間）から探します</span></div>
+      <div class="flex mb8 wpc-kbf" id="ko-K-C06"><span class="small muted">種別 ${wpcCq(41)}：</span>${kinds.map(c=>`<a class="pill ${UI.wpcKbKind===c?'b':''} click" onclick="UI.wpcKbKind='${c}';route()">${c}</a>`).join('')}</div>
+      <div class="flex mb8"><span class="small muted">カテゴリ：</span>${cats.map(c=>`<a class="pill ${UI.kbCat===c?'b':''} click" onclick="UI.kbCat='${c}';route()">${c}</a>`).join('')}</div>
+      ${procs.length&&(UI.wpcKbArea==='加工')?`<div class="card wpc-procl" id="ko-M-C02"><div class="card-h">加工の過去データ（営業の可否判断の参考）</div><div class="card-b">${wpcProcTable(procs)}
+        <div class="small muted mt8">「可否」は過去の実績です。新しい条件では加工技術へ照会してください。データはすべて架空です。</div></div></div>`:''}`+
+      tbl(['タイトル','領域','種別','カテゴリ','案件','設備（商品）','#閲覧数','#役に立った','元ケース','最終更新'],rows.map(k=>{const c=wpcKbCase(k);return tr([`<a href="#/kb/${k.id}">${esc(k.title)}</a>`,wpcAreaPill(k),wpcKindPill(k),k.cat,wpcPjLink(wpcKbPj(k)),wpcPrLink(wpcKbProd(k)),[k.views],[k.votes],c?`<a href="#/case/${c.id}">${c.no}</a>`:'—',fmtD(k.updated)]);}),'該当する記事はありません')
+      +WPC_MC04
+      +`<div class="small muted mt8">問題の解決だけでなく、原価低減やうまくいった工夫も蓄積します（キックオフ資料 p09）。どの単位で登録し、どこから検索・参照するかは、具体例と画面で確認します。種別の区分は ${wpcCq(41)}、領域と既存の種別・カテゴリとの関係は ${wpcCq(53)}</div>`});
+};
+/* 記事画面：領域と加工データ（構造化項目）を表示 */
+const _wpcPgKb2 = pgKb;
+pgKb = function(id){
+  const h=_wpcPgKb2(id), k=byId(DB.knowledge,id); if(!k) return h;
+  const card=`<div class="card wpc-kba"><div class="card-b"><div class="fields">
+    ${fld('領域 '+wpcCq(53),`<select class="role-select" aria-label="領域" onchange="const k=byId(DB.knowledge,'${id}');k.area=this.value;k.areaKari=false;toast('領域を「'+this.value+'」にしました');route()">${(k.area?[]:['']).concat(WPC_AREAS).map(x=>`<option value="${x}" ${x===wpcArea(k)?'selected':''}>${x||'未分類'}</option>`).join('')}</select>${k.areaKari?' <span class="tent kari">初期値は仮置き</span>':''}`)}</div>
+    ${k.proc?`<div class="section-title" id="ko-M-C02">加工データ（設備仕様・加工精度・加工時間）</div><div class="fields">${WPC_PROC_KEYS.map(x=>fld(x,esc(k.proc[x]||'—'))).join('')}</div>
+      <div class="small muted">営業が加工の可否を判断する参考データです（過去の実績）。新しい条件では加工技術へ照会してください。</div>`:''}</div></div>`;
+  const i=h.indexOf('<div class="card wpc-kbs">'); return i<0?h+card:h.slice(0,i)+card+h.slice(i);
+};
+/* 新規記事：領域の選択を追加 */
+const _wpcNewKb2 = newKb;
+newKb = function(){
+  _wpcNewKb2();
+  const c=document.querySelector('#overlay #kbC'); if(!c) return;
+  c.closest('label').insertAdjacentHTML('beforebegin',`<div><div class="tk-lab">領域 ${wpcCq(53)}</div><div class="wpc-kbr">${WPC_AREAS.map((x,i)=>`<label class="wpc-chk"><input type="radio" name="wpcKbArea" value="${x}" ${i?'':'checked'}> ${x}</label>`).join('')}</div></div>`);
+  const ok=modalOk; modalOk=()=>{ const v=(document.querySelector('#overlay input[name=wpcKbArea]:checked')||{}).value, n=DB.knowledge.length; ok(); if(v&&DB.knowledge.length>n) DB.knowledge[0].area=v; };
+};
+
+/* ---------- M-C05：仕様変更のコスト影響（あり／なし）の分岐 ----------
+   既存：仕様変更の起票（理由・影響範囲・コメント）→ 影響範囲の部門へ通知（WP2）／追加要求チケット・追加請求（WP3）はそのまま使う。
+   追加：起票画面の「コスト影響」、ケース画面の流れカード、「あり」から追加要求チケットを起票してケースとひも付け */
+const WPC_COST_IMP = ['未判断','あり','なし'];
+const _wpcSpec2 = wp2SpecChange;
+wp2SpecChange = function(pid){
+  _wpcSpec2(pid);
+  const a=document.querySelector('#overlay #scReason'); if(!a) return;
+  a.closest('label').insertAdjacentHTML('afterend',`<div><div class="tk-lab">コスト影響</div><div class="wpc-kbr">${WPC_COST_IMP.map(x=>`<label class="wpc-chk"><input type="radio" name="wpcCostImp" value="${x}" ${x==='未判断'?'checked':''}> ${x}</label>`).join('')}</div>
+    <div class="small muted">あり＝追加要求チケット → 追加請求へ進みます。なし＝変更の記録と関係者への周知で完了します（会議メモ）。</div></div>`);
+  const ok=modalOk; modalOk=()=>{ const v=(document.querySelector('#overlay input[name=wpcCostImp]:checked')||{}).value||'未判断', n=DB.cases.length; ok(); if(DB.cases.length>n) DB.cases[0].costImpact=v; };
+};
+EDIT.case.f.push(['costImpact','コスト影響（仕様変更）','sel:'+WPC_COST_IMP.join(',')]);
+onEvt('fieldChange',e=>{ if(e.kind==='case'&&e.field==='costImpact'&&typeof wp2CaseHist==='function') wp2CaseHist(e.rec,'コスト影響',e.from||'未判断',e.to); });
+function wpcSetCostImp(cid,v){ const c=byId(DB.cases,cid); if(!c) return; const from=c.costImpact||'未判断'; if(from===v) return; c.costImpact=v; if(typeof wp2CaseHist==='function') wp2CaseHist(c,'コスト影響',from,v); toast(`コスト影響を「${v}」にしました`); route(); }
+function wpcCaseTicket(cid){
+  const c=byId(DB.cases,cid); if(!c) return;
+  EXT.fn.newTicket(c.pj);
+  const n=$('#overlay #tkName'), d=$('#overlay #tkDesc'), o=$('#overlay #wpcOrigin');
+  if(n) n.value=c.subject.replace(/^仕様変更：/,'')+'（仕様変更のコスト影響）'; if(d) d.value=`仕様変更（ケース ${c.no}）でコスト影響ありと判断したため起票します。${c.desc?'\n'+c.desc:''}`; if(o&&c.origin) o.value=c.origin;
+  const ok=modalOk; modalOk=()=>{ const k=DB.requests.length; ok(); const r=DB.requests[DB.requests.length-1]; if(DB.requests.length>k&&r){ r.fromCase=c.id; c.ticket=r.id; if(typeof wp2CaseHist==='function') wp2CaseHist(c,'追加要求チケット','',r.no); } };
+}
+function wpcCaseFlow(c){
+  if(c.type!=='変更') return '';
+  const imp=c.costImpact||'未判断', t=c.ticket&&byId(DB.requests,c.ticket), claims=t?DB.requests.filter(x=>x.parent===t.id&&x.type==='追加請求'):[], closed=c.status==='クローズ';
+  const st=(done,cur)=>done?'done':cur?'cur':'';
+  const notified=!!((c.impact||[]).length);
+  const step=(cls,n,title,body)=>`<li class="wpc-fs ${cls}"><div class="wpc-fs-h">${cls==='done'?'✓':n} ${title}</div><div class="small">${body}</div></li>`;
+  const branch = imp==='あり'
+    ? step(st(!!t&&claims.some(x=>x.status==='承認済'),!t||!claims.length),'4','コスト影響あり → 追加要求チケット → 追加請求',
+        (t?`チケット：<a href="#/request/${t.id}">${t.no}</a> ${stPill(t.status)}`:`<button class="btn" onclick="wpcCaseTicket('${c.id}')">追加要求チケットを起票</button>`)
+        +(t?`<div>追加請求：${claims.map(x=>`<a href="#/request/${x.id}">${x.no}</a> ${stPill(x.status)}`).join('、')||`<span class="muted">未起票</span> <button class="btn" onclick="EXT.fn.newAddClaim('${c.pj}',null,'${t.id}')">追加請求を起票</button>`}</div>`:''))
+    : imp==='なし'
+    ? step(st(closed,!closed),'4','コスト影響なし → 変更のみ（記録と周知で完了）',closed?'変更を記録し、周知して完了しました（クローズ済み）':'追加請求は不要です。原因・対策（変更内容）を保存してクローズすると完了します')
+    : step('cur','4','コストへの影響で分岐','あり＝追加要求チケット → 追加請求／なし＝変更のみで完了');
+  return `<div class="card wpc-flow" id="ko-M-C05"><div class="card-h"><span class="obj-icon sm i-case">⇢</span>仕様変更の流れ</div><div class="card-b">
+    <ol class="wpc-fl">${step('done','1','起票（理由の分類・内容の記録）',`理由：${esc(c.reason||'—')}`)}
+    ${step(notified?'done':'cur','2','関係者への周知',(c.impact||[]).length?`影響範囲：${(c.impact||[]).map(esc).join('・')}（起票時に通知）`:'影響範囲が未選択のため、部門への通知はしていません（Chatter で周知してください）')}
+    ${step(imp==='未判断'?'cur':'done','3','コスト影響の判断',`<div class="wpc-kbr">${WPC_COST_IMP.map(x=>`<label class="wpc-chk"><input type="radio" name="wpcCi-${c.id}" ${x===imp?'checked':''} onchange="wpcSetCostImp('${c.id}','${x}')"> ${x}</label>`).join('')}</div>`)}
+    ${branch}</ol>
+    <div class="small muted">判断する人・時期（審議）の決め方は要確認です <span class="tent kari">仮置き・要確認</span>。会議メモ「仕様変更の起票フロー（理由の分類、承認・周知、コスト影響の処理）」で確認予定。</div></div></div>`;
+}
+extRec('case').side.push(c=>wpcCaseFlow(c));
+extRec('case').hl.push(c=>c.type==='変更'?[['コスト影響',`<span class="pill ${c.costImpact==='あり'?'r':c.costImpact==='なし'?'g':''}">${c.costImpact||'未判断'}</span>`]]:[]);
+/* 追加要求チケットに、元の仕様変更（ケース）へのリンク */
+const _wpcTicketPage2 = tkTicketPage;
+tkTicketPage = function(r,p){ const h=_wpcTicketPage2(r,p), c=r.fromCase&&byId(DB.cases,r.fromCase); if(!c) return h;
+  const m='<div class="card wpc-tk" id="ko-K-C04">', i=h.indexOf(m); const add=`<div class="wpc-from small">元の仕様変更（コスト影響あり）：<a href="#/case/${c.id}">${c.no} ${esc(c.subject)}</a></div>`;
+  return i<0?h:h.slice(0,i)+add+h.slice(i); };
+
+/* ---------- M-C06：原価予実は本フェーズでは「箱の用意」 ---------- */
+function wpcCostBand(k08){
+  return `<div class="wpc-band wpc-band-c" id="ko-M-C06" role="note"><b>原価予実：本フェーズは「箱の用意」。詳細は後続で検討（会議メモ 10/16）</b>
+    <div class="small">原価テーブルは現行の社内データを参照し、見積システムは別に運用します。調達と設計で参照する原価テーブルが異なる見込みです。部品単位の原価・商品構造（部品をユニットに組み合わせる）は今後の課題です。<b>工程別・ユニット別の表示は、詳細要件が未確定のためイメージです。</b></div>
+    ${k08?`<div class="small" id="ko-K-C08">段階運用：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）</div>`:''}</div>`;
+}
+const _wpcPgCosts2 = pgCosts;
+pgCosts = function(){ return _wpcPgCosts2().replace(wpcBand(),wpcCostBand(true)); };
+const _wpcPjCost2 = pjCost;
+pjCost = function(p,c){ return wpcCostBand(false)+_wpcPjCost2(p,c); };
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
 /* WP-A の類似案件比較（構成ユニット）へ WP-C のユニットデータを渡す */
