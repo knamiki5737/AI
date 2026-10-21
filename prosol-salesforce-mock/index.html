@@ -495,7 +495,13 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpa-matrix tr.wpa-sum th,.wpa-matrix tr.wpa-sum td{font-weight:700;background:#fafaf9}.wpa-matrix tr.wpa-won td{background:#f3f9ff}
 @media(max-width:700px){.wpa-stdesc{grid-template-columns:1fr 1fr}.wpa-matrix,.wpa-plan{min-width:0}.wpa-dash .card-h{flex-wrap:wrap}.wpa-dash .card-h .right{margin-left:0;flex-wrap:wrap}}
 /* 10/16 会議メモ：対象外・注記の帯、オブジェクト構成の検討中の関連 */
-.wpa-band{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;background:#fff8e6;border:1px solid #f2c94c;border-left:4px solid #dd7a01;border-radius:4px;padding:8px 12px;margin-bottom:10px;font-size:12.5px}
+.wpa-band{background:#fff8e6;border:1px solid #f2c94c;border-left:4px solid #dd7a01;border-radius:4px;padding:5px 10px;margin-bottom:8px;font-size:12.5px;line-height:1.5}
+.wpa-band>summary{cursor:pointer;list-style:none}.wpa-band>summary::-webkit-details-marker{display:none}
+.wpa-band-sum{margin-right:6px}.wpa-band-tag{margin-right:6px}
+.wpa-band-more{color:var(--brand);font-size:11.5px;white-space:nowrap}.wpa-band-more::before{content:'▸ '}.wpa-band[open] .wpa-band-more::before{content:'▾ '}
+.wpa-band-det{margin-top:4px;font-size:12px}.wpa-band-det ul{margin:0;padding-left:18px}
+.wpa-chip{display:inline-block;font-size:11px;border:1px solid #c9c7c5;border-radius:10px;padding:0 6px;background:#fff;color:#3e3e3c;white-space:nowrap}
+@media(max-width:700px){.wpa-band{font-size:12px;padding:4px 8px}.wpa-band .tent{font-size:10px}}
 .wpa-band.info{background:#eef4ff;border-color:#a9c5f5;border-left-color:#0176d3}
 .wpa-band-tag{font-weight:700;font-size:11.5px;background:#fff;border:1px solid currentColor;border-radius:10px;padding:0 8px;color:#8c4b02;white-space:nowrap}
 .wpa-band.info .wpa-band-tag{color:#014486}
@@ -4084,7 +4090,12 @@ EXT.launch.push(['wpasales','営業会議ダッシュボード','i-report','📊
    10/16 会議メモ反映（M-A01〜M-A05）。既存の画面は削除せず、帯・注記で示す
    --------------------------------------------------------------- */
 const WPA_OUT = '今回対象外（箱のみ／範囲は再確認）';
-const wpaBand = (id,html,cls) => `<div class="wpa-band ${cls||''}" id="${id}"><span class="wpa-band-tag">${cls==='info'?'会議メモ（10/16）':WPA_OUT}</span><span>${html}</span></div>`;
+// 帯は1行の要約（summary）＋詳細の折りたたみ（details）。tag を渡したときだけ先頭にタグを出す（本文と重ねない）
+const wpaBand = (id,sum,det,cls,tag) => `<details class="wpa-band ${cls||''}" id="${id}"><summary>${tag?`<span class="wpa-band-tag">${tag}</span>`:''}<span class="wpa-band-sum">${sum}</span><span class="wpa-band-more">詳細</span></summary><div class="wpa-band-det">${det}</div></details>`;
+// M-A02 の帯を出す画面（K-C08「段階運用」の帯もここへ1つにまとめる）
+const wpaPjBandPage = () => { const pg=(CUR.replace(/^#\//,'')||'home').split('/')[0]; return ['projects','project','sub'].includes(pg)||(pg==='home'&&ROLE==='kikaku'); };
+if(typeof wpcBand==='function'){ const _wpcBand=wpcBand; wpcBand=function(){ return wpaPjBandPage()?'':_wpcBand(); }; }
+const WPA_K08 = '入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）';
 // M-A01 ライセンスの配布対象（部署単位。加工技術・設計はモック上「技術部」に含む）
 const WPA_LICENSE = {'営業部':'対象','技術部':'対象','企画部':'ほぼ対象外','製造部':'対象外','調達部':'対象外'};
 const WPA_LIC_PILL = {'対象':'g','ほぼ対象外':'y','対象外':''};
@@ -4093,26 +4104,32 @@ const wpaLicPill = u => { const v=wpaLic(u); return `<span class="pill ${WPA_LIC
 // M-A05 図面ファイルは Salesforce で保持しない：Chatter の添付候補・サンプルの図面ファイルを PDM へのリンクに改める
 const WPA_PDM_LINK = n => `${n}（PDMへのリンク）`;
 if(typeof WP2_FILES!=='undefined'){ const i=WP2_FILES.indexOf('図面_rev2.pdf'); if(i>=0) WP2_FILES[i]=WPA_PDM_LINK('図面 rev2'); }
-(DB.feeds||[]).forEach(f=>{ if(Array.isArray(f.files)) f.files=f.files.map(n=>/図面/.test(n)&&/\.(pdf|dwg|dxf)$/i.test(n)?WPA_PDM_LINK(n.replace(/_rev(\d+)\.\w+$/,' rev$1')):n); });
+// お客様の図面（客先図面）を PDM で管理するかは未確定（CQ-55）：元の添付表記のまま、バッジを付ける（下の EXT.after）
 
 EXT.after.push((page,id)=>{
   const main=document.querySelector('#main'); if(!main) return;
   const top=[];
-  // M-A01：企画部ロールの帯（全画面の上部）
-  if(ROLE==='kikaku') top.push(wpaBand('ko-M-A01','<b>企画部：今回はほぼライセンス配布対象外（会議メモ）</b>。配布対象は営業部・技術部（加工技術）・技術部（設計）。製造・購買調達は今回のプロジェクト対象外 '+WPA_KARI('CQ-47'),'info'));
-  // M-A02：受注後の案件進捗管理（案件一覧・案件詳細・子レコード・企画部ホーム）
-  if(['projects','project','sub'].includes(page)||(page==='home'&&ROLE==='kikaku'))
-    top.push(wpaBand('ko-M-A02','<b>受注後の案件進捗管理：今回は実装しない認識</b>（箱のみ／対象外、範囲は再確認 '+WPA_KARI('CQ-48')+'）。受注前（商談・ヒアリングシート・Chatter）を中心に実装します。画面はイメージとして残しています'));
+  // M-A01：企画部ロールのホームとユーザー一覧だけに帯
+  if((page==='home'&&ROLE==='kikaku')||page==='users')
+    top.push(wpaBand('ko-M-A01',`<b>企画部：今回はほぼライセンス配布対象外（会議メモ）</b> ${WPA_KARI('CQ-47')}`,
+      '<ul><li>配布対象：営業部・技術部（加工技術）・技術部（設計）</li><li>企画部：ほぼ対象外／製造・購買調達：今回のプロジェクト対象外（将来の利用を想定）</li><li>モックは部署単位で判定し、加工技術・設計を「技術部」にまとめています</li></ul>','info'));
+  // M-A02（＋K-C08 段階運用）：案件一覧・案件詳細・子レコード・企画部ホーム
+  if(wpaPjBandPage())
+    top.push(wpaBand('ko-M-A02',`受注後の案件進捗管理（進捗段階・部門別管理）は今回は実装しない認識 ${WPA_KARI('CQ-57')} <span class="wpa-chip" id="ko-K-C08">段階運用</span>`,
+      `<ul><li>「案件管理」のうち受注前に必要な情報（加工管理・起案管理）は、受注前／受注後の線引きを再確認中です ${WPA_KARI('CQ-57')}</li>
+        <li>この画面は削除せず、イメージとして残しています</li><li><b>段階運用</b>：${WPA_K08}</li></ul>`,'',WPA_OUT));
   if(top.length) main.insertAdjacentHTML('afterbegin',top.join(''));
   // M-A01：ユーザー一覧・ユーザー詳細に「ライセンス配布」
   if(page==='users'){
     const t=main.querySelector('table.tbl'); if(t&&!t.querySelector('.wpa-lic-h')){
       t.querySelector('thead tr').insertAdjacentHTML('beforeend','<th class="wpa-lic-h">ライセンス配布</th>');
       t.querySelectorAll('tbody tr').forEach(r=>{ const a=r.querySelector('a[href^="#/user/"]'); const u=a&&byId(DB.users,a.getAttribute('href').split('/')[2]); r.insertAdjacentHTML('beforeend',`<td>${u?wpaLicPill(u):'—'}</td>`); });
-      t.closest('.card').insertAdjacentHTML('afterend',`<div class="small muted mt8" id="ko-M-A01-users">ライセンス配布（会議メモ 10/16）：営業部・技術部（加工技術・設計）＝対象、企画部＝ほぼ対象外、製造部・調達部＝対象外。部署単位の判定と、加工技術・設計を技術部にまとめている点は ${WPA_KARI('CQ-47')}</div>`);
     }
   }
   if(page==='user'){ const u=byId(DB.users,id), hl=main.querySelector('.highlights'); if(u&&hl) hl.insertAdjacentHTML('beforeend',fld('ライセンス配布',wpaLicPill(u)+' '+WPA_KARI('CQ-47'))); }
+  // M-A05（CQ-55）：お客様の図面の添付に「仮置き・要確認」
+  main.querySelectorAll('.fd-file').forEach(el=>{ if(/客先図面/.test(el.dataset.n||'')&&!(el.nextElementSibling&&el.nextElementSibling.classList.contains('wpa-cq55')))
+    el.insertAdjacentHTML('afterend','<span class="tent kari wpa-cq55" title="お客様の図面を PDM で管理するかは未確定">仮置き・要確認（CQ-55）</span>'); });
   // M-A03：製造依頼書プレビュー・見積
   if(page==='mfgdoc'){ const h=main.querySelector('.page-h'); const html=`<div class="note mb8 wpa-ma03" id="ko-M-A03"><b>製造依頼書：受注確定後、営業が作成し企画部へ連携</b>（契約情報＝商談・見積の合意内容から生成）。企画部は基幹システムへの登録と日程計画を行います（会議メモ 10/16）。</div>`;
     h?h.insertAdjacentHTML('afterend',html):main.insertAdjacentHTML('afterbegin',html); }
@@ -4126,8 +4143,8 @@ EXT.after.push((page,id)=>{
     const map=main.querySelector('.obj-map');
     const box=`<div class="wpa-objrel mt12" id="ko-M-A04"><div class="wpa-objrel-h">加工管理・起案管理を商談にもひも付ける構成を検討中 ${WPA_KARI('CQ-49')}</div>
       <div class="wpa-objrel-g"><div class="wpa-ob">商談<div class="small muted">受注前</div></div><div class="wpa-ln" title="検討中のひも付け">┄┄▶</div>
-        <div class="wpa-ob cus">加工管理<br>起案管理<div class="small muted">モック上は「加工管理」「機案見積管理」</div></div><div class="wpa-ln solid" title="現在のひも付け">◀──</div><div class="wpa-ob cus">案件管理<div class="small muted">受注後</div></div></div>
-      <div class="small muted mt8">点線＝検討中。受注前（商談フェーズ）でも加工管理・起案管理の情報が必要なため、商談側と案件管理側の双方にひも付ける構成を検討します（会議メモ 10/16）。現在のモックは案件管理の子オブジェクトのままで、新しい機能は作っていません。</div>
+        <div class="wpa-ob cus">加工管理<br>起案管理<div class="small muted">モック上は「加工管理」「機案見積管理」</div></div><div class="wpa-ln solid" title="現在のひも付け">◀──</div><div class="wpa-ob cus">案件管理<div class="small muted">受注前／受注後の線引きは再確認中</div></div></div>
+      <div class="small muted mt8">点線＝検討中。受注前（商談フェーズ）でも加工管理・起案管理の情報が必要なため、商談側と案件管理側の双方にひも付ける構成を検討します（会議メモ 10/16）。受注後の案件進捗管理（進捗段階・部門別管理）は今回は実装しない認識で、「案件管理」のうち受注前に必要な情報（加工管理・起案管理）の線引きは再確認中です ${WPA_KARI('CQ-57')}。現在のモックは案件管理の子オブジェクトのままで、新しい機能は作っていません。</div>
       ${pdm?'':`<div class="wpc-sys mt8" id="ko-M-A05"><b>PDM</b>${pdmNote}</div>`}</div>`;
     map?map.insertAdjacentHTML('afterend',box):main.insertAdjacentHTML('beforeend',box);
   }
