@@ -5270,7 +5270,7 @@ const MEMO_ITEMS = [
   ['M-C02','ナレッジ','加工の過去データ（設備仕様・加工精度・加工時間）で営業も可否を判断','#/knowledge','eigyo'],
   ['M-C03','ナレッジ','起案（見積判断・価格感）・設計（不具合・手戻り）のナレッジ','#/knowledge','gijutsu'],
   ['M-C04','ナレッジ','ナレッジかレコードタイプかの管理方式は検討中','#/knowledge',''],
-  ['M-C05','仕様変更','仕様変更の起票→周知→コスト影響ありは追加請求／なしは変更のみ','#/cases','gijutsu'],
+  ['M-C05','仕様変更','仕様変更の起票→周知→コスト影響ありは追加請求／なしは変更のみ','#/case/UCCS01','gijutsu'],
   ['M-C06','原価','原価予実は本フェーズでは「箱の用意」（詳細は後続）','#/costs','kikaku']];
 const MEMO_PRE = {};   // ID → 遷移前の UI 設定（SE の報告をもとに PL が登録）
 function wppOpenM(id){ const x=MEMO_ITEMS.find(r=>r[0]===id); if(!x) return; try{ MEMO_PRE[id]&&MEMO_PRE[id](); }catch(e){} goAs(x[3],x[4]);
@@ -5309,7 +5309,8 @@ RV_CQ.push(["CQ-57", "共通", "受注前／受注後の線引きの定義：会
 { const _rv2=EXT.routes.review; EXT.routes.review=(...a)=>{ const h=_rv2(...a), k='※ 運用開始のステップ区分は、NPSDX導入判断会資料'; const n='<div class="note mt8"><b>注：</b>この表と画面上の「ステップ1で完全運用／ステップ2から運用」のバッジは、キックオフ資料 p7 時点の区分です。10/16 会議メモでは、ステップ1は Chatter・ケース・ヒアリングシート・再発防止ナレッジ・原価予実の一部（企画向けの箱）と理解しており、受注後の案件進捗管理は今回は実装しない認識です。範囲は再確認中です<span class="tent kari">仮置き・要確認（CQ-48）</span></div>';
   const i=h.indexOf(k); if(i<0) return h; const j=h.indexOf('</div>',i); return h.slice(0,j+6)+n+h.slice(j+6); }; }
 MEMO_PRE['M-C01']=()=>{ UI.wpcKbArea='すべて'; };
-MEMO_PRE['M-C02']=()=>{ UI.wpcKbArea='加工'; };
+MEMO_PRE['M-C02']=()=>{ UI.wpcKbArea='加工'; UI.wpcKbQ=''; };
+MEMO_PRE['M-C03']=()=>{ UI.wpcKbArea='すべて'; UI.wpcKbQ=''; };
 /* ===== WPP END ===== */
 
 applyRoleUi();
