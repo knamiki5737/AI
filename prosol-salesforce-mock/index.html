@@ -511,6 +511,10 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .wpa-objrel-g{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .wpa-ob{border:1px solid #888;border-radius:6px;padding:6px 10px;background:#cfe7fd;text-align:center;font-size:12.5px;min-width:0}.wpa-ob.cus{background:#dcebd7}
 .wpa-ln{color:#706e6b;letter-spacing:1px}.wpa-ln:not(.solid){border-bottom:2px dashed #706e6b;padding:0 4px}
+/* 10/22 定例 p16〜p20：取引先・商談の詳細 */
+.wpa-prop{font-size:10px;color:#8c4b02;background:#fef1e3;border-radius:8px;padding:0 5px;margin-left:2px;white-space:nowrap;font-weight:400}
+.wpa-sec{margin-top:8px}.wpa-sec-h{font-weight:700;font-size:13px;background:#f3f3f3;padding:4px 8px;border-radius:4px}
+.wpa-legend{margin-bottom:4px}.wpa-dup{color:#8c4b02;grid-column:1/-1;padding:4px 2px}
 /* ===== WPA END ===== */
 /* ===== WPB BEGIN ===== */
 .wpb-alert{background:var(--red-bg);border:1px solid var(--red);color:#8e030f;border-radius:4px;padding:8px 10px;margin:0 0 12px;font-size:13px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -4152,6 +4156,82 @@ EXT.after.push((page,id)=>{
   const b=document.querySelector('#overlay .modal-b');
   if(b&&!b.querySelector('.wpa-ma03')) b.insertAdjacentHTML('beforeend',`<div class="note mt8 wpa-ma03" id="ko-M-A03-won"><b>次の業務：受注確定後、営業が製造依頼書を作成し企画部へ連携</b>（契約情報＝商談・見積の合意内容から生成）。見積は別システム／Excel で運用します（会議メモ 10/16）。</div>`);
   return r; }; }
+
+/* ---------------------------------------------------------------
+   10/22 週次定例 資料 p16〜p20：画面モック（取引先・商談）の項目
+   ●ご提案＝弊社からのご提案（要確認）の項目
+   --------------------------------------------------------------- */
+const WPA_P = '<span class="wpa-prop" title="弊社からのご提案（要確認）">●ご提案</span>';
+const WPA_PROP_LEGEND = '<div class="small muted wpa-legend">● ご提案＝弊社からのご提案の項目（要確認）。項目は Salesforce の標準項目・これまでの打合せで確認した内容・ご提案で構成しています（10/22 定例 資料 p17・p19・p20）</div>';
+const wpaF = (l,v,prop) => fld(l+(prop?' '+WPA_P:''),v);
+const wpaSec = (t,body) => `<div class="wpa-sec"><div class="wpa-sec-h">▼ ${t}</div><div class="fields">${body}</div></div>`;
+// 取引先：子取引先（納品先）と商社・代理店のサンプル（架空）
+[{id:'OAA1',name:'あおば自動車部品株式会社 第一工場',parent:'A001',region:'愛知県',products:'エンジン部品（シリンダーブロック）',scale:'大規模（量産ライン）'},
+ {id:'OAA2',name:'あおば自動車部品株式会社 第二工場',parent:'A001',region:'三重県',products:'ミッション部品',scale:'中規模'}]
+  .forEach(x=>{ if(!byId(DB.accounts,x.id)) DB.accounts.push({id:x.id,name:x.name,industry:'自動車',region:x.region,type:'既存顧客',phone:'—',owner:'山田 太郎',parent:x.parent,kind:'顧客',country:'日本',scale:x.scale,products:x.products}); });
+if(!byId(DB.accounts,'OAA3')) DB.accounts.push({id:'OAA3',name:'こまち機工商事株式会社',industry:'その他',region:'大阪府',type:'既存顧客',phone:'06-0000-0099',owner:'小林 直樹',kind:'商社・代理店',country:'日本',scale:'',products:'工作機械・周辺機器の販売'});
+const WPA_ACC0 = {A001:{scale:'大規模（量産ライン）',products:'自動車用エンジン部品',emp:1200,agent:'OAA3'},A002:{scale:'中規模',products:'汎用エンジン部品',emp:450},A003:{scale:'大規模（量産ライン）',products:'EV向けモーター部品',emp:800,agent:'OAA3'},
+  A004:{scale:'中規模',products:'油圧バルブ',emp:380},A005:{scale:'大規模（量産ライン）',products:'コンプレッサー部品',emp:2100},A006:{scale:'中規模',products:'二輪エンジン部品',emp:600},A007:{scale:'小規模',products:'ミシン部品',emp:150},A008:{scale:'小規模',products:'金型部品',emp:90}};
+const WPA_CTRY = r => /タイ|中国|上海|インド|韓国|欧州|ドイツ/.test(r||'')?(/中国|上海/.test(r)?'中国':/インド/.test(r)?'インド':/韓国/.test(r)?'韓国':/欧州|ドイツ/.test(r)?'欧州':'その他（'+r+'）'):'日本';
+DB.accounts.forEach((a,i)=>{ const d=WPA_ACC0[a.id]||{};
+  if(a.no==null) a.no='AC-'+String(1001+i).padStart(6,'0');
+  if(a.kind==null) a.kind='顧客'; if(a.country==null) a.country=WPA_CTRY(a.region);
+  if(a.scale==null) a.scale=d.scale||''; if(a.products==null) a.products=d.products||''; if(a.emp==null) a.emp=d.emp||null;
+  if(a.agent==null) a.agent=d.agent||''; if(a.delivered==null) a.delivered=a.type==='既存顧客'?'既納':'新規';
+  if(a.addr==null) a.addr=a.kind==='顧客'||a.kind==='商社・代理店'?`${a.region||''}○○市○○ 1-2-3`:''; });
+EDIT.account.f.push(['kind','取引先区分','sel:顧客,商社・代理店,その他'],['country','国・地域','sel:日本,中国,インド,韓国,欧州,その他'],['scale','工場の規模','sel:,大規模（量産ライン）,中規模,小規模'],['products','主な製品','text'],['delivered','既納実績','sel:既納,新規']);
+const wpaChildren = id => DB.accounts.filter(x=>x.parent===id);
+function wpaAccDetail(a){
+  const par=a.parent?al(a.parent):'<span class="muted">—（本社のため空欄）</span>', ag=a.agent?`あり（${al(a.agent)}）`:'なし';
+  return `<div class="card" id="ko-T-A01"><div class="card-h">詳細</div><div class="card-b">${WPA_PROP_LEGEND}
+    ${wpaSec('基本情報',wpaF('取引先名',esc(a.name))+wpaF('取引先番号',esc(a.no),1)+wpaF('親取引先',par,1)+wpaF('取引先区分',esc(a.kind),1)+wpaF('業種',esc(a.industry))+wpaF('国・地域',esc(a.country),1)+wpaF('担当営業（所有者）',ul(a.owner))+wpaF('電話／Webサイト',esc(a.phone)+' ／ www.example.co.jp'))}
+    ${wpaSec('事業内容',wpaF('従業員数（規模）',a.emp?a.emp.toLocaleString('ja-JP')+'名':'—')+wpaF('工場の規模',a.scale?esc(a.scale)+' '+WPA_KARI('区分は要確認'):'—',1)+wpaF('主な製品',esc(a.products||'—'),1))}
+    ${wpaSec('住所',wpaF('本社住所',esc(a.addr||'—'))+wpaF('請求先住所','本社住所と同じ')+'<div class="small muted">納品先の住所は子取引先で管理します</div>')}
+    ${wpaSec('取引条件',wpaF('支払条件（標準）',a.payTerms?esc(a.payTerms):'<span class="muted">未登録（編集で登録）</span>')+wpaF('商社・代理店経由',ag,1)+wpaF('既納実績',esc(a.delivered),1))}
+  </div></div>`;
+}
+function wpaAccRel(a){
+  const ch=wpaChildren(a.id), ids=[a.id,...ch.map(c=>c.id)];
+  const del=DB.opps.filter(o=>o.stage>=OPP_WON&&(ids.includes(o.acc)||ids.includes(o.deliv)));
+  return relCard('i-acc','🏢','子取引先（納品先）',ch.length,tbl(['取引先名','地域','主な製品'],ch.map(c=>tr([al(c.id),esc(c.region),esc(c.products||'—')])),'子取引先はありません'))
+   +relCard('i-prod','▦',`既納設備 ${WPA_P}`,del.length,tbl(['機種・型式','機番','納品先','案件'],del.map(o=>{const pr=byId(DB.products,wpaModelOf(o))||{};return tr([esc(pr.code||'—')+' '+esc(pr.name||''),'<span class="muted">—</span>',al(o.deliv||o.acc),o.project?pl(o.project):'—']);}),'既納設備はありません')
+     +'<div class="small muted mt8">受注済みの商談から表示（機番の持ち方は要確認）</div>');
+}
+EXT.after.push((page,id)=>{
+  if(page!=='account') return; const a=byId(DB.accounts,id), main=document.querySelector('#main'); if(!a||!main) return;
+  const hl=main.querySelector('.highlights');   // p16：ハイライト＝取引先区分・業種・国・地域・担当営業・電話
+  if(hl) hl.innerHTML=[['取引先区分',esc(a.kind)],['業種',esc(a.industry)],['国・地域',esc(a.country)],['担当営業',ul(a.owner)],['電話',esc(a.phone)]].map(([l,v])=>fld(l,v)).join('');
+  const g=main.querySelector('.grid2'); if(g) g.insertAdjacentHTML('beforebegin',wpaAccDetail(a));
+  const col=main.querySelector('.grid2>div'); if(col) col.insertAdjacentHTML('beforeend',wpaAccRel(a));
+});
+// 商談：引き合い情報など（p18〜p20）。初期値は架空
+const WPA_ROUTES = ['既存顧客','ルート営業','紹介','展示会','Web問い合わせ','その他'];
+DB.opps.forEach((o,i)=>{
+  if(o.route==null) o.route=WPA_ROUTES[i%WPA_ROUTES.length];
+  if(o.inqDate==null) o.inqDate=addDays(o.close,-150-(i%4)*30);
+  if(o.qty==null) o.qty=Math.max(1,...(o.items||[]).filter(x=>{const p=byId(DB.products,x.p);return p&&!['オプション','消耗品'].includes(p.family);}).map(x=>x.q),1);
+  if(o.deliv==null) o.deliv=o.id==='O001'?'OAA1':o.id==='O006'?'OAA2':'';
+  if(o.hopeDue==null) o.hopeDue=addDays(o.close,180);
+  if(o.lostReason==null) o.lostReason='';
+});
+EDIT.opp.f.push(['route','引き合い経路','sel:'+WPA_ROUTES.join(',')],['inqDate','引き合い日','date'],['qty','台数','num'],['hopeDue','希望納期','date'],['lostReason','失注理由','sel:,価格,納期,仕様,競合,その他']);
+function wpaOppDetail(o){
+  const a=acc(o.acc), ch=wpaChildren(o.acc), q=DB.quotes.find(x=>x.opp===o.id), pr=byId(DB.products,wpaModelOf(o))||{};
+  const ag=o.agent||a.agent, abroad=(acc(o.deliv||o.acc).country||'日本')!=='日本'?'海外':'国内';
+  const tt=(typeof DB.wpbTests!=='undefined'?DB.wpbTests:[]).filter(t=>t.opp===o.id);
+  const ttTxt=tt.length?`${tt.length} 回（有償 ${tt.filter(t=>t.paid==='有償').length}・無償 ${tt.filter(t=>t.paid!=='有償').length}）`:'0 回';
+  const dup='<div class="small wpa-dup">※ No.4・5（商談フェーズ・ランク）は重複の可能性あり（集約するかは要確認）</div>';
+  return `<div class="card" id="ko-T-A02"><div class="card-h">詳細</div><div class="card-b">${WPA_PROP_LEGEND}
+    ${wpaSec('基本情報',wpaF('商談名',esc(o.name))+wpaF('取引先',al(o.acc))+wpaF('納品先（工場）',o.deliv?al(o.deliv):`<span class="muted">${ch.length?'未選択（子取引先から選択）':'—（子取引先なし）'}</span>`,1)
+      +wpaF('商談フェーズ',esc(OPP_STAGES[o.stage]))+wpaF('ランク',o.stage>=OPP_WON?'—（受注済み）':wpaRankPill(o.rank))+wpaF('確度（%）',o.prob+' '+WPA_KARI('CQ-27'))+wpaF('完了予定日',fmtD(o.close))+wpaF('所有者',ul(o.owner))+dup)}
+    ${wpaSec('引き合い情報',wpaF('引き合い経路',esc(o.route)+' '+WPA_KARI('Q9'),1)+wpaF('引き合い日',fmtD(o.inqDate),1)+wpaF('案件区分',o.kubun?esc(o.kubun):'—')
+      +wpaF('対象機種・型式',pr.code?esc(pr.code+' '+pr.name):'—',1)+wpaF('台数',esc(o.qty),1)+wpaF('国内／海外',abroad,1)+wpaF('商社・代理店',ag?al(ag):'なし',1))}
+    ${wpaSec('見積・取引条件',wpaF('見積提出日',q&&q.status!=='作成中'?fmtD(q.date):'—',1)+wpaF('金額',yen(o.amount))+wpaF('支払条件（本案件）',o.payTerms?esc(o.payTerms):'—')+wpaF('希望納期',fmtD(o.hopeDue),1))}
+    ${wpaSec('受注',wpaF('受注日',o.stage>=OPP_WON?fmtD(o.close):'—',1)+wpaF('受注条件の確認','<span class="muted">Q6で設計</span>',1)+wpaF('失注理由',o.lostReason?esc(o.lostReason):'—',1))}
+    ${wpaSec('テスト加工',wpaF('テスト加工の回数・区分',ttTxt,1)+'<div class="small muted">結果は関連リスト「テスト加工・調査」で管理</div>')}
+  </div></div>`;
+}
+extRec('opp').top.push(o=>wpaOppDetail(o));
 /* ===== WPA END ===== */
 /* ===== WPB BEGIN ===== */
 /* 10/14 反映（WP-B）：問い合わせの使い分け（Chatter／ワークフロー）・Chatterのメンション注意・ヒアリングの未確定事項・
