@@ -5633,6 +5633,24 @@ function arVals(o){
   return h.replace('<div class="card-b">','<div class="card-b">'+lg); }; }
 MTG_ITEMS.push(['T-A03','Argus','現行 Argus の運用中の項目から、確実に必要な項目（Fix No.・営業拠点・新規客／既存客・新設／改造・対象ワーク・引合背景・競合先・引合概要・見積書No.・機案書No.・原価・係数・受注No.・検収予定月）を商談に追加','#/opp/O001','eigyo']);
 RV_CQ.push(["CQ-83", "営業", "（10/22 Argus 項目一覧）商談に引き継ぐ Argus の項目の要否：Fix No.・営業拠点・新規客／既存客・新設／改造・対象ワーク・引合背景・競合先・引合概要・見積書No.・機案書No.・原価・係数（グロス／ネット）・受注No.・検収予定月。運用終了の190項目、02_受注済（受注後）、活動の項目、展示会名称・定例会議報告などは対象外とした", "上記14項目を商談に追加（値は架空）", "10/22 Argus 項目一覧, CQ-67", "#/opp/O001"]);
+/* ===== Argus 取引先の法人情報関連（要否はお客様確認：CQ-84）（PL） ===== */
+const ARC_B = '<span class="ar-b" title="現行 Argus の取引先画面の項目（要否はお客様に確認）">Argus・要否確認</span>';
+const arcF = (l,v) => fld(l+' '+ARC_B, v);
+function arcVals(a){ const n=+String(a.id).replace(/\D/g,'')||0, abroad=a.country&&a.country!=='日本';
+  return { kana:'（架空）'+a.name.replace(/株式会社|Co\., Ltd\./g,'').trim()+'（カナ）', formal:a.name, en:abroad?a.name:'（英語名・架空）',
+    hojin:String(3010000000000+n*7919).slice(0,13), invoice:'T'+String(3010000000000+n*7919).slice(0,13), tsr:String(100000000+n*31).slice(0,9), tdb:String(200000000+n*37).slice(0,9),
+    code:'HJ'+String(n).padStart(4,'0'), zip:abroad?'—':String(100+n%800).padStart(3,'0')+'-'+String(1000+n*13%9000).slice(0,4),
+    capital:(1+n%9)*10000*10000, fy:((n%12)+1)+'月', est:(1950+n%60)+'/04/01', profit:(n%5+1)*10000*10000, credit:(n%4+1)*5000*10000 }; }
+{ const _ad=wpaAccDetail; wpaAccDetail=function(a){ let h=_ad.apply(this,arguments); const v=arcVals(a);
+  const sec=wpaSec('法人情報（Argus から・要否確認）',
+      arcF('取引先カナ名',esc(v.kana))+arcF('取引先正式名称',esc(v.formal))+arcF('取引先英語名',esc(v.en))
+     +arcF('法人番号',v.hojin)+arcF('適格請求書発行事業者番号',v.invoice)+arcF('TSR企業コード',v.tsr)+arcF('TDB企業コード',v.tdb)
+     +arcF('法人コード',v.code)+arcF('法）郵便番号',v.zip)+arcF('法）住所（1〜5）','（本社住所と同じ）')+arcF('法）電話番号（1・2）／FAX番号',esc(a.phone||'—')+' ／ —')
+     +arcF('代表者氏名','（架空）代表取締役')+arcF('資本金',yen(v.capital))+arcF('決算月',v.fy)+arcF('設立年月日',v.est)+arcF('当期利益',yen(v.profit))+arcF('与信限度額',yen(v.credit)))
+    +'<div class="small muted">'+ARC_B+'：現行 Argus の取引先画面（取引先情報・外部企業コード情報・法人情報）の項目です。新しい環境で持つかは要否をご確認ください（CQ-84）。従業員数・Webサイト・国名は上の既存項目と重複のため省略。値は架空です。</div>';
+  const k='<div class="wpa-sec"><div class="wpa-sec-h">▼ 住所'; const i=h.indexOf(k);
+  return i>=0 ? h.slice(0,i)+sec+h.slice(i) : h.replace(/<\/div><\/div>$/, sec+'</div></div>'); }; }
+RV_CQ.push(["CQ-84", "営業", "（Argus 取引先画面）法人情報関連の項目の要否：取引先カナ名・正式名称・英語名、法人番号・適格請求書発行事業者番号・TSR／TDB企業コード、法人コード・法人の郵便番号・住所（1〜5）・電話・FAX、代表者氏名・資本金・決算月・設立年月日・当期利益・与信限度額", "取引先の詳細に「法人情報（Argus から・要否確認）」として全項目を表示（値は架空）", "Argus 取引先画面, CQ-81", "#/account/A001"]);
 /* ===== WPP END ===== */
 
 applyRoleUi();
