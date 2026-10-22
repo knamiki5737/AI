@@ -4544,23 +4544,71 @@ function wpbTestNote(o){
 }
 function wpbTestCard(o){
   const ts=DB.wpbTests.filter(t=>t.opp===o.id), sum=ts.reduce((a,t)=>a+t.h,0), paid=ts.filter(t=>t.paid==='有償').reduce((a,t)=>a+t.h,0);
-  return '<div id="ko-K-B09">'+relCard('i-kakou','🧪','テスト加工・調査',ts.length,
-    tbl(['実施日','種別','#工数(h)','結果','有償／無償','別手配','担当'],ts.map(t=>tr([fmtD(t.dt),esc(t.type),[t.h],esc(t.res),t.paid,t.ext?'☑ 別手配':'—',ul(t.by)])),'まだ登録はありません')
+  return '<div id="ko-K-B09"><div id="ko-R-B03"><div id="ko-R-B04">'+relCard('i-kakou','🧪','テスト加工・調査',ts.length,
+    wpbTtAlertBar(ts)+tbl(['区分','予定日','状態','実施日','種別','#工数(h)','結果','有償／無償','別手配','担当'],ts.map(t=>tr([esc(wpbTtPh(t)),t.plan?fmtD(t.plan):'—',wpbTtSt(t),t.st==='完了'?fmtD(t.dt):'—',esc(t.type),[t.h],esc(t.res),t.paid,t.ext?'☑ 別手配':'—',ul(t.by)])),'まだ登録はありません')
     +`<div class="mt8"><span class="pill b">合計工数 <b id="wpbTtSum">${sum}</b> h</span> <span class="small muted">（有償 ${paid} h／無償 ${sum-paid} h）</span></div>
     <div class="small muted mt8">受注前の確認・テスト加工の工数と結果を案件に結びつけ、次の見積に生かします。有償・無償の区分、別手配の試験のひも付け方は ${WPB_KARI('CQ-35')}</div>${wpbTestNote(o)}`,
-    `<button class="btn" id="wpbTtAdd" onclick="wpbTestAdd('${o.id}')">追加</button>`)+'</div>';
+    `<button class="btn" id="wpbTtAdd" onclick="wpbTestAdd('${o.id}')">追加</button>`)+'</div></div></div>';
 }
 function wpbTestAdd(oid){
   modal('テスト加工・調査を追加',`<div class="small mb8">種別・有償／無償・別手配の区分は ${WPB_KARI('CQ-35')}</div><div class="form1"><div class="tk-2col"><label>種別<select id="wpbTtT">${WPB_TT_TYPES.map(t=>`<option>${t}</option>`).join('')}</select></label>
     <label>実施日<input type="date" id="wpbTtD" value="${wpbTodayIso()}"></label></div>
+    <div class="tk-2col"><label>区分 ${WPB_KARI('CQ-35')}<select id="wpbTtPh">${WPB_TT_PH.map(x=>`<option>${x}</option>`).join('')}</select></label>
+      <label>予定日・状態（宿題15）${WPB_KARI('CQ-35')}<span class="flex" style="flex-wrap:nowrap"><input type="date" id="wpbTtPl" value="${wpbAddDays(wpbTodayIso(),7)}"><select id="wpbTtS">${WPB_TT_ST.map(x=>`<option>${x}</option>`).join('')}</select></span></label></div>
     <div class="tk-2col"><label>工数(h)<input type="number" id="wpbTtH" value="4" min="0"></label><label>有償／無償<select id="wpbTtP"><option>無償</option><option>有償</option></select></label></div>
     <label class="wp2-chk"><input type="checkbox" id="wpbTtE"> 別手配の試験</label>
     <label>結果<textarea id="wpbTtR" rows="2"></textarea></label></div>`,
     ()=>{ let n=DB.wpbTests.length+1; while(DB.wpbTests.some(t=>t.id==='TT'+String(n).padStart(2,'0'))) n++;
-      DB.wpbTests.push({id:'TT'+String(n).padStart(2,'0'),opp:oid,type:$('#wpbTtT').value,h:Math.max(0,+$('#wpbTtH').value||0),res:$('#wpbTtR').value.trim()||'（結果未入力）',paid:$('#wpbTtP').value,ext:$('#wpbTtE').checked,dt:$('#wpbTtD').value||wpbTodayIso(),by:meName()});
+      DB.wpbTests.push({id:'TT'+String(n).padStart(2,'0'),opp:oid,type:$('#wpbTtT').value,h:Math.max(0,+$('#wpbTtH').value||0),res:$('#wpbTtR').value.trim()||'（結果未入力）',ph:$('#wpbTtPh').value,plan:$('#wpbTtPl').value,st:$('#wpbTtS').value,paid:$('#wpbTtP').value,ext:$('#wpbTtE').checked,dt:$('#wpbTtD').value||wpbTodayIso(),by:meName()});
       toast('テスト加工・調査を追加しました（合計工数に反映）'); },'追加');
 }
-extRec('opp').main.push(o=>wpbOppInqCard(o)+wpbSpecCard(o)+wpbTestCard(o));
+/* ===== 10/22 定例議事録（R-B01〜R-B05） ===== */
+/* R-B03・R-B04 テスト加工：受注前／受注後の区分、予定日と状態、進捗アラート（仕様案は宿題15のため仮置き：CQ-35） */
+const WPB_TT_PH = ['受注前（購入判断・テスト加工依頼書）','受注後（立上げ時の検証加工）'];
+const WPB_TT_ST = ['予定','実施中','完了'];
+const WPB_TT_NEAR = 3;   // 予定日の何日前から「近い」とするか（仮置き：CQ-35）
+const wpbTtPh = t => t.ph||WPB_TT_PH[0];
+function wpbTtAl(t){ const st=t.st||'完了'; if(st==='完了'||!t.plan) return ''; const d=daysTo(t.plan); return d<0?'over':d<=WPB_TT_NEAR?'near':''; }
+function wpbTtSt(t){ const st=t.st||'完了', al=wpbTtAl(t);
+  return `${stPill(st)}${al==='over'?'<span class="pill r">遅れ</span>':al==='near'?'<span class="pill y">予定日が近い</span>':''}${st!=='完了'?` <a class="click small" onclick="wpbTtDone('${t.id}')">完了にする</a>`:''}`; }
+function wpbTtDone(id){ const t=DB.wpbTests.find(x=>x.id===id); if(!t) return; t.st='完了'; t.dt=wpbTodayIso(); toast('テスト加工を完了にしました'); route(); }
+function wpbTtAlertBar(ts){ const ov=ts.filter(t=>wpbTtAl(t)==='over').length, nr=ts.filter(t=>wpbTtAl(t)==='near').length;
+  return (ov||nr?`<div class="wpb-alert" role="alert">⚠ テスト加工の進捗：遅れ ${ov} 件・予定日が近い ${nr} 件（${WPB_TT_NEAR}日前から） ${WPB_KARI('CQ-35')}</div>`:'')
+    +`<div class="small muted mb8">テスト加工は「受注前（購入判断、テスト加工依頼書で依頼）」と「受注後（立上げ時の検証加工）」の2種類。実施は約2割で、リピート・実績があるものは実施しません（10/22 定例）。入力は予定日と状態だけにして負荷を小さくします（仕様案は宿題15） ${WPB_KARI('CQ-35')}</div>`; }
+(function(){ DB.wpbTests.forEach(t=>{ if(!t.st) t.st='完了'; if(!t.ph) t.ph=t.opp==='O003'&&t.id==='TT04'?WPB_TT_PH[0]:WPB_TT_PH[0]; });
+  DB.wpbTests.push({id:'TT05',opp:'O001',type:'加工テスト',h:0,res:'（未実施）多軸での追加テスト加工',paid:'無償',ext:false,dt:'',by:'佐藤 健',ph:WPB_TT_PH[0],plan:'2026-10-06',st:'予定'},
+    {id:'TT06',opp:'O001',type:'その他の試験',h:0,res:'（未実施）測定機の相関確認',paid:'無償',ext:false,dt:'',by:'井上 亜希',ph:WPB_TT_PH[0],plan:'2026-10-10',st:'実施中'},
+    {id:'TT07',opp:'O003',type:'加工テスト',h:0,res:'（未実施）立上げ時の検証加工',paid:'無償',ext:false,dt:'',by:'佐藤 健',ph:WPB_TT_PH[1],plan:'2026-12-15',st:'予定'}); })();
+
+/* R-B01 ヒアリングシートのパターン（ベース／A案／B案…）と採用／不採用（運用設計案は宿題13のため仮置き：CQ-60） */
+const wpbPat = h => h.wpbPat||'ベース';
+function wpbPatCard(o){
+  const hs=DB.hearings.filter(h=>h.opp===o.id);
+  return `<div id="ko-R-B01">`+relCard('i-hear','📋','ヒアリングシート（パターン）',hs.length,
+    tbl(['シート','パターン','採用／不採用','状況'],hs.map(h=>tr([`<a href="#/hearing/${h.id}">${esc(h.no)}</a>`,esc(wpbPat(h)),
+      `<select aria-label="採用／不採用" onchange="wpbSetAdopt('${h.id}',this.value)">${['—','採用','不採用'].map(x=>`<option ${(h.wpbAdopt||'—')===x?'selected':''}>${x}</option>`).join('')}</select>`,esc(h.status)])),'ヒアリングシートはまだありません')
+    +`<div class="small muted mt8">1商談につきベースのシートは1枚。複数パターンの提案（A/B/C案）や再ヒアリングはシートを分け、パターンと採用／不採用で判別します（10/22 定例、運用設計案は宿題13） ${WPB_KARI('CQ-60')}</div>`,
+    hs.length?`<button class="btn" id="wpbPatAdd" onclick="wpbAddPat('${o.id}')">パターンを追加</button>`:'')+'</div>';
+}
+function wpbSetAdopt(hid,v){ const h=byId(DB.hearings,hid); h.wpbAdopt=v==='—'?'':v; toast(`${h.no} を「${v}」にしました`); }
+function wpbAddPat(oid){
+  const hs=DB.hearings.filter(h=>h.opp===oid), base=hs.find(h=>wpbPat(h)==='ベース')||hs[0]; if(!base) return;
+  const n=hs.length, pat=String.fromCharCode(64+n)+'案';   // 2枚目＝A案、3枚目＝B案…
+  let k=1, id; do{ id='HP'+String(k++).padStart(2,'0'); }while(byId(DB.hearings,id));
+  DB.hearings.push({id,no:'SF-2026-00'+(900+DB.hearings.length),name:`${base.name}（${pat}）`,opp:oid,acc:base.acc,status:'回答中',updated:'2026-10-08',ans:JSON.parse(JSON.stringify(base.ans)),wpbPat:pat,wpbCopy:base.id});
+  toast(`ベースの回答をコピーして「${pat}」のシートを作りました`); go('#/hearing/'+id);
+}
+
+/* R-B02 複数ワーク・段取り／R-B05 顧客支給品（受注前は内容だけ） */
+function wpbHsExtra(h){
+  return `<div class="card"><div class="card-h">🔧 複数ワーク・顧客支給品</div><div class="card-b">
+    <div id="ko-R-B02"><div class="small"><b>ワーク種類数</b>：${esc(h.ans['A-043']||'—')}（A-043 の回答）</div>
+      <label class="wpb-l">段取り情報（段取り替えの内容・頻度など） ${WPB_KARI('CQ-60')}<textarea rows="2" id="wpbSetup" onchange="byId(DB.hearings,'${h.id}').wpbSetup=this.value;toast('段取り情報を保存しました','info')">${esc(h.wpbSetup||'')}</textarea></label></div>
+    <div id="ko-R-B05" class="mt8"><label class="wpb-l">顧客支給品（何を支給してもらうか：内容のみ） ${WPB_KARI('CQ-60')}<textarea rows="2" id="wpbSupply" onchange="byId(DB.hearings,'${h.id}').wpbSupply=this.value;toast('顧客支給品を保存しました','info')">${esc(h.wpbSupply||'')}</textarea></label>
+      <div class="small muted">支給の時期は受注後に決めます（10/22 定例。A-9 未確定）。</div></div></div></div>`;
+}
+(function(){ const h=byId(DB.hearings,'H001'); if(h) Object.assign(h,{wpbSetup:'ワーク2種（4気筒・3気筒）を同一設備で段取り替え。治具交換は月2回程度（架空）',wpbSupply:'テスト加工用のワーク（前加工済み）'}); })();
+extRec('opp').main.push(o=>wpbOppInqCard(o)+wpbPatCard(o)+wpbSpecCard(o)+wpbTestCard(o));
 
 /* ---------- K-B10 進行状況を捉えて試作加工（加工技術）へ自動通知 ---------- */
 function wpbTestNotify(o,h,why){
@@ -4769,11 +4817,12 @@ function wpbHsBar(h){
 { const _pg=pgHearing; pgHearing=function(id){ let s=_pg.apply(this,arguments); const h=byId(DB.hearings,id); if(!h) return s;
   const sub=wpbSub(h), st=wpbDueSt(h);
   s=s.replace(`<div class="obj-label">ヒアリングシート｜`,()=>`<div class="obj-label">ヒアリングシート（仕様提案依頼書）｜`);
-  s=s.replace('<div class="highlights">',()=>`<div class="highlights">${fld('提出状態',stPill(sub.st))}${fld('回答期日',h.wpbDue?`<span class="wpb-duetxt-${st.k}">${fmtD(h.wpbDue)}（${st.t}）</span>`:'未設定')}`);
+  s=s.replace('<div class="highlights">',()=>`<div class="highlights">${fld('パターン',`<span id="ko-R-B01">${esc(wpbPat(h))}（${esc(h.wpbAdopt||'—')}）</span>`)}${fld('提出状態',stPill(sub.st))}${fld('回答期日',h.wpbDue?`<span class="wpb-duetxt-${st.k}">${fmtD(h.wpbDue)}（${st.t}）</span>`:'未設定')}`);
   const bar=wpbHsBar(h);
   const j=s.indexOf('準拠</div>'), e='</div></div></div></div>', i=j<0?-1:s.indexOf(e,j);   // ページ見出し（page-h）の直後に置く
   return i<0?s+bar:s.slice(0,i+e.length)+bar+s.slice(i+e.length); }; }
 extRec('hearing').side.push(h=>wpbTodoCard(h));
+extRec('hearing').side.push(h=>wpbHsExtra(h));
 /* ===== WPB END ===== */
 /* ===== WPC BEGIN ===== */
 /* ===================================================================
