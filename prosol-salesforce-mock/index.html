@@ -614,6 +614,7 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .omni-band b{color:#014486}
 .omni-tag{display:inline-block;font-size:11px;border-radius:3px;padding:0 6px;line-height:18px;border:1px solid #9ab8d9;background:#eef4ff;color:#014486;margin-left:6px;white-space:nowrap}
 .ar-b{display:inline-block;font-size:10px;line-height:15px;padding:0 4px;border-radius:3px;border:1px solid #7a9cc6;color:#014486;background:#eef4ff;margin-left:4px;vertical-align:middle}
+.arc-fold{border:1px solid #e5e5e5;border-radius:4px;margin:6px 0;padding:4px 8px}.arc-fold>summary{cursor:pointer;font-weight:700;font-size:13px;padding:2px 0}
 .wpp-hl{outline:3px solid #dd7a01!important;outline-offset:2px;transition:outline-color .3s}
 /* ===== WPP END ===== */
 </style>
@@ -5651,6 +5652,27 @@ function arcVals(a){ const n=+String(a.id).replace(/\D/g,'')||0, abroad=a.countr
   const k='<div class="wpa-sec"><div class="wpa-sec-h">▼ 住所'; const i=h.indexOf(k);
   return i>=0 ? h.slice(0,i)+sec+h.slice(i) : h.replace(/<\/div><\/div>$/, sec+'</div></div>'); }; }
 RV_CQ.push(["CQ-84", "営業", "（Argus 取引先画面）法人情報関連の項目の要否：取引先カナ名・正式名称・英語名、法人番号・適格請求書発行事業者番号・TSR／TDB企業コード、法人コード・法人の郵便番号・住所（1〜5）・電話・FAX、代表者氏名・資本金・決算月・設立年月日・当期利益・与信限度額", "取引先の詳細に「法人情報（Argus から・要否確認）」として全項目を表示（値は架空）", "Argus 取引先画面, CQ-81", "#/account/A001"]);
+/* ===== Argus 取引先の残りの区分（得意先・納入先・請求先・請求詳細（OBIC）・申請項目・与信・稼働資産）（要否はお客様確認：CQ-85）（PL） ===== */
+function arcAddr(p,a,same){ return arcF(p+'）郵便番号',same?'（本社と同じ）':'—')+arcF(p+'）住所（1〜5）',same?'（本社住所と同じ）':'—')+arcF(p+'）電話番号（1・2）／FAX番号',same?esc(a.phone||'—')+' ／ —':'—'); }
+function arcFold(t,body){ return `<details class="arc-fold"><summary>▼ ${t} ${ARC_B}</summary><div class="fields">${body}</div></details>`; }
+function arcRest(a){ const n=+String(a.id).replace(/\D/g,'')||0, d='—';
+  const own=['CMH型','E型','G型','MH型','その他'];
+  return '<div class="wpa-sec"><div class="wpa-sec-h">▼ Argus の取引先区分（要否確認・開いて表示）</div>'
+   +arcFold('得意先情報',arcF('得意先情報','☑')+arcAddr('得',a,true))
+   +arcFold('納入先情報',arcF('納入先情報',a.parent?'☑':'☐')+arcAddr('納',a,!!a.parent)+'<div class="small muted">新しい環境では、納入先（工場など）は子取引先で管理する案です（CQ-65）</div>')
+   +arcFold('請求先情報',arcF('請求先情報','☑')+arcF('金額制限','なし')+arcF('制限値',d)+arcF('制限時支払条件',d)+arcAddr('請',a,true))
+   +arcFold('請求詳細（OBIC登録情報）',arcF('請求区分',n%2?'締請求':'都度請求')+arcF('締請求）請求締日','月末')+arcF('締請求）回収月区分','翌月')+arcF('締請求）回収日','25日')+arcF('締請求）入金方法','振込')+arcF('締請求）サイト','30日')+arcF('締請求）支払方法コード',d)
+      +arcF('都度請求）回収月区分',d)+arcF('都度請求）回収日',d)+arcF('都度請求）入金方法',d)+arcF('都度請求）回収日数',d)+arcF('都度請求）支払方法コード',d)
+      +'<div class="small muted">会計システム（OBIC）との連携の有無は未確定です（CQ-81）</div>')
+   +arcFold('申請項目_取引先管理票',['設備','ツールA','ツールB','その他'].map(k=>arcF(k+'_請求先コード／略名',d)).join('')+arcF('決済日',d)+arcF('入金元コード／略名',d)+arcF('申請）入金方法',d)+arcF('その他条件',d)
+      +arcF('設備_支払方法／支払方法マスタ',d)+arcF('ツール_支払方法／支払方法マスタ',d))
+   +arcFold('申請項目_与信限度額申請書',arcF('業種',esc(a.industry||d))+arcF('大株主',d)+arcF('主力銀行',d)+arcF('主要販売先',d)+arcF('主要仕入先',d)+arcF('最近の業績',d)+arcF('取引条件',d)
+      +arcF('決済条件_締日／回収日',d)+arcF('取引内容',d)+arcF('条件・備考',d)+arcF('申請理由',d))
+   +arcFold('稼働資産',own.map((k,i)=>arcF(k+'（自社／他社）',((n+i)%3)+' 台 ／ '+((n*2+i)%4)+' 台')).join('')+'<div class="small muted">既納設備（関連リスト）との関係は要確認です。台数は架空です</div>')
+   +'</div>'; }
+{ const _ad2=wpaAccDetail; wpaAccDetail=function(a){ const h=_ad2.apply(this,arguments); const k='<div class="wpa-sec"><div class="wpa-sec-h">▼ 住所'; const i=h.indexOf(k);
+  return i>=0 ? h.slice(0,i)+arcRest(a)+h.slice(i) : h; }; }
+RV_CQ.push(["CQ-85", "営業", "（Argus 取引先画面）得意先・納入先・請求先の住所、請求先の金額制限、請求詳細（OBIC登録情報：締請求／都度請求の締日・回収・入金方法・サイト・支払方法コード）、申請項目（取引先管理票・与信限度額申請書）、稼働資産（機種別の自社／他社の台数）の要否と、OBIC との連携・申請の運用を Salesforce で行うか", "取引先の詳細に「Argus の取引先区分（要否確認）」として折りたたみで全項目を表示（値は架空）", "Argus 取引先画面, CQ-81, CQ-84", "#/account/A001"]);
 /* ===== WPP END ===== */
 
 applyRoleUi();
