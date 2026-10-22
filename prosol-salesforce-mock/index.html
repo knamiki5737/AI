@@ -651,10 +651,11 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 const TODAY = new Date('2026-10-08');
 const STAGES = ['仕様確認','試作加工','機案・見積作成','設計','製造','納入'];
 /* 商談フェーズ：10/14 営業分科会で確認した4段階（営05）。旧6段階のデータは下の移行処理で読み替え */
-const OPP_STAGES = ['引き合い','検討','正式','受注'];
-const OPP_STAGE_DESC = ['引き合いの受付・情報収集','各種問い合わせ・テスト等で確認','見積書・仕様提案書（起案書）を提出','受注'];
-const OPP_WON = 3;   // 受注のインデックス
-const OPP_PROB = [10,40,70,100];  // フェーズ別の確度（％）※デモ用の仮置き
+/* 商談フェーズ：10/22 定例で訂正（御社の Phase1〜4 ＋ 受注）。説明は議事録の Phase 表（HO関連）。旧データは下の移行処理で読み替え */
+const OPP_STAGES = ['Phase1 開始','Phase2 検討','Phase3 正式','Phase4 最終','受注'];
+const OPP_STAGE_DESC = ['初回訪問、情報入手','各種問合せ（加工可否・概略見積・テスト加工の検討）','見積提出・機案書提出','最終価格ネゴ','受注'];
+const OPP_WON = 4;   // 受注のインデックス
+const OPP_PROB = [10,30,60,80,100];  // フェーズ別の確度（％）※仮置き（フェーズの細分化と確度の連動は設計案を提出予定：宿題12）
 const RATE = 8000;          // 社内工数単価（円/h）※デモ用の仮置き
 const MARGIN_TARGET = 25;   // 目標粗利率（%）※デモ用の仮置き
 
@@ -1748,9 +1749,9 @@ DB.activities = [
   {id:'AC36',type:'行動',subject:'新製品紹介（展示会フォロー）',date:'2026-09-29',what:['account','A012'],who:'C013',owner:'高橋 美咲',status:'完了',memo:''}
 ];
 const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x.toISOString().slice(0,10);};
-/* 旧6段階（引き合い／ヒアリング／仕様提案／見積提出／交渉／受注）→ 新4段階へ読み替え。あわせてランク（営06）を初期設定 */
-DB.opps.forEach(o=>{ if(o._v4) return; o.stage=[0,0,1,2,2,3][o.stage]; o._v4=true;
-  if(o.rank==null) o.rank = o.stage>=OPP_WON?'':o.stage===2?(o.close<=addDays('2026-10-08',31)?'OK':'A'):o.stage===1?'B':'C'; });
+/* 旧6段階（引き合い／ヒアリング／仕様提案／見積提出／交渉／受注）→ Phase1〜4＋受注へ読み替え。ランク（10/22 6段階）は Phase 条件と矛盾しない値で初期設定 */
+DB.opps.forEach(o=>{ if(o._v5) return; o.stage=[0,1,1,2,3,4][o.stage]; o._v4=o._v5=true;
+  if(o.rank==null) o.rank = o.stage>=OPP_WON?'':o.stage===3?(o.close<=addDays('2026-10-08',31)?'OK':'A'):o.stage===2?(o.close<=addDays('2026-10-08',92)?'A':'B'):o.stage===1?'D':'ランク外'; });
 DB.quotes = DB.opps.map(o=>{const date=o.stage>=OPP_WON?addDays(o.close,-21):o.stage>=2?addDays('2026-10-08',-7-(+o.id.slice(1))%10):'2026-10-08';
   return {id:'Q'+o.id.slice(1),no:'QT-2026-'+o.id.slice(1).padStart(4,'0'),opp:o.id,status:o.stage>=OPP_WON?'承認済':o.stage>=2?'提出済':'作成中',date,valid:addDays(date,90)};});
 DB.batches = ['09/25','09/26','09/27','09/28','09/29','09/30','10/01','10/02','10/03','10/04','10/05','10/06','10/07','10/08'].map((d,i)=>{const n=[2,3,1,4,2,3,9,3,2,4,1,2,5,18][i];
@@ -1968,7 +1969,7 @@ function pgQuote(id){
   ${relCard('i-quote','¥','見積明細',items.length,tbl(['商品コード','商品名','#数量','#単価','#金額'],items.map(i=>tr([i.pr.code,prl(i.p),[i.q],[yen(i.pr.price)],[yen(i.pr.price*i.q)]]))),`<a class="btn" href="#/opp/${o.id}">商談で商品を編集</a>`)}
   <div class="card"><div class="card-b" style="padding-top:12px"><div class="fields">${fld('小計',yen(sub))}${fld('値引き',disc>0?'−'+yen(disc):'—')}${fld('合計（税別）',yen(o.amount))}${fld('消費税（10%）',yen(o.amount*0.1))}${fld('合計（税込）','<b>'+yen(o.amount*1.1)+'</b>')}${fld('帳票レイアウト','設計工程で確定（本画面はイメージ）')}</div></div></div>`;
 }
-function setQuote(id,s){const q=byId(DB.quotes,id);q.status=s;if(s==='提出済')q.date='2026-10-08';const o=byId(DB.opps,q.opp);if(s==='提出済'&&o.stage<2)o.stage=2;toast(`見積の状況を「${s}」にしました${s==='提出済'?'（商談フェーズも「正式」に更新）':''}`);route();}
+function setQuote(id,s){const q=byId(DB.quotes,id);q.status=s;if(s==='提出済')q.date='2026-10-08';const o=byId(DB.opps,q.opp);if(s==='提出済'&&o.stage<2)o.stage=2;toast(`見積の状況を「${s}」にしました${s==='提出済'?`（商談フェーズも「${OPP_STAGES[2]}」に更新）`:''}`);route();}
 function quotePreview(id){
   const q=byId(DB.quotes,id), o=byId(DB.opps,q.opp), items=oppItems(o);
   modal('見積書プレビュー（帳票イメージ）',`<div class="note mb8"><b>見積書の自動出力は今回の範囲外です</b>（10/14 営業分科会 営08・営13）。当面は既存の方法（PDF）で出力します。本プレビューは参考表示です。</div><div class="qdoc"><div class="qdoc-h">御 見 積 書</div>
@@ -2468,7 +2469,7 @@ const HS_GROUPS = [...new Set(QS.map(q=>q.g))];
 const hsGroupL = g => (QS.find(q=>q.g===g)||{L:1}).L;
 const hsShort = g => String(g||'').replace(/^[^／]+／/,'');   // 「基本情報／」等の接頭辞は L の見出しと重複するので省く
 /* 商談フェーズ（DB.opps.stage）→ 入力対象の最大レイヤー（仮置き：DECISIONS DC-02／CQ-01） */
-const HS_DEPTH = {0:2,1:3,2:5,3:5};   // 引き合いL1〜L2／検討L1〜L3／正式・受注L1〜L5（10/14 4段階化に伴い読み替え）
+const HS_DEPTH = {0:2,1:3,2:5,3:5,4:5};   // 引き合いL1〜L2／検討L1〜L3／正式・受注L1〜L5（10/14 4段階化に伴い読み替え）
 UI.hsTiles = true; UI.hsGroup = null; UI.kbQ = {}; UI.mfgMiss = false;
 function wp1MaxL(h){ const o=byId(DB.opps,h.opp); return o&&HS_DEPTH[o.stage]!=null?HS_DEPTH[o.stage]:5; }
 /* 隣の区分（定義書の順、L をまたぐ）。回答により全項目が対象外の区分は飛ばす。なければ -1 */
@@ -3808,20 +3809,25 @@ EXT.review.push({
    - K-A07 案件区分（リピート設備／新規カスタム）と類似案件の比較
    K-A08（インセンティブ）は作らない
    --------------------------------------------------------------- */
-const WPA_RANKS = ['OK','A','B','C'];
-const WPA_RANK_DEF = {
-  OK:'ほぼ決定。受注まで1ヶ月以内で、最終段階まで進んでいる',
-  A:'見積提出済みで内容がほぼ固まっている。3ヶ月以内の受注が目安',
-  B:'フェーズ・状況に応じて設定',
-  C:'フェーズ・状況に応じて設定'};
-const WPA_RANK_NOTE = 'ランクの条件は今後のヒアリングで見直します（営06）';
-const WPA_RANK_PILL = {OK:'g',A:'b',B:'y',C:''};
+/* ランク：10/22 定例で訂正（御社資料「26年度ランク設定見直し」の6段階）。計画への計上は OK・A */
+const WPA_RANKS = ['OK','A','B','C','D','ランク外'];
+const WPA_RANK_TBL = {   // [Phase条件(最小のstage), 競合・執行状況, 受注時期, 計画に計上]
+  OK:[3,'NPS確定','1か月以内',true], A:[2,'NPSほぼ確定','3カ月以内',true], B:[2,'有利・五分五分','当期内',false],
+  C:[2,'不利','当期内',false], D:[1,'—','—',false], 'ランク外':[0,'—','—',false]};
+const WPA_PLAN_RANKS = ['OK','A'];
+const WPA_RANK_DEF = Object.fromEntries(WPA_RANKS.map(r=>{const t=WPA_RANK_TBL[r];return [r,`${r==='ランク外'?'Phase1':OPP_STAGES[t[0]].split(' ')[0]+'以上'}／競合・執行状況：${t[1]}／受注時期：${t[2]}／計画に計上：${t[3]?'○':'×'}`];}));
+const WPA_RANK_NOTE = 'ランクの定義は御社資料「26年度ランク設定見直し」による（以上に当てはまらない場合は要相談）。フェーズの細分化と確度の連動は弊社から設計案を提出予定（宿題12）';
+const WPA_RANK_PILL = {OK:'g',A:'b',B:'y',C:'',D:'','ランク外':''};
+const WPA_COMP = ['NPS確定','NPSほぼ確定','有利','五分五分','不利'];
+const wpaRankBad = o => !!(o&&o.rank&&o.stage<OPP_WON&&WPA_RANK_TBL[o.rank]&&o.stage<WPA_RANK_TBL[o.rank][0]);
+const wpaBadPill = o => wpaRankBad(o)?`<span class="pill r wpa-bad" title="ランク ${esc(o.rank)} は ${OPP_STAGES[WPA_RANK_TBL[o.rank][0]].split(' ')[0]} 以上が条件">ランクとフェーズの不整合</span>`:'';
 const WPA_KUBUN = ['リピート設備','新規カスタム'];
 const WPA_ROLES = ['意思決定者','技術窓口','購買窓口','その他'];   // 役割の選択肢は仮置き
 const WPA_FY_START = 4;   // 年度の開始月（仮置き・要確認）
 const WPA_KARI = s => `<span class="tent kari">仮置き・要確認${s?'（'+s+'）':''}</span>`;
 const wpaRankTitle = r => r ? `${r}：${WPA_RANK_DEF[r]}（${WPA_RANK_NOTE}）` : 'ランク未設定';
 const wpaRankPill = r => r ? `<span class="pill ${WPA_RANK_PILL[r]||''} wpa-rk" title="${esc(wpaRankTitle(r))}">${r}</span>` : '<span class="muted" title="ランク未設定">—</span>';
+const wpaRankTblHtml = () => `<div class="tbl-wrap"><table class="tbl wpa-ranktbl"><thead><tr><th>ランク</th><th>Phase条件</th><th>競合・執行状況 ${WPA_KARI('NPSの意味は要確認')}</th><th>受注時期</th><th>計画に計上</th></tr></thead><tbody>${WPA_RANKS.map(r=>{const t=WPA_RANK_TBL[r];return `<tr><td>${wpaRankPill(r)}</td><td>${r==='ランク外'?'Phase1':OPP_STAGES[t[0]].split(' ')[0]+'以上'}</td><td>${t[1]}</td><td>${t[2]}</td><td>${t[3]?'○':'×'}</td></tr>`;}).join('')}</tbody></table></div>`;
 
 /* ---------- サンプルデータ（すべて架空） ---------- */
 // 取引先の支払条件（標準）（K-A06）
@@ -3830,14 +3836,14 @@ const wpaRankPill = r => r ? `<span class="pill ${WPA_RANK_PILL[r]||''} wpa-rk" 
   .forEach(([id,t])=>{ const a=byId(DB.accounts,id); if(a&&a.payTerms==null) a.payTerms=t; });
 // 追加の商談（フェーズ×ランクのデモ用。ID は OA..）
 [
-  {id:'OA01',name:'クランクケース ホーニング盤 増設',acc:'A002',stage:2,rank:'OK',amount:24000000,close:'2026-11-06',owner:'山田 太郎',prob:70,items:[{p:'PR03',q:1}],kubun:'リピート設備'},
+  {id:'OA01',name:'クランクケース ホーニング盤 増設',acc:'A002',stage:3,rank:'OK',amount:24000000,close:'2026-11-06',owner:'山田 太郎',prob:80,items:[{p:'PR03',q:1}],kubun:'リピート設備'},
   {id:'OA02',name:'油圧バルブ 多軸ホーニング盤 2号機',acc:'A004',stage:2,rank:'A',amount:34400000,close:'2026-12-25',owner:'小林 直樹',prob:70,items:[{p:'PR02',q:1},{p:'PR05',q:1}],kubun:'リピート設備'},
-  {id:'OA03',name:'二輪シリンダー 縦型ホーニング盤',acc:'A006',stage:1,rank:'C',amount:20400000,close:'2027-02-26',owner:'高橋 美咲',prob:40,items:[{p:'PR01',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'},
-  {id:'OA04',name:'コンプレッサー部品 横型ホーニング盤（新ライン）',acc:'A005',stage:0,rank:'B',amount:26400000,close:'2027-03-26',owner:'山田 太郎',prob:10,items:[{p:'PR03',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'},
-  {id:'OA05',name:'ミシン部品 内径ホーニング盤（仕様再検討）',acc:'A007',stage:2,rank:'B',amount:19800000,close:'2027-01-29',owner:'高橋 美咲',prob:70,items:[{p:'PR01',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'}
+  {id:'OA03',name:'二輪シリンダー 縦型ホーニング盤',acc:'A006',stage:1,rank:'D',amount:20400000,close:'2027-02-26',owner:'高橋 美咲',prob:40,items:[{p:'PR01',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'},
+  {id:'OA04',name:'コンプレッサー部品 横型ホーニング盤（新ライン）',acc:'A005',stage:0,rank:'ランク外',amount:26400000,close:'2027-03-26',owner:'山田 太郎',prob:10,items:[{p:'PR03',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'},
+  {id:'OA05',name:'ミシン部品 内径ホーニング盤（仕様再検討）',acc:'A007',stage:2,rank:'C',amount:19800000,close:'2027-01-29',owner:'高橋 美咲',prob:70,items:[{p:'PR01',q:1},{p:'PR05',q:1}],kubun:'新規カスタム'}
   /* B・C はフェーズ・状況に応じて設定（営06）。非対角の例：
      OA03 検討×C（テスト結果待ちで受注時期が見えない）／OA04 引き合い×B（既存顧客の増設で引き合い段階から具体的）／OA05 正式×B（見積提出済みだが仕様の再検討中で内容が固まっていない＝Aの条件を満たさない） */
-].forEach(o=>{ if(byId(DB.opps,o.id)) return; o._v4=true; DB.opps.push(o);
+].forEach(o=>{ if(byId(DB.opps,o.id)) return; o._v4=o._v5=true; DB.opps.push(o);   // stage は Phase1〜4＋受注（10/22）
   const date=o.stage>=2?'2026-10-02':'2026-10-08';
   DB.quotes.push({id:'Q'+o.id.slice(1),no:'QT-2026-'+o.id.slice(1).padStart(4,'0'),opp:o.id,status:o.stage>=2?'提出済':'作成中',date,valid:addDays(date,90)}); });
 DB.activities.push(
@@ -3859,6 +3865,8 @@ function wpaRoles(o){
   DB.contacts.filter(c=>c.acc===o.acc&&!o.roles[c.id]).forEach(c=>o.roles[c.id]={role:'その他',key:false});
   return o.roles;
 }
+// 項目履歴サンプルのフェーズ名を Phase 表記へ読み替え（10/22）
+(DB.oppHist||[]).forEach(h=>{ if(h.f!=='フェーズ') return; const m={'引き合い':OPP_STAGES[0],'検討':OPP_STAGES[1],'正式':OPP_STAGES[2]}; if(m[h.from]) h.from=m[h.from]; if(m[h.to]) h.to=m[h.to]; });
 // 項目履歴サンプルの補正（OH04 がランク B→B で変化なしのため、完了予定日の変更に差し替え）
 (()=>{ const h=byId(DB.oppHist||[],'OH04'); if(h&&h.f==='ランク'&&h.from===h.to){ h.f='完了予定日'; h.from='2026/10/16'; h.to='2026/10/30'; } })();
 
@@ -3877,21 +3885,25 @@ function wpaSetRank(id,r){
   if(o.stage>=OPP_WON){ toast('受注済みの商談はランクの対象外です','info'); return; }
   if(o.rank===r){ toast(`すでにランク「${r}」です`,'info'); return; }
   if(typeof wp2OppHist==='function') wp2OppHist(o,'ランク',o.rank||'—',r);
-  o.rank=r; toast(`ランクを「${r}」に更新しました（営業会議ダッシュボード・受注計画に反映）`); route();
+  o.rank=r; toast(`ランクを「${r}」に更新しました（営業会議ダッシュボード・受注計画に反映）${wpaRankBad(o)?'。Phase 条件を満たさないため「ランクとフェーズの不整合」を表示します':''}`,wpaRankBad(o)?'info':''); route();
 }
+function wpaSetComp(id,v){ const o=byId(DB.opps,id); if(!o) return; if(typeof wp2OppHist==='function') wp2OppHist(o,'競合・執行状況',o.comp||'—',v||'—'); o.comp=v; toast('競合・執行状況を更新しました'); route(); }
 
 /* ---------- 商談画面（K-A01・K-A02・K-A05・K-A06・K-A07） ---------- */
-extRec('opp').hl.push(o=>[['ランク',(o.stage>=OPP_WON?'<span class="muted" title="受注済みはランクの対象外">—（受注済み）</span>':wpaRankPill(o.rank))+' '+WPA_KARI('CQ-27')],['案件区分',o.kubun?esc(o.kubun):'<span class="muted">未設定</span>']]);
+extRec('opp').hl.push(o=>[['ランク',(o.stage>=OPP_WON?'<span class="muted" title="受注済みはランクの対象外">—（受注済み）</span>':wpaRankPill(o.rank)+' '+wpaBadPill(o))+' '+WPA_KARI('CQ-27')],['案件区分',o.kubun?esc(o.kubun):'<span class="muted">未設定</span>']]);
 extRec('opp').top.push(o=>{
   const won=o.stage>=OPP_WON;
-  return `<div class="wpa-stdesc" id="ko-K-A01" title="商談フェーズ（営05）">${OPP_STAGES.map((s,i)=>`<div class="${i===o.stage?'cur':i<o.stage?'done':''}"><b>${i===OPP_WON?'最終段階':'第'+(i+1)+'段階'}：${s}</b><span>${OPP_STAGE_DESC[i]}</span></div>`).join('')}</div>
+  return `<div class="wpa-stdesc" id="ko-K-A01" title="商談フェーズ（10/22 定例 Phase 表）">${OPP_STAGES.map((s,i)=>`<div class="${i===o.stage?'cur':i<o.stage?'done':''}"><b>${s}</b><span>${OPP_STAGE_DESC[i]}</span></div>`).join('')}</div>
   <div class="wpa-rankbar" id="ko-K-A02"><span class="wpa-lbl">ランク</span>
     <span class="wpa-seg">${WPA_RANKS.map(r=>`<button class="btn ${o.rank===r?'on':''}" title="${esc(won?'受注済みの商談はランクの対象外':wpaRankTitle(r))}" ${won?'disabled':''} onclick="wpaSetRank('${o.id}','${r}')">${r}</button>`).join('')}</span>
     ${won?'<span class="small muted">受注済み（ランクの対象外）</span>':''}
-    <span class="small muted">初期値：正式＝完了予定日まで1ヶ月以内はOK・それ以外はA／検討＝B／引き合い＝C。確度はフェーズから自動設定 ${WPA_KARI('CQ-27')}</span>
+    ${wpaBadPill(o)}
+    <label class="small">競合・執行状況 <select onchange="wpaSetComp('${o.id}',this.value)" ${won?'disabled':''}><option value="">—</option>${WPA_COMP.map(x=>`<option ${o.comp===x?'selected':''}>${x}</option>`).join('')}</select> ${WPA_KARI('NPSの意味は要確認')}</label>
+    <span class="small muted">ランクとフェーズは役割が違うため両方を持ちます。確度はフェーズから自動設定 ${WPA_KARI('CQ-27')}</span>
+    <div class="small muted wpa-1opp" style="flex-basis:100%">1商談＝1機種（設備）。1号機・2号機は別の商談にします（10/22 定例）</div>
     <details class="wpa-def"><summary>ランクの定義</summary>
-      <table class="tbl"><tbody>${WPA_RANKS.map(r=>`<tr><td><b>${r}</b></td><td>${WPA_RANK_DEF[r]}</td></tr>`).join('')}</tbody></table>
-      <div class="small muted mt8">${WPA_RANK_NOTE}。受注計画は OK ランクから作成します。ランクの初期値の決め方 ${WPA_KARI('CQ-27')}</div></details></div>`;
+      ${wpaRankTblHtml()}
+      <div class="small muted mt8">${WPA_RANK_NOTE}。受注計画・営業会議の計上は OK・A ランクです。ランクの初期値の決め方 ${WPA_KARI('CQ-27')}</div></details></div>`;
 });
 function wpaContactCard(o,cs){
   const R=wpaRoles(o);
@@ -3982,13 +3994,13 @@ EXT.after.push((page,id)=>{
 UI.wpaCell = null;
 pgOpps = function(){
   const V={all:['すべての商談',o=>true],open:['受注前の商談',o=>o.stage<OPP_WON],won:['受注済みの商談',o=>o.stage>=OPP_WON],mine:['自分の商談',o=>o.owner===meName()],thisq:['今四半期に完了予定',o=>o.close>='2026-10-01'&&o.close<='2026-12-31'],
-    ok:['OKランク（受注計画の対象）',o=>o.rank==='OK'&&o.stage<OPP_WON]};
+    ok:['OK・A ランク（受注計画の対象）',o=>WPA_PLAN_RANKS.includes(o.rank)&&o.stage<OPP_WON],bad:['ランクとフェーズの不整合',o=>wpaRankBad(o)]};
   if(UI.wpaCell){ const {s:st,r}=UI.wpaCell; V.wpacell=[st===OPP_WON?`営業会議：受注（${wpaFyNow()}年度）`:`営業会議：${st==null?'受注前の全フェーズ':OPP_STAGES[st]} × ${r==null?'全ランク':r||'ランク未設定'}`,o=>wpaHit(o,st,r)]; }
   if(UI.lv.opps==='wpacell'&&!V.wpacell) UI.lv.opps='all';
   const rows=lvApply('opps',V,DB.opps);
   return listPage({icon:'i-opp',em:'★',label:'商談',sel:lvSel('opps',V),count:rows.length,note:'合計 '+man(rows.reduce((a,o)=>a+o.amount,0)),
     actions:`<a class="btn" href="#/wpasales">営業会議ダッシュボード</a><a class="btn" href="#/wpaplan">受注計画</a><a class="btn" href="#/quotes">見積一覧</a><button class="btn brand" onclick="newOpp()">新規</button>`,
-    table:tbl(['商談名','取引先','フェーズ','ランク','案件区分','#金額','完了予定日','#確度 '+WPA_KARI('CQ-27'),'所有者','案件'],rows.map(o=>tr([ol(o.id),al(o.acc),OPP_STAGES[o.stage],o.stage>=OPP_WON?'<span class="muted" title="受注済みはランクの対象外">—</span>':wpaRankPill(o.rank),o.kubun?esc(o.kubun):'<span class="muted">—</span>',[yen(o.amount)],fmtD(o.close),[o.prob+'%'],ul(o.owner),o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'<span class="muted">—</span>'])))})
+    table:tbl(['商談名','取引先','フェーズ','ランク','案件区分','#金額','完了予定日','#確度 '+WPA_KARI('CQ-27'),'所有者','案件'],rows.map(o=>tr([ol(o.id),al(o.acc),OPP_STAGES[o.stage],o.stage>=OPP_WON?'<span class="muted" title="受注済みはランクの対象外">—</span>':wpaRankPill(o.rank)+(wpaRankBad(o)?' <span class="pill r" title="ランクとフェーズの不整合">不整合</span>':''),o.kubun?esc(o.kubun):'<span class="muted">—</span>',[yen(o.amount)],fmtD(o.close),[o.prob+'%'],ul(o.owner),o.project?`<a href="#/project/${o.project}">${byId(DB.projects,o.project).no}</a>`:'<span class="muted">—</span>'])))})
     +`<div class="small muted mt8">ランク：${WPA_RANKS.map(r=>`<b>${r}</b>＝${WPA_RANK_DEF[r]}`).join('／')}（${WPA_RANK_NOTE}）</div>`;
 };
 function wpaCell(s,r){ UI.wpaCell={s,r}; UI.lv.opps='wpacell'; go('#/opps'); }
@@ -4058,31 +4070,31 @@ EXT.navKeys.wpasales='opps';
 /* ---------- 受注計画（K-A04） ---------- */
 UI.wpaFy = null;
 const wpaFyOf = d => { const y=+d.slice(0,4), m=+d.slice(5,7); return m>=WPA_FY_START?y:y-1; };
-function wpaPlanRows(fy){ return DB.opps.filter(o=>o.rank==='OK'&&o.stage<OPP_WON&&o.close&&wpaFyOf(o.close)===fy).sort((a,b)=>a.close.localeCompare(b.close)); }
+function wpaPlanRows(fy){ return DB.opps.filter(o=>WPA_PLAN_RANKS.includes(o.rank)&&o.stage<OPP_WON&&o.close&&wpaFyOf(o.close)===fy).sort((a,b)=>a.close.localeCompare(b.close)); }
 function wpaMonths(fy){ return Array.from({length:12},(_,i)=>{const m=(WPA_FY_START-1+i)%12+1, y=fy+(WPA_FY_START-1+i>=12?1:0);return {y,m,k:`${y}-${String(m).padStart(2,'0')}`};}); }
 function wpaCsvPlan(fy){
-  const os=wpaPlanRows(fy), rows=[[`受注計画（OKランク） ${fy}年度`,'出力日 2026/10/08'],[],['月','件数','金額(円)','累計(円)']]; let cum=0;
+  const os=wpaPlanRows(fy), rows=[[`受注計画（OK・Aランク） ${fy}年度`,'出力日 2026/10/08'],[],['月','件数','金額(円)','累計(円)']]; let cum=0;
   wpaMonths(fy).forEach(x=>{const l=os.filter(o=>o.close.startsWith(x.k)), s=l.reduce((a,o)=>a+o.amount,0); cum+=s; rows.push([`${x.y}/${String(x.m).padStart(2,'0')}`,l.length,s,cum]);});
   rows.push(['合計',os.length,cum,''],[],['商談名','取引先','フェーズ','金額(円)','完了予定日','所有者']);
   os.forEach(o=>rows.push([o.name,acc(o.acc).name,OPP_STAGES[o.stage],o.amount,fmtD(o.close),o.owner]));
-  wpaCsv(`order_plan_OK_FY${fy}.csv`,rows,`受注計画（OKランク・${fy}年度）`);
+  wpaCsv(`order_plan_OK_FY${fy}.csv`,rows,`受注計画（OK・Aランク・${fy}年度）`);
 }
 EXT.routes.wpaplan = ()=>{
-  const fys=[...new Set([wpaFyOf('2026-10-08'),...DB.opps.filter(o=>o.rank==='OK'&&o.stage<OPP_WON&&o.close).map(o=>wpaFyOf(o.close))])].sort();
+  const fys=[...new Set([wpaFyOf('2026-10-08'),...DB.opps.filter(o=>WPA_PLAN_RANKS.includes(o.rank)&&o.stage<OPP_WON&&o.close).map(o=>wpaFyOf(o.close))])].sort();
   const fy=UI.wpaFy&&fys.includes(UI.wpaFy)?UI.wpaFy:fys[0];
   const os=wpaPlanRows(fy); let cum=0;
   const mrows=wpaMonths(fy).map(x=>{const l=os.filter(o=>o.close.startsWith(x.k)), s=l.reduce((a,o)=>a+o.amount,0); cum+=s;
     return `<tr><td>${x.y}/${String(x.m).padStart(2,'0')}</td><td class="num">${l.length||'<span class="muted">—</span>'}</td><td class="num">${s?yen(s):'<span class="muted">—</span>'}</td><td class="num">${yen(cum)}</td><td>${l.map(o=>ol(o.id)).join('、')}</td></tr>`;}).join('');
-  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📈</span><div><div class="obj-label">受注計画</div><h1>受注計画（OKランクから作成）</h1></div>
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-report">📈</span><div><div class="obj-label">受注計画</div><h1>受注計画（OK・Aランクを計上）</h1></div>
     <div class="actions"><select class="lv-sel" id="wpaFySel" onchange="UI.wpaFy=+this.value;route()">${fys.map(y=>`<option value="${y}" ${y===fy?'selected':''}>${y}年度</option>`).join('')}</select>
       <button class="btn" onclick="wpaCsvPlan(${fy})">Excel出力</button><a class="btn" href="#/wpasales">営業会議ダッシュボード</a></div></div>
-    <div class="small muted mt8">OK ランク（${WPA_RANK_DEF.OK}）の受注前の商談を、完了予定日の月で集計します（営06）。年度：${WPA_FY_START}月始まり ${WPA_KARI('CQ-28')}</div></div>
-  <div class="grid4 wpa-kpi"><div class="card kpi"><div class="l">${fy}年度 受注計画（OK）</div><div class="v">${man(cum)}</div><div class="s">${os.length} 件</div></div></div>
+    <div class="small muted mt8">計画に計上するランク（OK・A）の受注前の商談を、完了予定日の月で集計します（10/22 定例）。年度：${WPA_FY_START}月始まり ${WPA_KARI('CQ-28')}</div></div>
+  <div class="grid4 wpa-kpi"><div class="card kpi"><div class="l">${fy}年度 受注計画（OK・A）</div><div class="v">${man(cum)}</div><div class="s">${os.length} 件</div></div></div>
   <div class="card" id="ko-K-A04"><div class="card-h"><span class="obj-icon sm i-report">📈</span>月別の受注計画（${fy}年度）</div><div class="card-b"><div class="tbl-wrap"><table class="tbl wpa-plan">
     <thead><tr><th>月</th><th class="num">件数</th><th class="num">金額</th><th class="num">累計</th><th>商談</th></tr></thead><tbody>${mrows}</tbody>
     <tfoot><tr><td>年度合計</td><td class="num">${os.length}</td><td class="num">${yen(cum)}</td><td></td><td></td></tr></tfoot></table></div>
     <div class="small muted mt8">売上計画は、売上の計上月（出荷・検収など）を持つ項目が必要なため、項目と基準を確認してから作成します ${WPA_KARI('CQ-28')}</div></div></div>
-  <div class="card"><div class="card-h"><span class="obj-icon sm i-opp">★</span>OKランクの商談（${os.length}）<span class="right"><a onclick="UI.lv.opps='ok';go('#/opps')" class="click">リストビューで開く</a></span></div>
+  <div class="card"><div class="card-h"><span class="obj-icon sm i-opp">★</span>OK・Aランクの商談（${os.length}）<span class="right"><a onclick="UI.lv.opps='ok';go('#/opps')" class="click">リストビューで開く</a></span></div>
     <div class="card-b tbl-wrap">${tbl(['商談名','取引先','フェーズ','#金額','完了予定日','所有者'],os.map(o=>tr([ol(o.id),al(o.acc),OPP_STAGES[o.stage],[yen(o.amount)],fmtD(o.close),ul(o.owner)])),'この年度の OK ランクの商談はありません')}</div></div>`;
 };
 EXT.navKeys.wpaplan='opps';
@@ -4113,7 +4125,7 @@ EXT.after.push((page,id)=>{
   const top=[];
   // M-A01：企画部ロールのホームとユーザー一覧だけに帯
   if((page==='home'&&ROLE==='kikaku')||page==='users')
-    top.push(wpaBand('ko-M-A01',`<b>企画部：今回はほぼライセンス配布対象外（会議メモ）</b> ${WPA_KARI('CQ-47')}`,
+    top.push(wpaBand('ko-M-A01',`<b>企画部門のライセンスは当面2名（10/22 決定）</b>`,
       '<ul><li>配布対象：営業部・技術部（加工技術）・技術部（設計）</li><li>企画部：ほぼ対象外／製造・購買調達：今回のプロジェクト対象外（将来の利用を想定）</li><li>モックは部署単位で判定し、加工技術・設計を「技術部」にまとめています</li></ul>','info'));
   // M-A02（＋K-C08 段階運用）：案件一覧・案件詳細・子レコード・企画部ホーム
   if(wpaPjBandPage())
@@ -4184,9 +4196,9 @@ const wpaChildren = id => DB.accounts.filter(x=>x.parent===id);
 function wpaAccDetail(a){
   const par=a.parent?al(a.parent):'<span class="muted">—（本社のため空欄）</span>', ag=a.agent?`あり（${al(a.agent)}）`:'なし';
   return `<div class="card" id="ko-T-A01"><div class="card-h">詳細</div><div class="card-b">${WPA_PROP_LEGEND}
-    ${wpaSec('基本情報',wpaF('取引先名',esc(a.name))+wpaF('取引先番号',esc(a.no),1)+wpaF('親取引先',par,1)+wpaF('取引先区分',esc(a.kind),1)+wpaF('業種',esc(a.industry))+wpaF('国・地域',esc(a.country),1)+wpaF('担当営業（所有者）',ul(a.owner))+wpaF('電話／Webサイト',esc(a.phone)+' ／ www.example.co.jp'))}
+    ${wpaSec('基本情報',wpaF('取引先名',esc(a.name))+wpaF('取引先番号',esc(a.no),1)+wpaF('親取引先',par,1)+wpaF('取引先区分',esc(a.kind),1)+wpaF('業種',esc(a.industry))+wpaF('国名・地域',esc(a.country),1)+wpaF('担当営業（所有者）',ul(a.owner))+wpaF('電話／Webサイト',esc(a.phone)+' ／ www.example.co.jp'))}
     ${wpaSec('事業内容',wpaF('従業員数（規模）',a.emp?a.emp.toLocaleString('ja-JP')+'名':'—')+wpaF('工場の規模',a.scale?esc(a.scale)+' '+WPA_KARI('区分は要確認'):'—',1)+wpaF('主な製品',esc(a.products||'—'),1))}
-    ${wpaSec('住所',wpaF('本社住所',esc(a.addr||'—'))+wpaF('請求先住所','本社住所と同じ')+'<div class="small muted">納品先の住所は子取引先で管理します</div>')}
+    ${wpaSec('住所',wpaF('本社住所',esc(a.addr||'—'))+wpaF('請求先住所','本社住所と同じ')+wpaF('海外の納品先の住所',a.country!=='日本'?esc(a.shipAddr||'—'):'—（国内）',1)+'<div class="small muted">海外の現地法人を親子のどちらで管理するかは未確定（B-1）</div>'+'<div class="small muted">納品先の住所は子取引先で管理します</div>')}
     ${wpaSec('取引条件',wpaF('支払条件（標準）',a.payTerms?esc(a.payTerms):'<span class="muted">未登録（編集で登録）</span>')+wpaF('商社・代理店経由',ag,1)+wpaF('既納実績',esc(a.delivered),1))}
   </div></div>`;
 }
@@ -4226,12 +4238,18 @@ function wpaOppDetail(o){
       +wpaF('商談フェーズ',esc(OPP_STAGES[o.stage]))+wpaF('ランク',o.stage>=OPP_WON?'—（受注済み）':wpaRankPill(o.rank))+wpaF('確度（%）',o.prob+' '+WPA_KARI('CQ-27'))+wpaF('完了予定日',fmtD(o.close))+wpaF('所有者',ul(o.owner))+dup)}
     ${wpaSec('引き合い情報',wpaF('引き合い経路',esc(o.route)+' '+WPA_KARI('Q9'),1)+wpaF('引き合い日',fmtD(o.inqDate),1)+wpaF('案件区分',o.kubun?esc(o.kubun):'—')
       +wpaF('対象機種・型式',pr.code?esc(pr.code+' '+pr.name):'—',1)+wpaF('台数',esc(o.qty),1)+wpaF('国内／海外',abroad,1)+wpaF('商社・代理店',ag?al(ag):'なし',1))}
-    ${wpaSec('見積・取引条件',wpaF('見積提出日',q&&q.status!=='作成中'?fmtD(q.date):'—',1)+wpaF('金額',yen(o.amount))+wpaF('支払条件（本案件）',o.payTerms?esc(o.payTerms):'—')+wpaF('希望納期',fmtD(o.hopeDue),1))}
+    ${wpaSec('見積・取引条件',wpaF('見積提出日',q&&q.status!=='作成中'?fmtD(q.date):'—',1)+wpaF('金額',yen(o.amount))+wpaAmt(o)+wpaF('支払条件（本案件）',o.payTerms?esc(o.payTerms):'—')+wpaF('希望納期',fmtD(o.hopeDue),1))}
     ${wpaSec('受注',wpaF('受注日',o.stage>=OPP_WON?fmtD(o.close):'—',1)+wpaF('受注条件の確認','<span class="muted">Q6で設計</span>',1)+wpaF('失注理由',o.lostReason?esc(o.lostReason):'—',1))}
     ${wpaSec('テスト加工',wpaF('テスト加工の回数・区分',ttTxt,1)+'<div class="small muted">結果は関連リスト「テスト加工・調査」で管理</div>')}
   </div></div>`;
 }
 extRec('opp').top.push(o=>wpaOppDetail(o));
+// R-A03 金額（定義は A-7 で未確定のため仮置き。円で管理）
+function wpaAmt(o){ const won=o.stage>=OPP_WON, ag=o.agent||acc(o.acc).agent, bm=won&&ag?Math.round(o.amount*0.04):0;
+  const p=o.project&&byId(DB.projects,o.project), gp=p?(()=>{const c=pjCalc(p);return c.revenue-c.costForecast;})():null;
+  return wpaF('見積金額',yen(o.amount),1)+wpaF('受注金額（グロス）',won?yen(o.amount):'—',1)+wpaF('商社バックマージン',won?(ag?yen(bm)+' '+WPA_KARI('率は仮'):'なし'):'—',1)
+    +wpaF('受注金額（ネット）',won?yen(o.amount-bm):'—',1)+wpaF('粗利額',gp==null?'—':yen(gp),1)
+    +`<div class="small muted wpa-amt">金額の定義は未確定（A-7） ${WPA_KARI('A-7')}。金額は円で管理します（実際の請求が外貨の場合もある）</div>`; }
 /* ===== WPA END ===== */
 /* ===== WPB BEGIN ===== */
 /* 10/14 反映（WP-B）：問い合わせの使い分け（Chatter／ワークフロー）・Chatterのメンション注意・ヒアリングの未確定事項・
