@@ -613,6 +613,7 @@ tr.rv-hl td{background:#fef1e3!important;transition:background .3s}
 .omni-band{border:1px solid #9ab8d9;background:#eef4ff;color:#032d60;border-radius:4px;padding:8px 12px;margin-bottom:10px;font-size:13px}
 .omni-band b{color:#014486}
 .omni-tag{display:inline-block;font-size:11px;border-radius:3px;padding:0 6px;line-height:18px;border:1px solid #9ab8d9;background:#eef4ff;color:#014486;margin-left:6px;white-space:nowrap}
+.ar-b{display:inline-block;font-size:10px;line-height:15px;padding:0 4px;border-radius:3px;border:1px solid #7a9cc6;color:#014486;background:#eef4ff;margin-left:4px;vertical-align:middle}
 .wpp-hl{outline:3px solid #dd7a01!important;outline-offset:2px;transition:outline-color .3s}
 /* ===== WPP END ===== */
 </style>
@@ -5599,6 +5600,39 @@ RV_CQ.push(["CQ-76", "加工管理", "（ご質問表 A-6）受注前のテス�
   ["CQ-82", "加工管理", "（ご質問表 C-1〜C-3）テスト加工依頼書の様式と要求加工精度の記録の項目の過不足、記録の保存先・件数・移行の要否、類似実績を探す条件（内径・材質・硬度・研削油・砥石・機種・業種など）", "御社 Excel「要求加工精度」の様式で加工データを表示、内径・材質で絞り込み（仮置き）", "10/22 議事録 6-6", "#/knowledge"]);
 /* 10/22：商談項目履歴の旧フェーズ名を Phase 表記に読み替え */
 (()=>{ const m={'引き合い':'Phase1 開始','検討':'Phase2 検討','正式':'Phase3 正式'}; (DB.oppHist||[]).forEach(h=>{ if(h.f==='フェーズ'){ if(m[h.from]) h.from=m[h.from]; if(m[h.to]) h.to=m[h.to]; } }); })();
+/* ===== 10/22 Argus 項目一覧から、確実に必要な項目を商談に追加（PL） =====
+   方針：運用中の項目のうち、モックに無く、移行・営業会議・計画・他システム連携に必要なものだけ。運用終了（※25運用終了）・受注後（02_受注済）・活動の項目は追加しない */
+const AR_B = '<span class="ar-b" title="現行 Argus（01_引合）の運用中の項目">Argus</span>';
+const arF = (l,v) => fld(l+' '+AR_B, v);
+function arVals(o){
+  const n=+String(o.id).replace(/\D/g,'')||0, won=o.stage>=OPP_WON, a=acc(o.acc)||{}, q=(DB.quotes||[]).find(x=>x.opp===o.id);
+  const cost=o.amount?Math.round(o.amount/1.4/10000)*10000:0;
+  return {
+    fix:'T26-'+String(300+n).padStart(4,'0'),
+    office:['東京','名古屋','大阪','東京'][n%4]+'（仮）',
+    newOld:a.delivered==='既納'?'既存客':(a.delivered==='新規'?'新規客':(n%3?'既存客':'新規客')),
+    shinsetsu:/改造/.test(o.name)?'改造':'新設',
+    work:(o.name.split(/\s|ホーニング/)[0]||'—'),
+    bg:['能力増強','老朽更新','新規導入','品質向上'][n%4],
+    gaiyo:'（架空）'+o.name.replace(/\s+/g,' ')+' の引き合い',
+    comp:['—','競合 甲社（架空）','競合 乙社（架空）'][n%3],
+    kian:o.stage>=2?'KA-26-'+String(100+n).padStart(4,'0'):'—',
+    mitsu:q&&q.status!=='作成中'?q.no:'—',
+    cost:cost, kg:cost?(o.amount/cost).toFixed(2):'—', kn:(cost&&won)?((o.amount-((o.agent||a.agent)?Math.round(o.amount*0.04):0))/cost).toFixed(2):'—',
+    juchuNo:won?'J26-'+String(500+n).padStart(4,'0'):'—',
+    kenshu:o.close?addDays(o.close,180).slice(0,7).replace('-','/'):'—'};
+}
+{ const _od=wpaOppDetail; wpaOppDetail=function(o){ let h=_od.apply(this,arguments); const v=arVals(o);
+  const ins=(sec,add)=>{ const k='▼ '+sec+'</div><div class="fields">'; const i=h.indexOf(k); if(i>=0) h=h.slice(0,i+k.length)+add+h.slice(i+k.length); };
+  ins('基本情報', arF('Fix No.（移行元の番号）',v.fix)+arF('営業拠点（オフィス）',v.office)+arF('新規客／既存客',v.newOld));
+  ins('引き合い情報', arF('新設／改造',v.shinsetsu)+arF('対象ワーク',esc(v.work))+arF('引合背景',v.bg)+arF('競合先',v.comp)+arF('引合概要',esc(v.gaiyo)));
+  ins('見積・取引条件', arF('見積書No.（別システム）',v.mitsu)+arF('機案書No.（仕様提案書）',v.kian)+arF('原価',v.cost?yen(v.cost):'—')+arF('係数（グロス／ネット）',v.kg+' ／ '+v.kn+' <span class="tent kari">仮置き・要確認（CQ-77）</span>'));
+  ins('受注', arF('受注No.',v.juchuNo)+arF('検収予定月',v.kenshu));
+  h=h.replace('>希望納期 ','>希望納期（立会） ');
+  const lg='<div class="small muted mb8">'+AR_B+' は現行 Argus（01_引合）の運用中の項目から引き継ぐ候補です（値は架空）。運用終了の項目・受注後の項目は含めていません（CQ-83）。</div>';
+  return h.replace('<div class="card-b">','<div class="card-b">'+lg); }; }
+MTG_ITEMS.push(['T-A03','Argus','現行 Argus の運用中の項目から、確実に必要な項目（Fix No.・営業拠点・新規客／既存客・新設／改造・対象ワーク・引合背景・競合先・引合概要・見積書No.・機案書No.・原価・係数・受注No.・検収予定月）を商談に追加','#/opp/O001','eigyo']);
+RV_CQ.push(["CQ-83", "営業", "（10/22 Argus 項目一覧）商談に引き継ぐ Argus の項目の要否：Fix No.・営業拠点・新規客／既存客・新設／改造・対象ワーク・引合背景・競合先・引合概要・見積書No.・機案書No.・原価・係数（グロス／ネット）・受注No.・検収予定月。運用終了の190項目、02_受注済（受注後）、活動の項目、展示会名称・定例会議報告などは対象外とした", "上記14項目を商談に追加（値は架空）", "10/22 Argus 項目一覧, CQ-67", "#/opp/O001"]);
 /* ===== WPP END ===== */
 
 applyRoleUi();
