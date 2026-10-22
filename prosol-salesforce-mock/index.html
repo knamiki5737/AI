@@ -4835,7 +4835,7 @@ const WPC_KB_KINDS = ['問題・解決','原価低減','成功事例'];         
 UI.wpcCv = UI.wpcCv || {};       // 原価画面の表示切替（'proc'＝工程別／'unit'＝ユニット別）。キーは案件ID、ダッシュボードは 'all'
 UI.wpcKbKind = UI.wpcKbKind || 'すべて';
 /* K-C08：段階運用の注記帯（原価・進捗の画面） */
-function wpcBand(){ return `<div class="wpc-band" id="ko-K-C08" role="note"><b>段階運用</b>：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）</div>`; }
+function wpcBand(){ return `<div class="wpc-band" id="ko-K-C08" role="note"><b>段階運用</b>：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）。<b>10/22 定例</b>：案件管理は器を用意し、製造の過程はステップ2で肉付けします。製造・購買・工数管理はステップ2以降です</div>`; }
 
 /* ---------- K-C01〜C03：ユニット別の原価（架空のデモデータ） ----------
    見積時の合計＝案件の予算原価、実績の合計＝工程別の実績原価（仕入実績＋実績工数×工数単価）にそろえている。
@@ -5173,12 +5173,29 @@ function wpcAreaPill(k){ const a=wpcArea(k); return a?`<span class="pill wpc-ar$
 /* 要件レビューの「開く」用：ナレッジ一覧を領域を指定して開く（検索語・種別・カテゴリの絞り込みは解除）。area＝'加工'／'起案'／'設計'／'すべて' */
 EXT.fn.wpcKbOpen = (area,role) => { UI.wpcKbArea=area||'すべて'; UI.wpcKbQ=''; UI.wpcKbKind='すべて'; UI.kbCat='すべて'; goAs('#/knowledge',role); };
 const WPC_PROC_KEYS = ['設備仕様','ワーク','加工径','要求精度','達成精度','加工時間','可否'];
-const wpcKbText = k => [k.title,k.cat,k.kind,wpcArea(k),...Object.values(k.body||{}),...Object.values(k.proc||{})].join(' ');
-const WPC_MC04 = `<div class="note mt8" id="ko-M-C04"><b>管理方式</b>：起案管理・加工管理のノウハウや過去の失敗事例を、Salesforce ナレッジで管理するか、オブジェクトのレコードタイプで管理するかは検討中です（会議メモ）。本モックの「領域」は箱のイメージです。<br><b>仮置き</b>：領域の分け方（加工・起案・設計）と既存の種別・カテゴリとの関係、既存記事の領域（初期値）、加工データの項目構成（会議メモにある設備仕様・加工精度・加工時間以外の、ワーク・加工径・要求精度／達成精度・可否） ${wpcCq(53)}</div>`;
+const wpcKbText = k => [k.title,k.cat,k.kind,wpcArea(k),...Object.values(k.body||{}),JSON.stringify(k.proc||{})].join(' ');
+const WPC_MC04 = `<div class="note mt8" id="ko-M-C04"><b>管理方式</b>：起案管理・加工管理のノウハウや過去の失敗事例を、Salesforce ナレッジで管理するか、オブジェクトのレコードタイプで管理するかは検討中です（会議メモ）。本モックの「領域」は箱のイメージです。<br><b>仮置き</b>：領域の分け方（加工・起案・設計）と既存の種別・カテゴリとの関係、既存記事の領域（初期値）、加工データの項目のうち御社 Excel の様式にない「設備仕様」「可否」 ${wpcCq(53)}</div>`;
+/* R-C01（10/22 定例）：加工の過去データを御社 Excel「要求加工精度」の様式に合わせる（精度3種 × 内訳、条件）。類似実績は内径・材質で絞り込む */
+const WPC_PREC_ROWS = [['前加工','前加工精度'],['要求','要求加工精度'],['実際','実際の加工精度']];
+const WPC_PREC_COLS = ['内径','公差','真円度','円筒度','面粗度','加工時間'];
+const WPC_COND_KEYS = ['加工品名','加工径','長さ','材質','硬度','総取代','治具','研削油','砥石'];
+const WPC_DIA = [['','すべて'],['s','φ30未満',d=>d<30],['m','φ30〜φ100未満',d=>d>=30&&d<100],['l','φ100以上',d=>d>=100]];
+UI.wpcPf = UI.wpcPf || {d:'',m:''};
+const wpcDia = k => parseFloat(String(((k.proc||{}).条件||{}).加工径||'').replace(/[^0-9.]/g,''))||0;
+function wpcProcFilter(rows){ const f=UI.wpcPf, b=WPC_DIA.find(x=>x[0]===f.d); return rows.filter(k=>(!b||!b[2]||b[2](wpcDia(k)))&&(!f.m||(k.proc.条件||{}).材質===f.m)); }
+function wpcPrecMatrix(p){
+  return `<div class="tbl-wrap"><table class="tbl wpc-prec"><thead><tr><th>精度</th>${WPC_PREC_COLS.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${WPC_PREC_ROWS.map(([k,l])=>`<tr><td><b>${l}</b></td>${WPC_PREC_COLS.map(c=>`<td class="small">${esc(((p.精度||{})[k]||{})[c]||'—')}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
 function wpcProcTable(rows){
-  return `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>記事</th><th>設備仕様</th><th>ワーク・加工径</th><th>要求精度</th><th>達成精度</th><th>加工時間</th><th>可否</th></tr></thead><tbody>${rows.map(k=>{const p=k.proc;
-    return `<tr><td><a href="#/kb/${k.id}">${esc(k.title.replace('【加工データ】',''))}</a></td><td class="small">${esc(p.設備仕様)}</td><td class="small">${esc(p.ワーク)}<div>${esc(p.加工径)}</div></td><td class="small">${esc(p.要求精度)}</td><td class="small">${esc(p.達成精度)}</td><td class="small">${esc(p.加工時間)}</td>
-      <td><span class="pill ${/^可/.test(p.可否)?'g':/^条件付き/.test(p.可否)?'y':'r'}">${esc(p.可否)}</span></td></tr>`;}).join('')}</tbody></table></div>`;
+  const mats=[...new Set(DB.knowledge.filter(k=>k.proc&&k.proc.条件).map(k=>k.proc.条件.材質))], f=UI.wpcPf, xs=wpcProcFilter(rows);
+  return `<div class="flex mb8 wpc-kbq" id="ko-R-C01"><b class="small">類似実績の絞り込み</b>
+      <label class="small">内径 <select class="role-select" onchange="UI.wpcPf.d=this.value;route()">${WPC_DIA.map(x=>`<option value="${x[0]}" ${x[0]===f.d?'selected':''}>${x[1]}</option>`).join('')}</select></label>
+      <label class="small">材質 <select class="role-select" onchange="UI.wpcPf.m=this.value;route()"><option value="">すべて</option>${mats.map(m=>`<option ${m===f.m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>
+      <span class="tent kari">検索の軸は仮置き・要確認（ご質問 C-3）</span></div>
+  <div class="tbl-wrap"><table class="tbl"><thead><tr><th>記事</th><th>加工品名・材質</th><th>加工径・長さ</th><th>要求加工精度（内径・真円度／円筒度／面粗度）</th><th>実際の加工精度</th><th>加工時間（実際）</th><th>可否</th></tr></thead><tbody>${xs.map(k=>{const p=k.proc, c=p.条件||{}, q=(p.精度||{}).要求||{}, a=(p.精度||{}).実際||{};
+    return `<tr><td><a href="#/kb/${k.id}">${esc(k.title.replace('【加工データ】',''))}</a></td><td class="small">${esc(c.加工品名)}<div>${esc(c.材質)}</div></td><td class="small">${esc(c.加工径)}<div>${esc(c.長さ)}</div></td>
+      <td class="small">${esc(q.内径)} ${esc(q.公差)}<div>${esc(q.真円度)}／${esc(q.円筒度)}／${esc(q.面粗度)}</div></td><td class="small">${esc(a.内径)}<div>${esc(a.真円度)}／${esc(a.円筒度)}／${esc(a.面粗度)}</div></td><td class="small">${esc(a.加工時間)}</td>
+      <td><span class="pill ${/^可/.test(p.可否)?'g':/^条件付き/.test(p.可否)?'y':'r'}">${esc(p.可否)}</span></td></tr>`;}).join('')||'<tr><td colspan="7" class="muted">条件に合う類似実績はありません</td></tr>'}</tbody></table></div>`;
 }
 /* 記事一覧（領域の箱＋検索を追加。既存の種別・カテゴリの絞り込みはそのまま） */
 pgKnowledge = function(){
@@ -5195,8 +5212,8 @@ pgKnowledge = function(){
         <button class="btn" onclick="UI.wpcKbQ=$('#wpcKbQ').value;route()">検索</button>${q?`<button class="btn" onclick="UI.wpcKbQ='';route()">クリア</button>`:''}<span class="small muted">タイトル・本文・加工データ（設備仕様・精度・時間）から探します</span></div>
       <div class="flex mb8 wpc-kbf" id="ko-K-C06"><span class="small muted">種別 ${wpcCq(41)}：</span>${kinds.map(c=>`<a class="pill ${UI.wpcKbKind===c?'b':''} click" onclick="UI.wpcKbKind='${c}';route()">${c}</a>`).join('')}</div>
       <div class="flex mb8"><span class="small muted">カテゴリ：</span>${cats.map(c=>`<a class="pill ${UI.kbCat===c?'b':''} click" onclick="UI.kbCat='${c}';route()">${c}</a>`).join('')}</div>
-      ${procs.length&&(UI.wpcKbArea==='加工')?`<div class="card wpc-procl" id="ko-M-C02"><div class="card-h">加工の過去データ（営業の可否判断の参考）</div><div class="card-b">${wpcProcTable(procs)}
-        <div class="small muted mt8">「可否」は過去の実績です。新しい条件では加工技術へ照会してください。データはすべて架空です。会議メモの項目は設備仕様・加工精度・加工時間で、それ以外の項目構成は仮置きです（下の注記）。</div></div></div>`:''}`+
+      ${procs.length&&(UI.wpcKbArea==='加工')?`<div class="card wpc-procl" id="ko-M-C02"><div class="card-h">加工の過去データ（類似実績・営業の可否判断の参考）</div><div class="card-b">${wpcProcTable(procs)}
+        <div class="small muted mt8">「可否」は過去の実績です。新しい条件では加工技術へ照会してください。データはすべて架空です。項目は御社 Excel「要求加工精度」の様式に合わせています（10/22 定例）。</div></div></div>`:''}`+
       tbl(['タイトル','領域','種別','カテゴリ','案件','設備（商品）','#閲覧数','#役に立った','元ケース','最終更新'],rows.map(k=>{const c=wpcKbCase(k);return tr([`<a href="#/kb/${k.id}">${esc(k.title)}</a>`,wpcAreaPill(k),wpcKindPill(k),k.cat,wpcPjLink(wpcKbPj(k)),wpcPrLink(wpcKbProd(k)),[k.views],[k.votes],c?`<a href="#/case/${c.id}">${c.no}</a>`:'—',fmtD(k.updated)]);}),'該当する記事はありません')
       +WPC_MC04
       +`<div class="small muted mt8">問題の解決だけでなく、原価低減やうまくいった工夫も蓄積します（キックオフ資料 p09）。どの単位で登録し、どこから検索・参照するかは、具体例と画面で確認します。種別の区分は上の「種別」の表示のとおり仮置き（CQ-41）です。</div>`});
@@ -5207,9 +5224,10 @@ pgKb = function(id){
   const h=_wpcPgKb2(id), k=byId(DB.knowledge,id); if(!k) return h;
   const card=`<div class="card wpc-kba"><div class="card-b"><div class="fields">
     ${fld('領域',`<select class="role-select" aria-label="領域" onchange="const k=byId(DB.knowledge,'${id}');k.area=this.value;k.areaKari=false;toast('領域を「'+this.value+'」にしました');route()">${(k.area?[]:['']).concat(WPC_AREAS).map(x=>`<option value="${x}" ${x===wpcArea(k)?'selected':''}>${x||'未分類'}</option>`).join('')}</select>${k.areaKari?' <span class="small muted">（既存記事の初期値）</span>':''}`)}</div>
-    ${k.proc?`<div class="section-title" id="ko-M-C02">加工データ（会議メモ：設備仕様・加工精度・加工時間）</div><div class="fields">${WPC_PROC_KEYS.map(x=>fld(x,esc(k.proc[x]||'—'))).join('')}</div>
+    ${k.proc?`<div class="section-title" id="ko-M-C02">加工データ（御社 Excel「要求加工精度」の様式）</div>${wpcPrecMatrix(k.proc)}
+      <div class="section-title">加工条件</div><div class="fields">${WPC_COND_KEYS.map(x=>fld(x,esc((k.proc.条件||{})[x]||'—'))).join('')}${fld('設備仕様',esc(k.proc.設備仕様||'—'))}${fld('可否（過去の実績）',esc(k.proc.可否||'—'))}</div>
       <div class="small muted">営業が加工の可否を判断する参考データです（過去の実績）。新しい条件では加工技術へ照会してください。<b>架空データです。</b></div>`:''}
-    <div class="small muted mt8">領域の分け方・既存記事の領域（初期値）${k.proc?'・加工データの項目構成（ワーク・加工径・要求精度／達成精度・可否）':''}は仮置きです ${wpcCq(53)}</div></div></div>`;
+    <div class="small muted mt8">領域の分け方・既存記事の領域（初期値）${k.proc?'・加工データの項目のうち様式にない「設備仕様」「可否」':''}は仮置きです ${wpcCq(53)}</div></div></div>`;
   const i=h.indexOf('<div class="card wpc-kbs">'); return i<0?h+card:h.slice(0,i)+card+h.slice(i);
 };
 /* 新規記事：領域の選択を追加 */
@@ -5257,7 +5275,9 @@ function wpcCaseFlow(c){
   const st=(done,cur)=>done?'done':cur?'cur':'';
   const notified=!!((c.impact||[]).length);
   const step=(cls,n,title,body)=>`<li class="wpc-fs ${cls}"><div class="wpc-fs-h">${cls==='done'?'✓':n} ${title}</div><div class="small">${body}</div></li>`;
-  const branch = imp==='あり'
+  const branch = imp==='あり'&&!c.pj
+    ? step('cur','4','コスト影響あり（受注前）','受注前のため、見積・商談金額への反映で対応します（追加要求チケット・追加請求は受注後） <span class="tent kari">仮置き・要確認</span>')
+    : imp==='あり'
     ? step(st(!!t&&claims.some(x=>x.status==='承認済'),!t||!claims.length),'4','コスト影響あり → 追加要求チケット → 追加請求',
         (t?`チケット：<a href="#/request/${t.id}">${t.no}</a> ${stPill(t.status)}`:`<button class="btn" onclick="wpcCaseTicket('${c.id}')">追加要求チケットを起票</button>`)
         +(t?`<div>追加請求：${claims.map(x=>`<a href="#/request/${x.id}">${x.no}</a> ${stPill(x.status)}`).join('、')||`<span class="muted">未起票</span> <button class="btn" onclick="EXT.fn.newAddClaim('${c.pj}',null,'${t.id}')">追加請求を起票</button>`}</div>`:''))
@@ -5288,12 +5308,63 @@ tkTicketPage = function(r,p){ const h=_wpcTicketPage2(r,p), c=r.fromCase&&byId(D
 function wpcCostBand(k08){
   return `<div class="wpc-band wpc-band-c" id="ko-M-C06" role="note"><b>原価予実：本フェーズは「箱の用意」。詳細は後続で検討（会議メモ 10/16）</b>
     <div class="small">原価テーブルは現行の社内データを参照し、見積システムは別に運用します。調達と設計で参照する原価テーブルが異なる見込みです。部品単位の原価・商品構造（部品をユニットに組み合わせる）は今後の課題です。<b>工程別・ユニット別の表示は、詳細要件が未確定のためイメージです。</b></div>
+    <div class="small"><b>10/22 定例</b>：製造・購買・工数管理はステップ2以降です。案件管理は器を用意し、製造の過程はステップ2で肉付けします。</div>
     ${k08?`<div class="small" id="ko-K-C08">段階運用：入力範囲・開始時期は要件定義で確定します（案件進捗・原価予実は段階的な運用を想定。キックオフ資料 p03・p12）</div>`:''}</div>`;
 }
 const _wpcPgCosts2 = pgCosts;
 pgCosts = function(){ return _wpcPgCosts2().replace(wpcBand(),wpcCostBand(true)); };
 const _wpcPjCost2 = pjCost;
 pjCost = function(p,c){ return wpcCostBand(false)+_wpcPjCost2(p,c); };
+
+/* ---------- R-C01：加工データのサンプルを「要求加工精度」の様式に置き換え（架空） ---------- */
+const wpcP = (a) => Object.fromEntries(WPC_PREC_COLS.map((c,i)=>[c,a[i]]));
+[['UCKB11',{設備仕様:'縦型ホーニング盤（単軸）／インプロセス エアゲージ付き',可否:'可（試作で確認済み）',
+    条件:{加工品名:'コンロッド大端部',加工径:'φ52',長さ:'22mm',材質:'S45C（鍛造鋼）',硬度:'HRC20（生材）',総取代:'0.04mm',治具:'専用クランプ治具（固定方法変更後）',研削油:'不水溶性ホーニング油',砥石:'CBN #600'},
+    精度:{前加工:wpcP(['φ51.96','+0.03/0','8µm','10µm','Rz6.3','—']),要求:wpcP(['φ52.000','+0.010/0','3µm','4µm','Rz1.6','45秒以内']),実際:wpcP(['φ52.004','公差内','2µm','3µm','Rz1.2','38秒'])}}],
+ ['UCKB12',{設備仕様:'自動ホーニングセル（ロボット搬送）／ポスト計測・ランクセレクト',可否:'条件付きで可（クランプ力の調整が必要）',
+    条件:{加工品名:'モーターハウジング（薄肉）',加工径:'φ120',長さ:'95mm',材質:'ADC12（アルミダイカスト）',硬度:'—（熱処理なし）',総取代:'0.06mm',治具:'薄肉用 均等クランプ治具',研削油:'水溶性クーラント',砥石:'ダイヤモンド #400'},
+    精度:{前加工:wpcP(['φ119.94','+0.05/0','15µm','20µm','Rz10','—']),要求:wpcP(['φ120.000','+0.015/0','5µm','8µm','Rz2.0','80秒以内']),実際:wpcP(['φ120.006','公差内','4µm（条件見直し後）','7µm','Rz1.8','75秒'])}}],
+ ['UCKB13',{設備仕様:'縦型ホーニング盤（多軸）',可否:'要検討（円筒度は追加テストが必要）',
+    条件:{加工品名:'バルブボディ（止まり穴）',加工径:'φ12',長さ:'40mm',材質:'FC250（鋳鉄）',硬度:'HB200',総取代:'0.02mm',治具:'4穴同時 割出し治具',研削油:'不水溶性ホーニング油',砥石:'CBN #800'},
+    精度:{前加工:wpcP(['φ11.98','+0.02/0','4µm','6µm','Rz3.2','—']),要求:wpcP(['φ12.000','+0.005/0','1µm','2µm','Rz0.8','60秒以内']),実際:wpcP(['φ12.002','公差内','1µm','2.5µm（未達）','Rz0.8','52秒（4穴同時）'])}}]
+].forEach(([id,p])=>{ const k=byId(DB.knowledge,id); if(k) k.proc=p; });
+
+/* ---------- R-C02（10/22 定例）：仕様変更の起票先。受注前は商談から起票して商談にひも付け、受注後は案件管理にひも付け ---------- */
+const wpcOppWon = o => o.stage>=OPP_WON && !!o.project && !!byId(DB.projects,o.project);
+function wpcOppSpecChange(oid){
+  const o=byId(DB.opps,oid); if(!o) return;
+  if(wpcOppWon(o)){ EXT.fn.specChange(o.project); const ok=modalOk; if(ok) modalOk=()=>{ const n=DB.cases.length; ok(); if(DB.cases.length>n) DB.cases[0].opp=o.id; }; return; }
+  modal('仕様変更を起票（受注前：商談にひも付け）',`<div class="form1"><div class="small muted">商談：${esc(o.name)}（フェーズ：${esc(OPP_STAGES[o.stage]||'')}）。受注前のため商談にひも付けます。受注後は案件管理にひも付けます（10/22 定例）。</div>
+    <label>仕様変更の理由<select id="scReason">${WP2_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></label>
+    <div><div class="tk-lab">コスト影響</div><div class="wpc-kbr">${WPC_COST_IMP.map(x=>`<label class="wpc-chk"><input type="radio" name="wpcCostImp" value="${x}" ${x==='未判断'?'checked':''}> ${x}</label>`).join('')}</div></div>
+    <fieldset class="wp2-impact"><legend>影響範囲</legend>${IMPACT_DEPTS.map((d,i)=>`<label class="wp2-chk"><input type="checkbox" id="scImp${i}" value="${d.k}">${d.k}</label>`).join('')}</fieldset>
+    <label>コメント<textarea id="scCm" rows="3" placeholder="変更の内容や、各部門に確認してほしいこと"></textarea></label></div>`,
+    ()=>{ const reason=$('#scReason').value, impact=IMPACT_DEPTS.filter((d,i)=>$('#scImp'+i).checked).map(d=>d.k), cm=$('#scCm').value.trim();
+      const ci=(document.querySelector('#overlay input[name=wpcCostImp]:checked')||{}).value||'未判断', id='CS'+(10+DB.cases.length), ow=userBy(o.owner);
+      DB.cases.unshift({id,no:'000010'+(30+DB.cases.length),subject:`仕様変更：${reason}（影響：${impact.join('・')||'未選択'}）`,pj:'',opp:o.id,acc:o.acc,type:'変更',priority:'中',status:'新規',opened:'2026-10-08',owner:o.owner,
+        cause:'',measure:'',desc:cm,reason,impact,costImpact:ci,origin:reason==='顧客理由'?'顧客':'社内',hist:[{dt:nowStr(),f:'作成',from:'',to:'仕様変更を起票（受注前・商談から）',by:meName()}]});
+      const depts=[...new Set(IMPACT_DEPTS.filter(d=>impact.includes(d.k)).map(d=>d.dept))];
+      if(depts.length) notify(`【仕様変更】商談「${o.name}」：理由（${reason}）／影響範囲（${impact.join('・')}）`,'#/case/'+id,{depts});
+      setTimeout(()=>go('#/case/'+id),0); toast(depts.length?`仕様変更を起票し、${depts.join('・')}へ通知しました`:'仕様変更を起票しました（影響範囲が未選択のため通知していません）'); },'完了');
+}
+extRec('opp').actions.push(o=>`<button class="btn" id="ko-R-C02" onclick="wpcOppSpecChange('${o.id}')" title="${wpcOppWon(o)?'受注後：案件管理にひも付けて起票':'受注前：商談にひも付けて起票'}">仕様変更を起票</button>`);
+extRec('opp').side.push(o=>{ const cs=DB.cases.filter(c=>c.opp===o.id||(o.project&&c.pj===o.project&&c.type==='変更'));
+  return relCard('i-case','⚠','仕様変更（ケース）',cs.length,(cs.map(c=>`<div class="feed-item"><span class="obj-icon sm i-case">⚠</span><div><a href="#/case/${c.id}">${esc(c.subject)}</a><div class="small muted">${c.pj?'案件にひも付け':'商談にひも付け（受注前）'}｜${esc(c.status)}</div></div></div>`).join('')||'<div class="muted">なし</div>')
+    +`<div class="small muted mt8">受注前は商談、受注後は案件管理にひも付けます（10/22 定例）。</div>`); });
+extRec('case').hl.push(c=>c.opp?[['商談',ol(c.opp)+(c.pj?'':' <span class="small muted">（受注前）</span>')]]:[]);
+/* 商談にひも付けたケース（案件なし）でも一覧・クローズが動くようにする */
+pgCases = function(){
+  const V={all:['すべてのケース',c=>true],open:['対応中のケース',c=>c.status!=='クローズ'],closed:['クローズ済み',c=>c.status==='クローズ'],mine:['自分の担当',c=>c.owner===meName()],bug:['問題',c=>c.type==='問題'],chg:['変更',c=>c.type==='変更']};
+  const rows=lvApply('cases',V,DB.cases), pj=c=>{ const p=byId(DB.projects,c.pj); return p?`<a href="#/project/${p.id}">${p.no}</a>`:c.opp?`<span class="small">商談：</span>${ol(c.opp)}`:'—'; };
+  return listPage({icon:'i-case',em:'⚠',label:'変更・問題情報（ケース）',sel:lvSel('cases',V),count:rows.length,actions:`<button class="btn brand" onclick="newCase()">新規</button>`,
+    table:tbl(['ケース番号','件名','種別','優先度','状況','案件／商談','担当','起票日','ナレッジ'],rows.map(c=>tr([`<a href="#/case/${c.id}">${c.no}</a>`,`<a href="#/case/${c.id}">${esc(c.subject)}</a>`,c.type,c.priority,stPill(c.status),pj(c),ul(c.owner),fmtD(c.opened),c.kb?`<a href="#/kb/${c.kb}">📖 記事</a>`:'—'])))});
+};
+const _wpcCloseCase = closeCase;
+closeCase = function(id){
+  const c=byId(DB.cases,id); if(!c||c.pj) return _wpcCloseCase(id);
+  const o=byId(DB.opps,c.opp)||{}, tmp={id:'__wpcOpp',name:'（受注前）商談：'+(o.name||'')}; DB.projects.push(tmp); c.pj=tmp.id;
+  try{ return _wpcCloseCase(id); } finally { c.pj=''; DB.projects.splice(DB.projects.indexOf(tmp),1); }
+};
 /* ===== WPC END ===== */
 /* ===== WPP BEGIN ===== */
 /* WP-A の類似案件比較（構成ユニット）へ WP-C のユニットデータを渡す */
