@@ -5673,6 +5673,79 @@ function arcRest(a){ const n=+String(a.id).replace(/\D/g,'')||0, d='—';
 { const _ad2=wpaAccDetail; wpaAccDetail=function(a){ const h=_ad2.apply(this,arguments); const k='<div class="wpa-sec"><div class="wpa-sec-h">▼ 住所'; const i=h.indexOf(k);
   return i>=0 ? h.slice(0,i)+arcRest(a)+h.slice(i) : h; }; }
 RV_CQ.push(["CQ-85", "営業", "（Argus 取引先画面）得意先・納入先・請求先の住所、請求先の金額制限、請求詳細（OBIC登録情報：締請求／都度請求の締日・回収・入金方法・サイト・支払方法コード）、申請項目（取引先管理票・与信限度額申請書）、稼働資産（機種別の自社／他社の台数）の要否と、OBIC との連携・申請の運用を Salesforce で行うか", "取引先の詳細に「Argus の取引先区分（要否確認）」として折りたたみで全項目を表示（値は架空）", "Argus 取引先画面, CQ-81, CQ-84", "#/account/A001"]);
+/* ===== 10/27 定例議事録の反映（PL） ===== */
+(()=>{ const set=(id,k,v)=>{ const c=RV_CQ.find(c=>c[0]===id); if(c) c[k]=v; };
+  set("CQ-48",3,"【10/27 方向性】ステップ1は受注前のプロセスに加え、加工管理・起案管理・設計管理が対象（設計管理の対象範囲は今後確認）。製造・購買は次のステップ以降");
+  set("CQ-61",3,"【10/27 決定】受注の定義＝製造依頼書の発行（内示を含む）。営業担当→課長→営業統括課→企画部の承認で、フェーズを自動で「受注」にする。差し戻しがあっても受注日は変えない");
+  set("CQ-65",3,"【10/27 方向性】本社－現地法人－納品先工場の親子構造。海外法人は子会社／独立の両方あり。商社は独立して管理（代理店はない）。OBICの管理単位を確認しながら構成を決める");
+  set("CQ-77",3,"【10/27 確認】ネット＝設備本体＋輸送費、グロス＝ネット＋商社手数料・バックマージン（BM）。当面は手数料の金額と率を入力。BMは案件・お客様で異なる（6・7％、通常10％）。細かな計算方式・粗利の基準は今後");
+  set("CQ-80",3,"【10/27 回答】HO関連＝ホーニング関連、ODM＝カスタマイズ品。違いは Phase2 のテスト加工の検討。商材に応じて必要なフェーズを定義（弊社から提示・宿題10）");
+  set("CQ-81",3,"【10/27 方向性】Argus のデータを先に移行し、OBIC との突合・連携は将来検討（リアルタイム連携なし）。持つ区分は未確認。画面上の取引先名は略称、正式名称は別項目");
+})();
+RV_CQ.push(["CQ-86", "共通", "（10/27）管理番号（FixNo.）の採番規則の全体：国コード以外のルール、番号の後ろに付く情報、命名規則（Argus の採番ルール一覧のご共有）", "先頭の英字（拠点区分）・年・通し番号5桁で仮置き", "10/27 議事録 3, 宿題1", "#/opp/O001"],
+  ["CQ-87", "ツール奪回", "（10/27）ツール奪回の上位画面（会社全体の状況・景気動向・定例会の報告）を残すか。ツールごとのレコードだけで管理するか。上位で見たい内容。ステップ1での範囲（継続購買・保守への移行の扱い）", "ツールごとのレコード＋購入サイクルからの売上予測。上位画面は作っていない", "10/27 議事録 5, 宿題5", "#/wpatools"],
+  ["CQ-88", "営業", "（10/27）Argus の 02_受注済 の利用状況と作成の背景（部長・分析担当の利用の可能性）。不要なら新システムは 01_引合 を基準にする", "01_引合を基準に商談を構成", "10/27 議事録 6, 宿題4", "#/opps"],
+  ["CQ-89", "営業", "（10/27）ランク・フェーズの Salesforce 向けの形：OK〜D のランクと Phase の対応、HO関連／ODM別のフェーズ定義、商談の商材区分の持ち方（弊社から提示・宿題10）", "Phase1〜4＋受注、ランク6段階、商材区分を項目で仮置き", "10/27 議事録 7, 8", "#/opp/O001"],
+  ["CQ-90", "営業", "（10/27）バックマージンの上限と承認：15％を超える外貨送金は社長承認が必要なため15％以下で運用。商社手数料の率の入力範囲、総額の変動時の再計算、粗利の基準", "率・金額を入力、15％超は注意表示のみ（仮置き）", "10/27 議事録 8", "#/opp/O003"],
+  ["CQ-91", "共通", "（10/27）会議体：営業の定例は毎週水曜10:00、全体会は議題に応じて月1回程度（ヒアリングシートの全体会は11/5（木）15:00）、技術分科会の日程・参加者、閲覧制御（営業には見せて技術には見せない情報）", "—", "10/27 議事録 1, 宿題7・15", "#/review"]);
+
+/* 金額：ネット＝設備本体＋輸送費、グロス＝ネット＋商社手数料・BM。当面は手数料の金額と率を入力（10/27）。金額は円で管理 */
+function arBmRate(o){ const ag=o.agent||(acc(o.acc)||{}).agent; if(!ag) return 0; if(o.bmRate!=null) return o.bmRate; return [6,7,10][(+String(o.id).replace(/\D/g,'')||0)%3]; }
+wpaAmt = function(o){ const won=o.stage>=OPP_WON, ag=o.agent||(acc(o.acc)||{}).agent, rate=arBmRate(o);
+  const p=o.project&&byId(DB.projects,o.project), gp=p?(()=>{const c=pjCalc(p);return c.revenue-c.costForecast;})():null;
+  const gross=o.amount, bm=Math.round(gross*rate/100), net=gross-bm;
+  return wpaF('見積金額',yen(o.amount),1)+wpaF('グロス金額（ネット＋商社手数料・BM）',yen(gross)+' '+WPA_KARI('CQ-77'),1)
+    +wpaF('商社手数料・BM（率／金額）',ag?(rate+'％ ／ '+yen(bm)+(rate>15?' <span class="pill r">15％超：外貨送金は社長承認</span>':'')):'なし（商社経由でない）',1)
+    +wpaF('ネット金額（設備本体＋輸送費）',yen(net)+' '+WPA_KARI('CQ-77'),1)+wpaF('粗利額',gp==null?'—':yen(gp),1)
+    +`<div class="small muted wpa-amt">10/27確認：BMは案件・お客様で異なる（6％・7％、通常10％）。15％超は社長承認が必要なため15％以下で運用。当面は手数料の金額と率を入力できればよく、計算方式・粗利の基準は今後 ${WPA_KARI('CQ-90')}。金額は円で管理（実際の請求が外貨の場合もある）</div>`; };
+/* 商談：受注の定義、FixNo.（通し番号5桁）、商材区分、代理店はない（商社として独立） */
+function arOrder(id){ const o=byId(DB.opps,id); if(!o||o.stage>=OPP_WON) return; toast('製造依頼書を発行し、課長→営業統括課→企画部の承認を経ました（デモ）。フェーズを自動で「受注」にします','info'); setOppStage(id,OPP_WON); }
+{ const _od2=wpaOppDetail; wpaOppDetail=function(o){ let h=_od2.apply(this,arguments); const n=+String(o.id).replace(/\D/g,'')||0, won=o.stage>=OPP_WON;
+  h=h.replace('<span class="muted">Q6で設計</span>',`<span>製造依頼書の発行（内示を含む）→ 課長 → 営業統括課 → 企画部の承認で、フェーズを自動で「受注」に（10/27 決定）。差し戻しがあっても受注日は変えない</span>${won?'':' <button class="btn" onclick="arOrder(\''+o.id+'\')">製造依頼書を発行・承認（デモ）</button>'}`);
+  h=h.replace(/T26-(\d{4})/,(m,d)=>'T26-'+String(+d).padStart(5,'0'));
+  h=h.replace('Fix No.（移行元の番号）','Fix No.（通し番号は5桁）');
+  const k='▼ 基本情報</div><div class="fields">'; const i=h.indexOf(k);
+  if(i>=0) h=h.slice(0,i+k.length)+fld('商材区分 '+AR_B,(n%4===3?'ODM（カスタマイズ品）':'HO関連（ホーニング関連）')+' <span class="tent kari">仮置き・要確認（CQ-89）</span>')+h.slice(i+k.length);
+  h=h.split('商社・代理店').join('商社（代理店はない）');
+  return h; }; }
+{ const _ad3=wpaAccDetail; wpaAccDetail=function(a){ let h=_ad3.apply(this,arguments);
+  h=h.replace('取引先英語名','取引先英語名').replace('取引先正式名称','取引先正式名称（画面上の名称は略称）');
+  return h.split('商社・代理店').join('商社（独立して管理）'); }; }
+/* ツール奪回：ツール（軸）ごとにレコードを分け、進捗・確度・受注／失注・売上を管理（10/27）。上位画面は未確定（CQ-87） */
+DB.tools=[
+ {id:'TL01',acc:'A001',equip:'ホーニング盤 HM-V400',proc:'1工程目',axis:1,cycle:3,unit:420000,status:'進行中',prob:60,next:'2026-12',region:'国内'},
+ {id:'TL02',acc:'A001',equip:'ホーニング盤 HM-V400',proc:'2工程目',axis:2,cycle:3,unit:380000,status:'受注',prob:100,next:'2026-11',region:'国内'},
+ {id:'TL03',acc:'A001',equip:'ホーニング盤 HM-V400',proc:'3工程目',axis:3,cycle:6,unit:350000,status:'失注',prob:0,next:'—',region:'国内'},
+ {id:'TL04',acc:'A002',equip:'縦型ホーニング盤',proc:'仕上げ',axis:1,cycle:1,unit:150000,status:'受注',prob:100,next:'2026-11',region:'国内'},
+ {id:'TL05',acc:'A003',equip:'自動ホーニングセル',proc:'荒加工',axis:1,cycle:3,unit:520000,status:'進行中',prob:40,next:'2027-01',region:'国内'},
+ {id:'TL06',acc:'A003',equip:'自動ホーニングセル',proc:'仕上げ',axis:2,cycle:3,unit:480000,status:'進行中',prob:50,next:'2027-01',region:'国内'},
+ {id:'TL07',acc:'A013',equip:'長尺ホーニング盤',proc:'1工程目',axis:1,cycle:3,unit:610000,status:'進行中',prob:30,next:'2027-02',region:'海外'},
+ {id:'TL08',acc:'A009',equip:'自動ホーニングライン',proc:'1工程目',axis:1,cycle:6,unit:700000,status:'受注',prob:100,next:'2027-03',region:'国内'}];
+const arTlName = t => (acc(t.acc).name||'').replace(/株式会社|Co\., Ltd\./g,'').trim()+' '+t.equip+' '+t.proc+'・'+t.axis+'軸目';
+const arTlYear = (t,y)=> t.status==='失注'?0:(t.status==='受注'||y===1?Math.floor(12/t.cycle)*t.unit*(t.status==='受注'?1:t.prob/100):Math.floor(12/t.cycle)*t.unit*t.prob/100);
+function arTlSet(id,v){ const t=byId(DB.tools,id); if(!t) return; t.status=v; t.prob=v==='受注'?100:v==='失注'?0:(t.prob||40); toast(`「${arTlName(t)}」を「${v}」にしました`); route(); }
+EXT.routes.wpatools = () => { const rows=DB.tools; const sum=y=>rows.reduce((a,t)=>a+arTlYear(t,y),0);
+  return `<div class="page-h"><div class="top"><span class="obj-icon i-opp">🔧</span><div><div class="obj-label">ツール奪回</div><h1>ツール（軸）ごとの管理</h1></div></div></div>
+  <div class="wpa-band info" id="ko-T-C01"><span class="wpa-band-tag">10/27 方向性</span> 実際の活動はツールごと。同じ設備でもホーニングの1〜4軸目で別のツールを使う場合は、それぞれ別のレコードにします（購入サイクルや受注可否はツールごとに異なる）。一覧で判別できるよう、レコード名に工程名・軸番号を入れます。<span class="tent kari">仮置き・要確認（CQ-87）</span><div class="small muted mt8">上位画面（会社全体の状況・景気動向・定例会の報告）を残すかは、見たい内容を確認してから決めます。受注後は継続購買・保守の管理へ移ります（ステップ1の範囲は要確認）。値は架空です。</div></div>
+  <div class="grid3"><div class="card kpi"><div class="l">1年目の売上予測</div><div class="v">${man(sum(1))}</div></div><div class="card kpi"><div class="l">2年目の売上予測</div><div class="v">${man(sum(2))}</div></div><div class="card kpi"><div class="l">レコード数</div><div class="v">${rows.length}</div><div class="s">受注 ${rows.filter(t=>t.status==='受注').length}／失注 ${rows.filter(t=>t.status==='失注').length}</div></div></div>
+  <div class="card"><div class="card-h">ツール一覧</div><div class="card-b tbl-wrap">${tbl(['レコード名','取引先','購入サイクル','単価（1回）','確度','状況','次回購入','#1年目の売上予測','#2年目の売上予測'],rows.map(t=>tr([esc(arTlName(t)),al(t.acc),(t.region==='海外'?'海外：':'国内：')+t.cycle+'か月ごと',[yen(t.unit)],[t.prob+'%'],`<select onchange="arTlSet('${t.id}',this.value)">${['進行中','受注','失注'].map(v=>`<option${v===t.status?' selected':''}>${v}</option>`).join('')}</select>`,t.next,[yen(arTlYear(t,1))],[yen(arTlYear(t,2))]])))}
+  <div class="small muted mt8">購入サイクル（最短1か月単位）から、1年目・2年目の売上を予測します。購入頻度は国内（毎月〜半年に1回）・海外（3か月ごとなど）で異なります。OBICには会社・対象ワーク・設備番号・金額・取り組み内容の記録の形跡があり、受注フラグと金額を持てば集計は可能です。</div></div></div>`; };
+EXT.navKeys.wpatools='';
+EXT.launch.push(['wpatools','ツール奪回','i-opp','🔧']);
+/* 要件レビュー画面：10/27 の章 */
+const MTG27_ITEMS=[
+ ['N-A01','受注','受注の定義＝製造依頼書の発行（内示を含む）。承認でフェーズを自動で「受注」に','#/opp/O001','eigyo','ko-T-A02'],
+ ['N-A02','金額','グロス・ネット・商社手数料（BM）の定義と入力（率・金額、15％超の注意）','#/opp/O003','eigyo','ko-T-A02'],
+ ['N-A03','管理番号','FixNo. は通し番号5桁（既存データも00277のように補正して移行）','#/opp/O001','eigyo','ko-T-A02'],
+ ['N-A04','取引先','略称と正式名称、本社－現地法人－納品先工場の親子、商社は独立（代理店はない）','#/account/A001','eigyo','ko-T-A01'],
+ ['N-A05','商談','商材区分（HO関連／ODM）。商材に応じて必要なフェーズを定義（提示は宿題）','#/opp/O001','eigyo','ko-T-A02'],
+ ['N-C01','ツール奪回','ツール（軸）ごとにレコードを分け、購入サイクルから売上を予測','#/wpatools','eigyo','ko-T-C01']];
+function wppOpenN(id){ const x=MTG27_ITEMS.find(r=>r[0]===id); if(!x) return; goAs(x[3],x[4]); let n=0; const t=setInterval(()=>{ const el=document.getElementById(x[5]); n++; if(el){ clearInterval(t); el.scrollIntoView({block:'center'}); el.classList.add('wpp-hl'); setTimeout(()=>el.classList.remove('wpp-hl'),2200); } else if(n>15) clearInterval(t); },80); }
+{ const _rv4=EXT.routes.review; EXT.routes.review=(...a)=>{ const h=_rv4(...a), k='<div class="card wpp-k" id="rv-mtg1022">';
+  const sec=`<div class="card wpp-k" id="rv-mtg1027"><div class="card-h">10/27 週次定例（議事録）反映分（${MTG27_ITEMS.length}項目）<span class="right small muted">確認事項は CQ-86〜91</span></div><div class="card-b">
+  <div class="note mb8"><b>会議体（10/27 決定）：</b>営業の定例は毎週水曜10:00（次回 11/4）。全体会は議題に応じて月1回程度。ヒアリングシートの全体会は11/5（木）15:00。技術分科会は未開催のため今後調整します。<b>ステップ1：</b>受注前のプロセスに加え、加工管理・起案管理・設計管理が対象。製造・購買は次のステップ以降。<span class="tent kari">仮置き・要確認（CQ-48・CQ-91）</span></div>
+  ${MTG27_ITEMS.map(x=>`<div class="wpp-row"><span class="rv-id"><b>${x[0]}</b></span><div><b>${esc(x[1])}</b>：${esc(x[2])}</div><div><button class="btn brand" onclick="wppOpenN('${x[0]}')">開く<span class="rv-role">（${RV_ROLE[x[4]]||x[4]}ロール）</span></button></div></div>`).join('')}
+  </div></div>`; return h.includes(k)?h.replace(k,sec+k):h+sec; }; }
 /* ===== WPP END ===== */
 
 applyRoleUi();
